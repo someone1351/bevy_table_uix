@@ -1,0 +1,7 @@
+include "test3.ui_conf"
+
+node
+	width 100
+	height 200
+	color 255 0 220
+	

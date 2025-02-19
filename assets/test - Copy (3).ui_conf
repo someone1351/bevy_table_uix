@@ -1,0 +1,46 @@
+script
+	var abc 0.5
+
+template ttt
+	node
+		script
+			var template_thing abc;
+		script
+			var template_thing2 abc2;
+
+
+apply x
+	width 100
+	height 100
+
+node
+	width 150
+	height 150
+	color 255 30 0
+	script
+		var q 0.1
+
+	template ttt
+	template ttt
+
+	node x
+		mut
+			width 50
+			height 50
+		mut
+			color 255 230 0
+	
+		script
+			set env.x.color.r {+ q abc}
+
+
+template t
+	color 0 0 255
+
+apply x
+	template t
+
+apply x
+	color 0 255 0
+	#width 100
+	#height 100

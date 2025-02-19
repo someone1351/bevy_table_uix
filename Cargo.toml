@@ -1,0 +1,18 @@
+[package]
+name = "bevy_table_uix"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+conf_lang = {path = "../conf_lang"}
+script_lang = {path = "../script_lang"}
+bevy_chair_input_map = {path = "../bevy_chair_input_map"}
+bevy_table_ui = {path = "../bevy_table_ui"}
+
+
+bevy = { version = "0.15.0", features = ["serialize","file_watcher","dynamic_linking"] }
+
+
+thiserror = "1.0.62"
+ron = "0.8.1"
+serde = { version = "1.0.204", features = ["derive"] }

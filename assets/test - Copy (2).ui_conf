@@ -1,0 +1,69 @@
+include "test2.ui_conf"
+
+template abc
+	color 255 0 0
+	width 50
+	height 50
+	hoverable
+	on hover
+		color 255 255 100
+
+template square
+	width 10
+	height 10
+
+	mut
+		color 0 255 255
+node
+	width 150
+	height 100
+	color 255 30 0
+	node
+		color 55 30 0
+		font fonts/FiraMono-Medium.ttf
+		text abc
+		font_size 20
+		text_color 255 100 255
+		text_halign center
+		text_valign center
+
+	#
+
+	node
+		gap 10
+		node square
+			
+			width 10
+			height 10
+			mut
+				color 255 1 255
+			color 255 110 255
+
+		node square
+
+		node square
+			
+			width 10
+			height 10
+
+		node square
+			
+			width 10
+			height 10
+			
+			color 110 210 55
+
+	apply square
+		template square
+		#color 0 110 255
+apply square
+	#color 20 111 44
+node
+	width 100
+	height 200
+	color 255 220 0
+	
+	node
+		template abc
+		
+	

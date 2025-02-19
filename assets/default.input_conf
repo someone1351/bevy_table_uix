@@ -1,0 +1,161 @@
+repeat
+    Ui(FocusUp) 0.2
+    Ui(FocusRight) 0.2
+
+scale "game_kbm"
+	Game(MousePitch) 1.0
+	Game(MouseYaw) 1.0
+
+scale "game_gamepad"
+	Game(Pitch) 1.0
+	Game(Yaw) 1.0
+
+invert "game_kbm"
+	Game(MousePitch) false
+	Game(MouseYaw) false
+
+invert "game_gamepad"
+	Game(Pitch) false
+	Game(Yaw) false
+
+bindings "global"
+	Global(Exit)
+		Key(F4)
+		Key(ControlLeft) Key(F1) -1
+		Key(ShiftLeft) Key(F3)
+		#Key(ControlLeft) Key(ShiftLeft) Key(F2)
+		
+		#MouseMoveY 1
+
+	Global(Test("0"))
+		Key(F1)
+		Key(ShiftLeft) Key(F2)
+
+	Global(Test("1"))
+		Key(F1)
+		Key(ControlLeft) Key(ShiftLeft) Key(F2)
+	Global(Test("2"))
+		MouseScrollLineY 1
+		
+	Global(ScreenShot)
+		Key(F12)
+
+bindings "ui_gamepad"
+	Ui(FocusUp)
+		GamepadAxisPos(LeftStickY)
+		GamepadAxisNeg(LeftStickY) -1
+		GamepadAxisPos(RightStickY)
+		GamepadAxisNeg(RightStickY) -1
+		GamepadButton(DPadUp)
+		GamepadButton(DPadDown) -1
+
+	Ui(FocusRight)
+		GamepadAxisPos(LeftStickX)
+		GamepadAxisNeg(LeftStickX) -1
+		GamepadAxisPos(RightStickX)
+		GamepadAxisNeg(RightStickX) -1
+		GamepadButton(DPadRight)
+		GamepadButton(DPadLeft) -1
+
+	Ui(FocusOk)
+		GamepadButton(South)
+		GamepadButton(RightTrigger2)
+
+	Ui(FocusCancel)
+		GamepadButton(East)
+		GamepadButton(LeftTrigger2)
+
+	Ui(FocusNext(1))
+		GamepadButton(RightTrigger)
+		GamepadButton(LeftTrigger) -1
+
+bindings "ui_kb"
+	Ui(FocusUp)
+		Key(KeyW)
+		Key(KeyS) -1
+		Key(ArrowUp)
+		Key(ArrowDown) -1
+
+	Ui(FocusRight)
+		Key(KeyD)
+		Key(KeyA) -1
+		Key(ArrowRight)
+		Key(ArrowLeft) -1
+
+	Ui(FocusOk)
+		Key(Enter)
+		Key(Space)
+
+	Ui(FocusCancel)
+		Key(Escape)
+
+	Ui(FocusNext(0))
+		Key(Tab)
+		Key(Backquote) -1
+
+	Ui(FocusNext(1))
+		Key(KeyE)
+		Key(KeyQ) -1
+
+bindings "ui_mouse"
+	Ui(CursorOk)
+		MouseButton(Left)
+
+	Ui(CursorCancel)
+		MouseButton(Right)
+
+	Ui(ScrollHori)
+		MouseScrollLineX 1
+		
+	Ui(ScrollVert)
+		MouseScrollLineY 1
+		
+	Ui(FocusNext(1))
+		MouseButton(Forward) 1
+		MouseButton(Back) -1
+
+
+excludes
+	MouseMoveX
+	MouseMovePosX
+	MouseMoveNegX
+
+	MouseMoveY
+	MouseMovePosY
+	MouseMoveNegY
+
+	MouseScrollLineX
+	MouseScrollLinePosX
+	MouseScrollLineNegX
+
+	MouseScrollLineY
+	MouseScrollLinePosY
+	MouseScrollLineNegY
+
+	MouseScrollPixelX
+	MouseScrollPixelPosX
+	MouseScrollPixelNegX
+
+	MouseScrollPixelY
+	MouseScrollPixelPosY
+	MouseScrollPixelNegY
+
+	Key(Escape)
+	GamepadButton(Start)
+	GamepadButton(Select)
+
+	GamepadAxis(LeftStickX)
+	GamepadAxisPos(LeftStickX)
+	GamepadAxisNeg(LeftStickX)
+
+	GamepadAxis(LeftStickY)
+	GamepadAxisPos(LeftStickY)
+	GamepadAxisNeg(LeftStickY)
+
+	GamepadAxis(RightStickX)
+	GamepadAxisPos(RightStickX)
+	GamepadAxisNeg(RightStickX)
+
+	GamepadAxis(RightStickY)
+	GamepadAxisPos(RightStickY)
+	GamepadAxisNeg(RightStickY)	

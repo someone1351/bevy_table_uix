@@ -1,0 +1,70 @@
+node "root"
+	color 0.01 0.3 0.1 0.8
+	border_color 0.3 0.1 0.1 0.8
+	border 30
+	pressable
+	
+	node "page"
+		width 500
+		height 500
+		draggable
+		color 0.01 0.02 0.9 1.0
+		
+		text "X"
+		text_size 40
+		text_font "fonts/FiraMono-Medium.ttf"
+		text_color 255 255 255
+		text_halign right
+		text_valign bottom
+		
+		pressable
+		hoverable
+		vgap 10
+		span 1
+		
+		script
+			for i 0 33 {
+				var child {add_child self}
+				set child.text_size 20
+				set child.color {vec4 0.9 0.9 0.2 0.5}
+				set child.text_font "fonts/FiraMono-Medium.ttf"
+				set child.text {format "text {i}"}
+				
+				
+			}
+			
+			add_event_listener self :drag_y {fn {dy} {
+				set self.scroll_y {- self.scroll_y dy}
+				set self.scroll_y {clamp self.scroll_y 0.0 self.computed.scroll_height}
+				
+				
+				
+				#self.scroll_y -= dy
+				#self.scroll_y = clamp(self.scroll_y,0.0,scroll_height)
+				
+				set env.scroll_bar_button.valign {/      }
+				
+				
+			}}
+			
+			add_event_listener self :update {fn {dy} {
+			}
+			
+
+			
+	node "scroll_bar"
+		width 50
+		vfill 1.0
+		color 0.1 0.8 0.2 1.0
+
+		node "scroll_bar_button"
+			width 50
+			height 50
+			color 0.8 0.4 0.2 1.0
+			draggable
+			
+			script
+				add_event_listener self "drag_y" {fn {dy} {
+					set self.scroll_y {- self.scroll_y dy}
+					set self.scroll_y {clamp self.scroll_y 0.0 self.computed.scroll_height}					
+				}}
