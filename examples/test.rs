@@ -1,16 +1,16 @@
 
-// #![allow(unused_mut)]
+#![allow(unused_mut)]
 // #![allow(dead_code)]
-// #![allow(unused_variables)]
+#![allow(unused_variables)]
 // #![allow(unused_imports)]
 // // #![allow(unused_assignments)]
 // // #[allow(unused_parens)]
 
-// use hello::input_map;
+// use hello::axis_input;
 
 // use std::collections::HashMap;
 
-use bevy_chair_input_map as input_map;
+use bevy_axis_input as axis_input;
 use bevy_table_ui as table_ui;
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, };
@@ -53,7 +53,7 @@ fn main() {
 
             //
             // assets::CustomAssetsPlugin,
-            input_map::InputMapPlugin::<input::Mapping>::default(),
+            axis_input::InputMapPlugin::<input::Mapping>::default(),
             table_ui::UiLayoutPlugin,
             table_ui::UiInteractPlugin,
             table_ui::UiDisplayPlugin,
@@ -82,7 +82,7 @@ fn main() {
             run_input,
             global_input,
             // run_ui.before(table_ui::UiInteractSystemSet),
-            ).after(input_map::InputMapSystem)
+            ).after(axis_input::InputMapSystem)
         )
         ;
 
@@ -90,7 +90,7 @@ fn main() {
 }
 
 fn setup_input(
-    mut input_map: ResMut<input_map::InputMap<input::Mapping>>,
+    mut axis_input: ResMut<axis_input::InputMap<input::Mapping>>,
 ) {
 
     // #[derive(Clone,Debug,serde::Deserialize,Hash,PartialEq,Eq,Ord,PartialOrd)]
@@ -104,48 +104,48 @@ fn setup_input(
     // let a:Box<dyn std::any::Any>=Box::new(SomeGlobalMapping::Exit);
     // let b:Box<dyn std::any::Any>=Box::new(String::from("value"));
 
-    input_map.set_player_devices(0, [input_map::Device::Other,input_map::Device::Gamepad(0)]);
-    // input_map.set_player_bind_mode_devices(0,[input_map::Device::Other,input_map::Device::Gamepad(0)]);
-    // input_map.set_player_mapping_binds(0, [
-    //     (input::Mapping::Global(input::GlobalMapping::Exit),vec![input_map::Binding::Key(KeyCode::F4)],1.0,0.0,0.0),
+    axis_input.set_player_devices(0, [axis_input::Device::Other,axis_input::Device::Gamepad(0)]);
+    // axis_input.set_player_bind_mode_devices(0,[axis_input::Device::Other,axis_input::Device::Gamepad(0)]);
+    // axis_input.set_player_mapping_binds(0, [
+    //     (input::Mapping::Global(input::GlobalMapping::Exit),vec![axis_input::Binding::Key(KeyCode::F4)],1.0,0.0,0.0),
     // ]);
 }
 
 fn run_input(
-    mut input_map_event: EventReader<input_map::InputMapEvent<input::Mapping>>,
-    mut input_map: ResMut<input_map::InputMap<input::Mapping>>,
+    mut input_map_event: EventReader<axis_input::InputMapEvent<input::Mapping>>,
+    mut axis_input: ResMut<axis_input::InputMap<input::Mapping>>,
 ) {
 
     for ev in input_map_event.read() {
         match ev {
-            input_map::InputMapEvent::JustPressed{..} | input_map::InputMapEvent::JustReleased{..}
-            | input_map::InputMapEvent::BindPressed { ..}| input_map::InputMapEvent::BindReleased { ..}
-            | input_map::InputMapEvent::Repeat{..}
+            axis_input::InputMapEvent::JustPressed{..} | axis_input::InputMapEvent::JustReleased{..}
+            | axis_input::InputMapEvent::BindPressed { ..}| axis_input::InputMapEvent::BindReleased { ..}
+            | axis_input::InputMapEvent::Repeat{..}
             => {
                 println!("{ev:?}");
             }
             _=>{}
         }
         match ev {
-            input_map::InputMapEvent::BindReleased { ..} => {
-                input_map.set_player_bind_mode_devices(0,[]);
+            axis_input::InputMapEvent::BindReleased { ..} => {
+                axis_input.set_player_bind_mode_devices(0,[]);
             }
             _=>{}
         }
         // match ev {
-        //     input_map::InputMapEvent::JustPressed(_player,m,d) => {
+        //     axis_input::InputMapEvent::JustPressed(_player,m,d) => {
 
         //     }
-        //     input_map::InputMapEvent::JustPressed(_player,m,d) => {
+        //     axis_input::InputMapEvent::JustPressed(_player,m,d) => {
 
         //     }
-        //     input_map::InputMapEvent::Repeat(_player,_m ,_d ,_t ) => {
+        //     axis_input::InputMapEvent::Repeat(_player,_m ,_d ,_t ) => {
 
         //     }
-        //     input_map::InputMapEvent::ValueChanged(_player, m, d) => {
+        //     axis_input::InputMapEvent::ValueChanged(_player, m, d) => {
 
         //     }
-        //     input_map::InputMapEvent::TempValueChanged(_player, m, d) => {
+        //     axis_input::InputMapEvent::TempValueChanged(_player, m, d) => {
 
         //     }
         // };
@@ -201,7 +201,7 @@ where
 }
 
 fn global_input(
-    mut input_map_event: EventReader<input_map::InputMapEvent<input::Mapping>>,
+    mut input_map_event: EventReader<axis_input::InputMapEvent<input::Mapping>>,
     mut exit: EventWriter<AppExit>,
     // mut commands: Commands,
     // mut screenshot_manager: ResMut<bevy::render::view::screenshot::ScreenshotManager>,
@@ -213,12 +213,12 @@ fn global_input(
 
     for ev in input_map_event.read() {
         match ev {
-            input_map::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::Exit),..} => {
+            axis_input::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::Exit),..} => {
                 // exit.send(AppExit);
                 exit.send(AppExit::Success);
                 println!("exit!");
             },
-            input_map::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::ScreenShot),..} => {
+            axis_input::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::ScreenShot),..} => {
                 if let Some(path) = generate_screenshot_path("./screenshots","screenshot_","png") {
                     // if screenshot_manager.save_screenshot_to_disk(window_entity, &path).is_err() {
                     //     eprintln!("Failed to take screenshot at {path:?}.");
@@ -247,18 +247,18 @@ fn setup_fps(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let font = asset_server.load("fonts/FiraMono-Medium.ttf");
+    let font: Handle<Font> = asset_server.load("fonts/FiraMono-Medium.ttf");
 
-    commands.spawn((
-        Text::default(),
-        TextLayout::new_with_justify(JustifyText::Center),
-        Node {align_self:AlignSelf::Start,justify_self:JustifySelf::End,..Default::default()},
-    )).with_child((
-        TextSpan::new(""),
-        TextColor::from(bevy::color::palettes::css::WHITE),
-        TextFont {font:font.clone(),font_size: 15.0,..default()},
-        FpsText
-    ));
+    // commands.spawn((
+    //     Text::default(),
+    //     TextLayout::new_with_justify(JustifyText::Center),
+    //     Node {align_self:AlignSelf::Start,justify_self:JustifySelf::End,..Default::default()},
+    // )).with_child((
+    //     TextSpan::new(""),
+    //     TextColor::from(bevy::color::palettes::css::WHITE),
+    //     TextFont {font:font.clone(),font_size: 15.0,..default()},
+    //     FpsText
+    // ));
 }
 
 fn show_fps(

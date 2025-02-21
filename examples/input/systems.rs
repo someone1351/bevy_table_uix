@@ -1,7 +1,7 @@
 
 use bevy::prelude::*;
 use super::{resources::*, mapping::*,assets::*};
-use bevy_chair_input_map as input_map;
+use bevy_axis_input as axis_input;
 
 pub fn init(
     asset_server: Res<AssetServer>,
@@ -31,7 +31,7 @@ pub fn on_modified(
 pub fn load(
     mut input_config: ResMut<InputConfig>,
     input_assets: ResMut<Assets<InputAsset>>,
-    mut input_map: ResMut<input_map::InputMap<Mapping>>,
+    mut axis_input: ResMut<axis_input::InputMap<Mapping>>,
 ) {
     if !input_config.default_config_loaded {
         if let Some(InputAsset{conf})=input_assets.get(&input_config.default_config) {
@@ -44,7 +44,7 @@ pub fn load(
                     "binding" => {
                         let profile=walk.ancestor(1).record().first().str();
                         let mapping=walk.ancestor(0).record().first().get_parsed::<Mapping>().unwrap();
-                        // let bindings=walk.record().param_group("bindings").values().parsed::<input_map::Binding>().collect::<Vec<_>>();
+                        // let bindings=walk.record().param_group("bindings").values().parsed::<axis_input::Binding>().collect::<Vec<_>>();
                         let bindings=walk.record().param_group("bindings").values().map(|x|x.get_parsed().unwrap()).collect::<Vec<_>>();
                         let scale=walk.record().param_group("scale").first().get_parsed::<f32>().unwrap_or(1.0);
                         let primary_dead=walk.record().param_group("primary_dead").first().get_parsed::<f32>().unwrap_or(0.0);
@@ -76,7 +76,7 @@ pub fn load(
                         // println!("repeat {:?} {:?}",mapping,repeat);
                     }
                     "exclude" => {
-                        let binding= walk.record().value(0).get_parsed::<input_map::Binding>().unwrap();
+                        let binding= walk.record().value(0).get_parsed::<axis_input::Binding>().unwrap();
                         input_config.set_bind_mode_exclude(binding);
                         // println!("exclude {:?}",binding);
                     }
@@ -84,7 +84,7 @@ pub fn load(
                 }
             }).unwrap();
 
-            input_config.apply(&mut input_map);
+            input_config.apply(&mut axis_input);
         }
     }
 }

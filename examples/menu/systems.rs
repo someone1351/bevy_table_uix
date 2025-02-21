@@ -4,7 +4,7 @@ use bevy::color::Color;
 // use bevy::hierarchy::BuildChildren;
 use bevy::{asset::AssetServer, ecs::prelude::*, math::Vec2, window::Window};
 
-use bevy_chair_input_map as input_map;
+use bevy_axis_input as axis_input;
 // use crate::table_uix::UixFromAsset;
 use bevy_table_ui as table_ui;
 use bevy_table_uix::UixFromAsset;
@@ -211,8 +211,8 @@ pub fn run_input(
 
     // mut ui_input_event_reader: EventReader<UiInteractInputEvent>,
     mut ui_interact_input_event_writer: EventWriter<UiInteractInputEvent>,
-    mut input_map_event_reader: EventReader<input_map::InputMapEvent<input::Mapping>>,
-    mut _input_map : ResMut<input_map::InputMap<input::Mapping>>,
+    mut input_map_event_reader: EventReader<axis_input::InputMapEvent<input::Mapping>>,
+    mut _input_map : ResMut<axis_input::InputMap<input::Mapping>>,
 
 
     ui_root_query : Query<Entity,(With<MenuUiRoot>,)>,
@@ -231,46 +231,46 @@ pub fn run_input(
 
         for ev in input_map_events.iter() {
             match *ev {
-                input_map::InputMapEvent::JustPressed { mapping:input::Mapping::Ui(input::UiMapping::CursorOk), player, .. }=>{
+                axis_input::InputMapEvent::JustPressed { mapping:input::Mapping::Ui(input::UiMapping::CursorOk), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressBegin{root_entity, device: player});
                 }
-                input_map::InputMapEvent::JustReleased{ mapping:input::Mapping::Ui(input::UiMapping::CursorOk), player, .. }=>{
+                axis_input::InputMapEvent::JustReleased{ mapping:input::Mapping::Ui(input::UiMapping::CursorOk), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressEnd{root_entity, device: player});
                 }
 
-                input_map::InputMapEvent::JustPressed { mapping:input::Mapping::Ui(input::UiMapping::CursorCancel), player, .. }=>{
+                axis_input::InputMapEvent::JustPressed { mapping:input::Mapping::Ui(input::UiMapping::CursorCancel), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressCancel{root_entity, device: player});
                 }
 
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusUp), dir:1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusUp), dir:1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusUp { root_entity, group: player });
                 }
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusUp), dir:-1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusUp), dir:-1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusDown { root_entity, group: player });
                 }
 
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusRight), dir:1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusRight), dir:1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusRight { root_entity, group: player });
                 }
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusRight), dir:-1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusRight), dir:-1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusLeft { root_entity, group: player });
                 }
 
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusNext(0)), dir:1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusNext(0)), dir:1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusNext { root_entity, group: player });
                 }
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusNext(0)), dir:-1, player }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusNext(0)), dir:-1, player }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPrev { root_entity, group: player });
                 }
 
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusOk), player, .. }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusOk), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressBegin{root_entity, group:player, device: player});
                 }
-                input_map::InputMapEvent::JustReleased{ mapping:input::Mapping::Ui(input::UiMapping::FocusOk), player, .. }=>{
+                axis_input::InputMapEvent::JustReleased{ mapping:input::Mapping::Ui(input::UiMapping::FocusOk), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressEnd{root_entity, device: player});
                 }
 
-                input_map::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusCancel), player, .. }=>{
+                axis_input::InputMapEvent::JustPressed{ mapping:input::Mapping::Ui(input::UiMapping::FocusCancel), player, .. }=>{
                     ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressCancel{root_entity, device: player});
                 }
                 // HScroll,

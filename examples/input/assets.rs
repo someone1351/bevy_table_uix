@@ -3,14 +3,14 @@
 use bevy::{asset::{AssetLoader, LoadContext, io::Reader}, reflect::TypePath, prelude::Asset};
 
 // use crate::libs::conf_lang;
-// use crate::{Mapping, libs::input_map};
+// use crate::{Mapping, libs::axis_input};
 // use crate::input;
 
 use super::mapping::*;
-use bevy_chair_input_map as input_map;
+use bevy_axis_input as axis_input;
 
 
-#[derive(Asset, Debug, TypePath)] 
+#[derive(Asset, Debug, TypePath)]
 pub struct InputAsset {
     // pub src : String,
     pub conf : conf_lang::Conf,
@@ -36,8 +36,8 @@ impl AssetLoader for InputAssetLoader {
         &self,
         reader: &mut dyn Reader,
         _settings: &Self::Settings,
-        load_context: &mut LoadContext<'_>,) 
-     -> Result<Self::Asset, Self::Error> 
+        load_context: &mut LoadContext<'_>,)
+     -> Result<Self::Asset, Self::Error>
      {
 
         //
@@ -54,7 +54,7 @@ impl AssetLoader for InputAssetLoader {
         //
         match def.get_root_branch().parse(src,true,Some(path)) {
             Ok(conf) => {
-                let custom_asset = InputAsset {conf,}; 
+                let custom_asset = InputAsset {conf,};
                 // load_context.set_default_asset(LoadedAsset::new(custom_asset));
                 Ok(custom_asset)
             },
@@ -63,7 +63,7 @@ impl AssetLoader for InputAssetLoader {
                 Err(InputAssetLoaderError::Parse(e))
             }
         }
-    
+
     }
 
     fn extensions(&self) -> &[&str] { &["input_conf"] }
@@ -94,7 +94,7 @@ fn input_def() -> conf_lang::Def {
         .branch("exclude_branch")
             .tagless_nodes()
                 .entry(Some("exclude"))
-                    .param_parse::<input_map::Binding>()
+                    .param_parse::<axis_input::Binding>()
         .branch("scale_branch")
             .tagless_nodes()
                 .entry(Some("scale"))
@@ -115,12 +115,12 @@ fn input_def() -> conf_lang::Def {
             .tagless_nodes()
                 .entry(Some("binding"))
                     .group(Some("bindings"),false,true)
-                        .param_parse::<input_map::Binding>()
+                        .param_parse::<axis_input::Binding>()
                     .group(Some("scale"),true,false)
                         .param_parse::<f32>()
                     .group(Some("primary_dead"),true,false)
                         .param_parse::<f32>()
                     .group(Some("modifier_dead"),true,false)
                         .param_parse::<f32>()
-                    
+
 }
