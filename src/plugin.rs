@@ -19,9 +19,9 @@ impl bevy::app::Plugin for UixPlugin {
             .init_resource::<UixLibScope>()
             .init_resource::<UixGcScope>()
             .add_event::<UixUserEvent>()
-            .add_systems(Startup, (
-                init_asset ,
-            ))
+            // .add_systems(Startup, (
+            //     init_asset ,
+            // ))
             .add_systems(FixedUpdate,(
                 on_asset_modified_event,
                 (

@@ -1,28 +1,17 @@
 
 #![allow(unused_mut)]
-// #![allow(dead_code)]
 #![allow(unused_variables)]
+// #![allow(dead_code)]
 // #![allow(unused_imports)]
-// // #![allow(unused_assignments)]
-// // #[allow(unused_parens)]
+// #![allow(unused_assignments)]
+// #[allow(unused_parens)]
 
-// use hello::axis_input;
+use std::collections::HashSet;
 
-// use std::collections::HashMap;
+use bevy_table_ui::{self as table_ui, UiColor, UiInteractInputEvent, UiLayoutComputed, UiSize, UiVal};
 
-use bevy_axis_input as axis_input;
-use bevy_table_ui as table_ui;
-
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, };
-// use table_uix::UiAsset;
-// use table_ui::*;
-// use bevy::app::AppExit;
-// use bevy::render::view::screenshot::ScreenshotManager;
-// use bevy::time::common_conditions::on_timer;
-// use bevy::window::PrimaryWindow;
-
-mod input;
-mod menu;
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystem}, prelude::* };
+use bevy_table_uix::UixFromAsset;
 
 
 fn main() {
@@ -53,190 +42,56 @@ fn main() {
 
             //
             // assets::CustomAssetsPlugin,
-            axis_input::InputMapPlugin::<input::Mapping>::default(),
             table_ui::UiLayoutPlugin,
             table_ui::UiInteractPlugin,
             table_ui::UiDisplayPlugin,
             table_ui::UiAffectPlugin,
             bevy_table_uix::UixPlugin,
 
-            input::InputPlugin,
-            menu::MenuPlugin,
         ))
 
         .add_systems(Startup, (
             setup_fps,
             setup_camera,
-            setup_input,
-            // setup_ui,
+            setup_ui,
         ))
         .add_systems(Update, (
             show_fps.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
-
-            // run_input,
-            // global_input,
-            // // run_ui.before(table_ui::UiInteractSystemSet),
         ))
-        .add_systems(PreUpdate,
-        (
+        .add_systems(PreUpdate,(
             run_input,
             global_input,
-            // run_ui.before(table_ui::UiInteractSystemSet),
-            ).after(axis_input::InputMapSystem)
-        )
+        ).after(InputSystem))
         ;
 
     app.run();
 }
 
-fn setup_input(
-    mut axis_input: ResMut<axis_input::InputMap<input::Mapping>>,
-) {
-
-    // #[derive(Clone,Debug,serde::Deserialize,Hash,PartialEq,Eq,Ord,PartialOrd)]
-
-    // pub enum SomeGlobalMapping {
-    //     Exit,
-    //     Test(String),
-    //     ScreenShot
-    // }
-
-    // let a:Box<dyn std::any::Any>=Box::new(SomeGlobalMapping::Exit);
-    // let b:Box<dyn std::any::Any>=Box::new(String::from("value"));
-
-    axis_input.set_player_devices(0, [axis_input::Device::Other,axis_input::Device::Gamepad(0)]);
-    // axis_input.set_player_bind_mode_devices(0,[axis_input::Device::Other,axis_input::Device::Gamepad(0)]);
-    // axis_input.set_player_mapping_binds(0, [
-    //     (input::Mapping::Global(input::GlobalMapping::Exit),vec![axis_input::Binding::Key(KeyCode::F4)],1.0,0.0,0.0),
-    // ]);
-}
-
-fn run_input(
-    mut input_map_event: EventReader<axis_input::InputMapEvent<input::Mapping>>,
-    mut axis_input: ResMut<axis_input::InputMap<input::Mapping>>,
-) {
-
-    for ev in input_map_event.read() {
-        match ev {
-            axis_input::InputMapEvent::JustPressed{..} | axis_input::InputMapEvent::JustReleased{..}
-            | axis_input::InputMapEvent::BindPressed { ..}| axis_input::InputMapEvent::BindReleased { ..}
-            | axis_input::InputMapEvent::Repeat{..}
-            => {
-                println!("{ev:?}");
-            }
-            _=>{}
-        }
-        match ev {
-            axis_input::InputMapEvent::BindReleased { ..} => {
-                axis_input.set_player_bind_mode_devices(0,[]);
-            }
-            _=>{}
-        }
-        // match ev {
-        //     axis_input::InputMapEvent::JustPressed(_player,m,d) => {
-
-        //     }
-        //     axis_input::InputMapEvent::JustPressed(_player,m,d) => {
-
-        //     }
-        //     axis_input::InputMapEvent::Repeat(_player,_m ,_d ,_t ) => {
-
-        //     }
-        //     axis_input::InputMapEvent::ValueChanged(_player, m, d) => {
-
-        //     }
-        //     axis_input::InputMapEvent::TempValueChanged(_player, m, d) => {
-
-        //     }
-        // };
-    }
-}
-
-
-
-fn generate_screenshot_path<P>(dir : P, prefix : &str, ext : &str) -> Option<std::path::PathBuf>
-where
-    P: AsRef<std::path::Path>,
-{
-    let dir=dir.as_ref();
-    let name_start=prefix.to_string();
-    let name_end=".".to_string()+ext;
-
-    //
-    let mut last_num=0;
-
-    //
-    if !std::fs::create_dir_all(dir).is_ok() {
-        eprintln!("Failed to create screenshot directory {dir:?}.");
-        return None;
-    }
-
-    let Ok(existing) = std::fs::read_dir(dir) else {
-        eprintln!("Failed to read screenshot directory {dir:?}.");
-        return None;
-    };
-
-    for x in existing.into_iter() {
-        let Ok(x)=x else {
-            continue;
-        };
-
-        let Some(x)=x.file_name().to_str().map(|x|x.to_string()) else {
-            continue;
-        };
-
-        if !x.starts_with(name_start.as_str()) || !x.ends_with(name_end.as_str()) {
-            continue;
-        }
-
-        let Ok(x)=x[name_start.len() .. x.len()-name_end.len()].to_string().parse::<u32>() else {
-            continue;
-        };
-
-        last_num=last_num.max(x);
-    }
-
-    //
-    Some(dir.join(format!("{name_start}{:04}{name_end}", last_num+1)))
-}
 
 fn global_input(
-    mut input_map_event: EventReader<axis_input::InputMapEvent<input::Mapping>>,
     mut exit: EventWriter<AppExit>,
-    // mut commands: Commands,
-    // mut screenshot_manager: ResMut<bevy::render::view::screenshot::ScreenshotManager>,
-    // mut windows: Query<&mut Window>,
-    // main_window: Query<Entity, With<bevy::window::PrimaryWindow>>,
-    mut commands: Commands,
+    mut key_events: EventReader<KeyboardInput>,
 ) {
-    // let Ok(window_entity) = main_window.get_single() else {return;};
 
-    for ev in input_map_event.read() {
-        match ev {
-            axis_input::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::Exit),..} => {
-                // exit.send(AppExit);
-                exit.send(AppExit::Success);
-                println!("exit!");
-            },
-            axis_input::InputMapEvent::JustPressed{mapping:input::Mapping::Global(input::GlobalMapping::ScreenShot),..} => {
-                if let Some(path) = generate_screenshot_path("./screenshots","screenshot_","png") {
-                    // if screenshot_manager.save_screenshot_to_disk(window_entity, &path).is_err() {
-                    //     eprintln!("Failed to take screenshot at {path:?}.");
-                    // }
-                    commands
-                        .spawn(bevy::render::view::screenshot::Screenshot::primary_window())
-                        .observe(bevy::render::view::screenshot::save_to_disk(path));
+    for ev in key_events.read() {
+        match ev.state {
+            ButtonState::Released => {
+                match ev.key_code {
+                    KeyCode::F4 => {
+                        exit.send(AppExit::Success);
+                        println!("exit!");
+                    }
+                    _ => {}
                 }
-            },
+            }
             _ => {}
-        };
+        }
     }
+
 }
 
 
 fn setup_camera(mut commands: Commands) {
-    // commands.spawn(( Camera2dBundle { camera: Camera { ..default() }, ..default() }, ));
-    // commands.spawn(( Camera3dBundle { camera: Camera { ..default() }, ..default() }, ));
     commands.spawn(Camera3d::default());
 }
 
@@ -273,3 +128,136 @@ fn show_fps(
     }
 }
 
+
+
+pub fn setup_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    let root=commands.spawn((
+        UiLayoutComputed::default(),
+        UixFromAsset::new(asset_server.load("test.ui_conf")),
+
+        UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),..Default::default()},
+        UiSize{width:UiVal::Px(500.0),height:UiVal::Px(500.0)},
+    )).id();
+
+
+    println!("root is {root}");
+}
+
+pub fn run_input(
+    mut windows: Query<&mut Window>,
+    mut prev_cursor : Local<Option<Vec2>>,
+    mut ui_interact_input_event_writer: EventWriter<UiInteractInputEvent>,
+    ui_root_query : Query<Entity,(With<UiLayoutComputed>,Without<Parent>)>,
+
+    mut key_events: EventReader<KeyboardInput>,
+    mut mouse_button_events : EventReader<MouseButtonInput>,
+    mut key_lasts : Local<HashSet<KeyCode>>,
+){
+
+    let Ok(window) = windows.get_single_mut() else {return;};
+    let mouse_cursor = window.cursor_position();//.unwrap_or(Vec2::ZERO);
+
+    //
+
+    let device=0;
+    let group=0;
+
+    //
+    for ev in key_events.read() {
+        match ev.state {
+            ButtonState::Pressed if !key_lasts.contains(&ev.key_code) => {
+                key_lasts.insert(ev.key_code);
+
+                for root_entity in ui_root_query.iter() {
+                    match ev.key_code {
+                        KeyCode::KeyW|KeyCode::ArrowUp => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusUp { root_entity, group });
+                        }
+                        KeyCode::KeyS|KeyCode::ArrowDown => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusDown { root_entity, group });
+                        }
+                        KeyCode::KeyA|KeyCode::ArrowLeft => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusRight { root_entity, group });
+                        }
+                        KeyCode::KeyD|KeyCode::ArrowRight => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusLeft { root_entity, group });
+                        }
+                        KeyCode::Tab|KeyCode::KeyE => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusNext { root_entity, group });
+                        }
+                        KeyCode::KeyQ => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPrev { root_entity, group });
+                        }
+                        KeyCode::Space|KeyCode::Enter => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressBegin{root_entity, group, device});
+                        }
+                        KeyCode::Escape => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressCancel{root_entity, device});
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            ButtonState::Released => {
+                key_lasts.remove(&ev.key_code);
+
+                for root_entity in ui_root_query.iter() {
+                    match ev.key_code {
+                        KeyCode::Space|KeyCode::Enter => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::FocusPressEnd{root_entity, device});
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    //
+    for ev in mouse_button_events.read() {
+        match ev.state {
+            ButtonState::Pressed => {
+                for root_entity in ui_root_query.iter() {
+                    match ev.button {
+                        MouseButton::Left => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressBegin{root_entity, device});
+                        }
+                        MouseButton::Right => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressCancel{root_entity, device});
+                        }
+                        MouseButton::Forward => {
+                        }
+                        MouseButton::Back => {
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            ButtonState::Released => {
+                for root_entity in ui_root_query.iter() {
+                    match ev.button {
+                        MouseButton::Left => {
+                            ui_interact_input_event_writer.send(UiInteractInputEvent::CursorPressEnd {root_entity, device});
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+
+    }
+
+    for root_entity in ui_root_query.iter() {
+        if *prev_cursor!=mouse_cursor {
+            let player=0;
+            ui_interact_input_event_writer.send(UiInteractInputEvent::CursorMoveTo{root_entity,device: player,cursor:mouse_cursor});
+        }
+    }
+
+    *prev_cursor=mouse_cursor;
+
+}

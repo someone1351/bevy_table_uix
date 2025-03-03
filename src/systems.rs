@@ -33,13 +33,13 @@ use super::{
     // resources::*,
 };
 
-pub fn init_asset(
-    asset_server: Res<AssetServer>,
-    mut test:Local<Handle<UiAsset>>,
-) {
-    *test=asset_server.load("test.ui_conf");
-    // let x: Handle<UiAsset> =asset_server.load("test.ui_conf");
-}
+// pub fn init_asset(
+//     asset_server: Res<AssetServer>,
+//     mut test:Local<Handle<UiAsset>>,
+// ) {
+//     // *test=asset_server.load("test.ui_conf");
+//     // let x: Handle<UiAsset> =asset_server.load("test.ui_conf");
+// }
 
 pub fn on_asset_modified_event(
     mut asset_events: EventReader<AssetEvent<UiAsset>>,

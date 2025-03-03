@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 use bevy::{ecs::prelude::*, utils::HashMap};
 use bevy::asset::prelude::*;
+use bevy_table_ui::UiLayoutComputed;
 
 // use std::collections::{BTreeSet, HashMap};
 
@@ -33,6 +34,7 @@ pub struct UixEnv {
 }
 
 #[derive(Component)]
+#[require(UiLayoutComputed)]
 pub struct UixFromAsset {
     pub handle : Handle<UiAsset>,
     pub all_dep_ids : HashSet<AssetId<UiAsset>>,
