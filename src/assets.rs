@@ -94,7 +94,7 @@ pub fn parse_identity(s:&str) -> Option<()> {
     Some(())
 }
 
-#[derive(Asset, Debug, TypePath,)] 
+#[derive(Asset, Debug, TypePath,)]
 pub struct UiAsset {
     // pub src : String,
     pub conf : conf_lang::Conf,
@@ -103,7 +103,7 @@ pub struct UiAsset {
 
 #[derive(Debug, thiserror::Error)]
 pub enum UiAssetLoaderError {
-    // #[error("Could load input bindings: {0}")]    
+    // #[error("Could load input bindings: {0}")]
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
@@ -130,8 +130,8 @@ impl AssetLoader for UiAssetLoader {
     //     reader: &'a mut Reader<'_>,
     //     _settings: &'a Self::Settings,
     //     load_context: &'a mut LoadContext<'_>,
-    // ) 
-    //  -> Result<Self::Asset, Self::Error> 
+    // )
+    //  -> Result<Self::Asset, Self::Error>
 
      async fn load(
         &self,
@@ -148,7 +148,7 @@ impl AssetLoader for UiAssetLoader {
         //
         let src = std::str::from_utf8(&bytes).unwrap();
         let path=load_context.path();
-        
+
         //
         let def = input_def();
 
@@ -157,7 +157,7 @@ impl AssetLoader for UiAssetLoader {
             Ok(conf) => {
                 let mut custom_asset = UiAsset {conf,dependencies:Default::default()}; //
                 let includes=walk_includes(&custom_asset.conf);
-                
+
                 for include in includes {
                     let x:Handle<UiAsset>=load_context.load(include);
                     custom_asset.dependencies.push(x);
@@ -165,7 +165,7 @@ impl AssetLoader for UiAssetLoader {
                 }
                 // load_context.ass
                 // load_context.set_default_asset(LoadedAsset::new(custom_asset));
-              
+
                 // let x=load_context.labeled_asset_scope("label".to_string(), |ctx|custom_asset.clone());
                 // let loaded = load_context
                 //     .loader()
@@ -181,7 +181,7 @@ impl AssetLoader for UiAssetLoader {
                 Err(UiAssetLoaderError::Parse(e))
             }
         }
-    
+
     }
 
     fn extensions(&self) -> &[&str] { &["ui_conf"] }
@@ -202,24 +202,24 @@ fn input_def() -> conf_lang::Def {
         .branch("apply_branch")
             .tag_nodes(["apply"])
                 .entry_children(None, "node_branch")
-                    .group(None, false, true)
-                        .param_any()
+                    .group_repeat()
+                    .param_any()
 
         .branch("nodes_branch").include(["nodes_branch2"])
             .tag_nodes(["stub"])
                 .entry_children(None, "nodes_branch2")
-                    .group(None, false, false)
-                        .param_func(parse_identity)
+                    .param_func(parse_identity)
         .branch("nodes_branch2")
             .tag_nodes(["node"])
                 .entry_children(None, "node_branch")
-                    .group(None, true, true)
-                        .param_any()
+                    .group_repeat()
+                    .param_optional()
+                    .param_any()
         .branch("node_branch").include(["nodes_branch","apply_branch","attribs_branch"])  //.include(["node2_branch"])
             .tag_nodes(["template"])
                 .entry(Some("template_use"))
-                    .group(None, false, true)
-                        .param_any()
+                    .group_repeat()
+                    .param_any()
             .tag_nodes(["script"])
                 .entry_text(Some("not_root"))
             // .tag_nodes(["mut"])
@@ -228,10 +228,9 @@ fn input_def() -> conf_lang::Def {
         .branch("attribs_branch").include(["attribs2_branch"])
             .tag_nodes(["on"])
                 .entry_children(None, "attribs2_branch")
-                    .group(None, false,false)
-                        .param_func(parse_affect_state)
-                    .group(None, true,false)
-                        .param_parse::<i32>()
+                    .param_func(parse_affect_state)
+                    .param_optional()
+                    .param_parse::<i32>()
             .tag_nodes([
                 "hoverable","pressable","draggable","selectable","focusable",
                 "press_always","press_physical",// "press_released",
@@ -242,8 +241,8 @@ fn input_def() -> conf_lang::Def {
                 "focus_hdir_press","focus_vdir_press",
             ])
                 .entry(None)
-                    .group(None, true, false)
-                        .param_parse::<bool>()
+                    .param_optional()
+                    .param_parse::<bool>()
             .tag_nodes(["select_group"])
                 .entry(None)
                     .param_any()
@@ -295,10 +294,9 @@ fn input_def() -> conf_lang::Def {
                     .param_func(parse_uival)
             .tag_nodes(["border","padding","margin","gap"])
                 .entry(None)
-                    .group(None, false, false)
-                        .param_func(parse_uival)
-                    .group(None, true, false)
-                        .param_func(parse_uival)
+                    .param_func(parse_uival)
+                    .param_optional()
+                    .param_func(parse_uival)
 
         .branch("attribs2_branch")
             .tag_nodes([
@@ -306,19 +304,17 @@ fn input_def() -> conf_lang::Def {
                 "margin_color","cell_color","text_color",
             ])
                 .entry(Some("colori"))
-                    .group(None, false, false)
-                        .param_parse::<u8>()
-                        .param_parse::<u8>()
-                        .param_parse::<u8>()
-                    .group(None, true, false)
-                        .param_parse::<u8>()
+                    .param_parse::<u8>()
+                    .param_parse::<u8>()
+                    .param_parse::<u8>()
+                    .param_optional()
+                    .param_parse::<u8>()
                 .entry(Some("colorf"))
-                    .group(None, false, false)
-                        .param_parse::<f32>()
-                        .param_parse::<f32>()
-                        .param_parse::<f32>()
-                    .group(None, true, false)
-                        .param_parse::<f32>()
+                    .param_parse::<f32>()
+                    .param_parse::<f32>()
+                    .param_parse::<f32>()
+                    .param_optional()
+                    .param_parse::<f32>()
 
 }
 
