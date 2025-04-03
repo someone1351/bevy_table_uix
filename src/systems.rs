@@ -1293,30 +1293,32 @@ pub fn on_asset_load<'a>(
         // attrib set by apply/template are always overwritten
 
         //
+        if false {
 
-        println!("\n");
+            println!("\n");
 
-        {
-            let mut stk=vec![(0,0)];
+            {
+                let mut stk=vec![(0,0)];
 
-            while let Some((cur_element_ind,depth))=stk.pop() {
-                let cur_element=elements.get(cur_element_ind).unwrap();
-                stk.extend(cur_element.children.iter().rev().map(|&x|(x,depth+1)));
-                let depth="    ".repeat(depth);
-                println!("{depth}{:?}, applies={:?}, after={}",
-                    &cur_element.element_type,
-                    &cur_element.applies,
-                    // cur_element.applies.iter().map(|&i|{
-                    //     // let ElementType::Apply { .. }=&elements.get(i).unwrap().element_type else{panic!("")};
-                    //     // *apply_decl_id
-                    //     i
-                    // }).collect::<Vec<_>>(),
-                    cur_element.apply_after,
-                );
+                while let Some((cur_element_ind,depth))=stk.pop() {
+                    let cur_element=elements.get(cur_element_ind).unwrap();
+                    stk.extend(cur_element.children.iter().rev().map(|&x|(x,depth+1)));
+                    let depth="    ".repeat(depth);
+                    println!("{depth}{:?}, applies={:?}, after={}",
+                        &cur_element.element_type,
+                        &cur_element.applies,
+                        // cur_element.applies.iter().map(|&i|{
+                        //     // let ElementType::Apply { .. }=&elements.get(i).unwrap().element_type else{panic!("")};
+                        //     // *apply_decl_id
+                        //     i
+                        // }).collect::<Vec<_>>(),
+                        cur_element.apply_after,
+                    );
+                }
             }
-        }
-        println!("\n");
+            println!("\n");
 
+        }
 
         // struct ElementAttribCalc {
         //     in_template : Option<usize>, //template_use_id
@@ -2210,7 +2212,7 @@ pub fn on_asset_load<'a>(
         }
 
         //debug
-        {
+        if false {
             println!("=====");
 
             struct Work {
@@ -2842,7 +2844,7 @@ pub fn on_asset_load<'a>(
 
             }
 
-            println!("===\n\n{src}\n====");
+            // println!("===\n\n{src}\n====");
 
             let compiler=script_lang::langs::cexpr_compiler::Compiler::new();
 
