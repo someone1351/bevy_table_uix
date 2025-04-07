@@ -1,7 +1,7 @@
 node a
-	color 255 220 0
+	#color 255 220 0
 
 apply a
 	color 255 0 0
 	width 50
-	#height 50
+	height 50
