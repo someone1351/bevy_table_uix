@@ -945,7 +945,6 @@ pub fn load_elements<'a>(
     Some(elements)
 }
 
-
 pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently used?
 
     struct Work{element_ind:usize,depth:usize,}
@@ -1057,8 +1056,7 @@ pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently use
     // attrib set by apply/template are always overwritten
 }
 
-
-pub fn calc_whatever(elements:&mut Vec<Element>) {
+pub fn calc_applies(elements:&mut Vec<Element>) {
 
     struct Thing { //
         applies : Vec<(
@@ -1730,7 +1728,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
 }
 
 
-pub fn gen_stuff(elements:&Vec<Element>) -> Stuff {
+pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
     let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
     let mut all_attribs: Vec<AttribFunc>=Vec::new(); //[]=func

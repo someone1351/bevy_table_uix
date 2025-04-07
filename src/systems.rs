@@ -130,7 +130,7 @@ pub fn on_asset_load<'a>(
         debug_print_elements2(&elements);
 
         //
-        calc_whatever(&mut elements);
+        calc_applies(&mut elements);
 
         //calc nodes params
         calc_node_params(&mut elements);
@@ -147,7 +147,7 @@ pub fn on_asset_load<'a>(
         {
             let src=gen_script(&elements);
 
-            let stuff=gen_stuff(&elements);
+            let stuff=gen_stubs(&elements);
 
             println!("all_stubs : {:?}",stuff.all_stubs);
             println!("all_nodes : {:?}",stuff.all_nodes);
