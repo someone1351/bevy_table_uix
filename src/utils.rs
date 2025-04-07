@@ -1171,9 +1171,8 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         //attrib
         // if enter
         {
-            let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
-            let cur_element=elements.get_mut(cur_element_ind).unwrap(); //can user either ind
-            // let cur_element=elements.get_mut(cur_work.element_ind).unwrap(); //can user either ind
+            let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind); //for attribs added via applies
+            let cur_element=elements.get_mut(cur_element_ind).unwrap();
 
             if let ElementType::Attrib { name,in_node, on_state, func, calcd,.. } = &mut cur_element.element_type {
                 let in_node=*in_node;
