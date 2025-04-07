@@ -1170,8 +1170,10 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
 
         //attrib
         // if enter
-        {//
-            let cur_element=elements.get_mut(cur_work.element_ind).unwrap(); //can user either ind
+        {
+            let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
+            let cur_element=elements.get_mut(cur_element_ind).unwrap(); //can user either ind
+            // let cur_element=elements.get_mut(cur_work.element_ind).unwrap(); //can user either ind
 
             if let ElementType::Attrib { name,in_node, on_state, func, calcd,.. } = &mut cur_element.element_type {
                 let in_node=*in_node;
@@ -1193,6 +1195,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 calcd.in_apply=in_apply;
                 calcd.ok=ok;
                 calcd.used=ok;
+
                 // element_attrib_calcs.insert(cur_element_ind, ElementAttribCalc { in_template, in_apply, used: ok, ok, });
 
                 if ok {
