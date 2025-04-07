@@ -1630,6 +1630,93 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             }
         }
     }
+
+
+
+    //calc attribs
+    // {
+
+    //     #[derive(Clone)]
+    //     struct Work {
+    //         element_ind:usize,
+    //         depth:usize,
+    //         exit:bool,
+    //     }
+
+    //     let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false, }];
+    //     let mut node_stk=Vec::new();
+
+    //     while let Some(cur_work)=work_stk.pop() {
+    //         let cur_element=elements.get(cur_work.element_ind).unwrap();
+
+
+    //         match &cur_element.element_type {
+    //             ElementType::Node{..} if cur_work.exit => {
+    //                 node_stk.pop().unwrap();
+    //             }
+    //             ElementType::Node{..} => {
+    //                 node_stk.push(cur_work.element_ind);
+    //                 work_stk.push(Work{exit:true, ..cur_work.clone()})
+    //             }
+    //             ElementType::TemplateUse{..} => {
+    //             }
+    //             ElementType::Stub{..} => {
+    //             }
+    //             ElementType::ApplyUse{..} => {
+    //             }
+    //             ElementType::Attrib { ..  } => {
+    //             }
+    //             _ => {
+    //                 continue;
+    //             }
+    //         }
+
+    //         if cur_work.exit {
+    //             continue;
+    //         }
+
+    //         work_stk.extend(cur_element.children.iter().rev().map(|&child|Work { element_ind: child, depth: cur_work.depth+1, exit:false, }));
+
+    //         if let ElementType::Attrib { name,in_node, on_state, func, .. } = cur_element.element_type.clone() {
+    //             let node_element=elements.get(*node_stk.last().unwrap()).unwrap();
+    //             // node_element.calcd_attribs.push(value);
+
+
+    //             let prev=node_element.calcd_attribs.get(&(name,on_state));
+    //             let (prev_in_template,prev_in_apply,prev_in_node)=prev.map(|x|(x.0,x.1,x.2)).unwrap_or_default();
+
+    //             let in_apply=cur_element.calcd_in_apply;
+    //             let in_template=cur_element.calcd_in_template;
+
+
+    //             let ok = in_node || !prev_in_node || (in_apply!=prev_in_apply || prev_in_template!=in_template);
+
+    //             if ok {
+    //                 let node_element=elements.get_mut(*node_stk.last().unwrap()).unwrap();
+    //                 node_element.calcd_attribs.insert((name,on_state), (in_template,in_apply,in_node,func.clone()));
+    //             }
+    //         }
+    //     }
+
+    // }
+
+    // struct ElementAttribCalc {
+    //     in_template : Option<usize>, //template_use_id
+    //     in_apply : Option<usize>, //apply_decl_id
+    //     used:bool,
+    //     ok:bool,
+    // }
+
+    // let mut element_attrib_calcs: HashMap<usize,ElementAttribCalc> = HashMap::new(); //[attrib_element_ind]
+
+    // struct CallElement {
+    //     element_ind:usize,
+    //     children:Vec<CallElement>,
+
+    // }
+
+    // let mut call_element_trees: HashMap<Option<usize>, Vec<CallElement>> = HashMap::new(); // [stub]=
+
 }
 
 
