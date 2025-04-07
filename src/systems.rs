@@ -127,7 +127,7 @@ pub fn on_asset_load<'a>(
         calc_node_apply_ignores(&mut elements);
 
         //
-        debug_print_elements2(&elements);
+        // debug_print_elements2(&elements);
 
         //
         calc_applies(&mut elements);
@@ -136,7 +136,7 @@ pub fn on_asset_load<'a>(
         calc_node_params(&mut elements);
 
         //debug
-        debug_print_elements(&elements);
+        // debug_print_elements(&elements);
 
         //get attribs
         //{ }
@@ -149,8 +149,8 @@ pub fn on_asset_load<'a>(
 
             let stuff=gen_stubs(&elements);
 
-            println!("all_stubs : {:?}",stuff.all_stubs);
-            println!("all_nodes : {:?}",stuff.all_nodes);
+            // println!("all_stubs : {:?}",stuff.all_stubs);
+            // println!("all_nodes : {:?}",stuff.all_nodes);
 
             let stuff = script_lang::Value::custom_unmanaged(stuff);
             // println!("===\n\n{src}\n====");
