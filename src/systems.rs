@@ -5,18 +5,14 @@
     env.abc.0
     env.0 ??
 */
-// use bevy::{asset::{AssetEvent, AssetServer, Assets, Handle}, prelude::{Entity, EventReader, Local, Query, Res, ResMut}};
 
 use core::panic;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ops::Range;
-// use std::f32::consts::E;
-// use std::io::Read;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use bevy::color::Color;
-// use bevy::prelude::BuildChildren;
 use bevy::{ecs::prelude::*, prelude::DespawnRecursiveExt};
 use bevy::asset::prelude::*;
 use conf_lang::RecordContainer;
@@ -32,14 +28,6 @@ use super::{
     components::*,
     // resources::*,
 };
-
-// pub fn init_asset(
-//     asset_server: Res<AssetServer>,
-//     mut test:Local<Handle<UiAsset>>,
-// ) {
-//     // *test=asset_server.load("test.ui_conf");
-//     // let x: Handle<UiAsset> =asset_server.load("test.ui_conf");
-// }
 
 pub fn on_asset_modified_event(
     mut asset_events: EventReader<AssetEvent<UiAsset>>,
@@ -104,8 +92,6 @@ pub fn on_asset_modified_reinit(
 
 }
 
-
-
 fn make_attrib_func<T:Component+Default>(func : impl Fn(&mut T)+ Send+Sync+'static) -> Arc<dyn Fn(Entity,&mut World)+Send+Sync > {
     Arc::new(move |entity:Entity,world: &mut World| {
         let mut e=world.entity_mut(entity);
@@ -114,31 +100,11 @@ fn make_attrib_func<T:Component+Default>(func : impl Fn(&mut T)+ Send+Sync+'stat
     })
 }
 
-// pub fn init_lib_scope(
-//     mut lib_scope : ResMut<script_lang::LibScope<(&mut World,&mut AssetServer)>>,
-
-// ) {
-
-// }
-
-// pub fn on_asset_load2(
-//     // ui_assets: Res<Assets<UiAsset>>,
-//     // mut from_asset_query: Query<(Entity,&mut UixFromAsset)>,
-//     // mut commands: Commands,
-//     asset_server: Res<AssetServer>,
-//     // mut lib_scope:ResMut<UixLibScope>,
-//     world: &mut World,
-// ) {
-// }
-
 pub fn on_asset_load<'a>(
     ui_assets: Res<Assets<UiAsset>>,
     mut from_asset_query: Query<(Entity,&mut UixFromAsset)>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    // lib_scope:Res<UixLibScope>,
-    // lib_scope:Res<script_lang::LibScope<&mut World>>,
-    // world: &mut World,
 ) {
     //
     for (top_entity, mut from_asset) in from_asset_query.iter_mut() {
@@ -155,13 +121,7 @@ pub fn on_asset_load<'a>(
             ;
 
         //
-
-        //
         let asset=ui_assets.get(from_asset.handle.id()).unwrap();
-
-        //
-
-
 
         //
         //replace all id's with element_ind? eg template_decl_id, template_use_id, apply_decl_id, apply_use_id
@@ -177,6 +137,7 @@ pub fn on_asset_load<'a>(
         //  don't add a thing for the apply_use?
         //  would need to set apply_after for the apply_use parent thing?
 
+        //
         #[derive(Debug,Clone,Default)]
         struct ElementAttribCalc2 {
             in_template : Option<usize>, //template_use_id
@@ -190,8 +151,6 @@ pub fn on_asset_load<'a>(
             // Root,
             Node {
                 names : HashSet<&'a str>,
-                // calcd_attribs : Vec<AttribFunc>,
-                // calcd_from_node_element_ind : Option<usize>, //node_element_ind
                 ignore_applies : HashSet<usize>, //apply_decl_id
             },
             Attrib {
@@ -203,29 +162,20 @@ pub fn on_asset_load<'a>(
                 calcd:ElementAttribCalc2,
             },
             Script {
-                // srcs : Vec<(&'a str,conf_lang::Loc)>
                 record : RecordContainer<'a>,
             },
             Apply {
                 name : &'a str, //text_ind
-                // apply_decl_id : usize,
-                // shadows:bool,
                 owner_apply_decl_id : Option<usize>, //element_ind
-                // ignores : HashSet<usize>, //apply_decl_id
-                // is_root:bool,
             },
             ApplyUse {
                 apply_decl_element_ind:usize,
-                // from_apply_use_element_ind:Option<usize>,
-                // from_path:Vec<usize>,
             },
             TemplateDecl {
                 name : &'a str, //text_ind
-                // template_decl_id:usize,
             },
             TemplateUse {
                 template_decl_element_ind:usize,
-                // template_use_id:usize,
             },
             Stub {
                 name : &'a str,
@@ -242,25 +192,11 @@ pub fn on_asset_load<'a>(
         #[derive(Debug,Clone)]
         struct Element<'a> {
             element_type:ElementType<'a>,
-            // parent:Option<usize>,
             children : Vec<usize>,
             applies : Vec<usize>, //element_ind
             apply_after : usize, //parent_apply_ind
-            // depth:usize,
-
-            // calcd_attribs : Vec<AttribFunc>,
-            // calcd_attribs:HashMap<(&'a str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc)>, //[(name,state)]=(in_template,in_apply.in_node,func)
-
-            // calcd_from_node_element_ind : Option<usize>, //node_element_ind
             calcd_from_element_ind : Option<usize>, //element_ind
-
-            // calcd_in_template : Option<usize>, /template_use_id
-            // calcd_in_apply : Option<usize>, //apply/_decl_id
-
             calcd_node_params:BTreeSet<usize>, //element_ind
-
-            // from_path:Vec<usize>,//element_ind
-
             calcd_created_from : usize,
         }
 
@@ -268,34 +204,20 @@ pub fn on_asset_load<'a>(
         let mut elements = vec![Element{
             element_type: ElementType::Node {
                 names:HashSet::new(),
-                // calcd_attribs:HashMap::new(),
-                // calcd_from_node_element_ind: None,
                 ignore_applies:HashSet::new(),
             },
-            // parent:None,
             children: Vec::new(),
             applies:Vec::new(),
             apply_after:0,
-            // depth:0,
             calcd_from_element_ind : None,
-            // calcd_attribs:HashMap::new(),
-            // calcd_in_template: None,
-            // calcd_in_apply: None,
             calcd_node_params:BTreeSet::new(),
-            // from_path:Vec::new(),
             calcd_created_from:0,
         }];
 
         //elements
         {
-            // let mut cur_element_ind = 0;
-            // let mut text_inds: HashMap<&str, usize> = HashMap::<&str,usize>::new();
             let mut template_envs: Vec<HashMap<&str,(usize,RecordContainer)>> = vec![HashMap::new()]; //[template_env_ind][template_name]=element_ind
             let mut element_script_records = HashMap::<usize,RecordContainer>::new(); //[src_element_ind]=script_record
-            // let mut apply_decl_count:usize=0;
-            // let mut template_use_count=0;
-            // let mut node_count=0;
-            // let mut node_count=0;
 
             let mut last_element_stk: Vec<usize>=vec![0];
 
@@ -337,21 +259,12 @@ pub fn on_asset_load<'a>(
 
                         //
                         elements.push(Element {
-                            element_type: ElementType::TemplateDecl {
-                                name: template_name,
-                                // template_decl_id,
-                            },
-                            // parent: Some(cur_element_ind),
+                            element_type: ElementType::TemplateDecl { name: template_name, },
                             children: Vec::new(),
                             applies: Vec::new(),
                             apply_after,
-                            // depth:elements.get(cur_element_ind).unwrap().depth+1,
                             calcd_from_element_ind: None,
-                            // calcd_attribs:HashMap::new(),
-                            // calcd_in_template: None,
-                            // calcd_in_apply: None,
                             calcd_node_params:BTreeSet::new(),
-                            // from_path:Vec::new(),
                             calcd_created_from:cur_element_ind,
                         });
 
@@ -381,22 +294,13 @@ pub fn on_asset_load<'a>(
 
                         //
                         elements.push(Element {
-                            element_type: ElementType::TemplateUse {
-                                template_decl_element_ind,
-                                // template_use_id: template_use_count,
-                            } ,
-                            // parent: Some(cur_element_ind),
+                            element_type: ElementType::TemplateUse { template_decl_element_ind, } ,
                             children: Vec::new(),
                             applies: Vec::new(),
                             apply_after,
-                            // depth:elements.get(cur_element_ind).unwrap().depth+1,
                             calcd_from_element_ind: None,
-                            // calcd_attribs:HashMap::new(),
-                            // calcd_in_template: None,
-                            // calcd_in_apply: None,
                             calcd_node_params:BTreeSet::new(),
-                            // from_path:Vec::new(),
-                            calcd_created_from:cur_element_ind, //template_decl_element_ind, //,
+                            calcd_created_from:cur_element_ind,
                         });
 
                         //
@@ -434,25 +338,12 @@ pub fn on_asset_load<'a>(
                             //
                             // let new_apply_decl_id=apply_decl_count;
                             elements.push(Element {
-                                element_type: ElementType::Apply {
-                                    name,
-                                    // apply_decl_id:new_apply_decl_id,
-                                    // shadows: true,
-                                    owner_apply_decl_id: prev_owner_apply_decl_id,
-                                    // ignores:HashSet::new(),
-                                    // is_root:i==0 && walk.depth()==0,
-                                },
-                                // parent:Some(cur_element_ind),
+                                element_type: ElementType::Apply { name, owner_apply_decl_id: prev_owner_apply_decl_id, },
                                 apply_after,
                                 children: Vec::new(),
                                 applies: Vec::new(),
-                                // depth:elements.get(cur_element_ind).unwrap().depth+1+i,
                                 calcd_from_element_ind: None,
-                                // calcd_attribs:HashMap::new(),
-                                // calcd_in_template: None,
-                                // calcd_in_apply: None,
                                 calcd_node_params:BTreeSet::new(),
-                                // from_path:Vec::new(),
                                 calcd_created_from:cur_element_ind,
                             });
 
@@ -473,9 +364,7 @@ pub fn on_asset_load<'a>(
                             // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
                             last_element_stk.pop().unwrap();
                         }
-
                     }
-
 
                     "node" if walk.is_enter() => {
                         walk.do_exit();
@@ -488,21 +377,12 @@ pub fn on_asset_load<'a>(
                         elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
 
                         elements.push(Element {
-                            element_type: ElementType::Node {
-                                names, //calcd_attribs:HashMap::new(), calcd_from_node_element_ind: None
-                                ignore_applies:HashSet::new(),
-                            },
-                            // parent: Some(cur_element_ind),
+                            element_type: ElementType::Node { names,  ignore_applies:HashSet::new(), },
                             children: Vec::new(),
                             applies: Vec::new(),
                             apply_after,
-                            // depth:elements.get(cur_element_ind).unwrap().depth+1,
                             calcd_from_element_ind: None,
-                            // calcd_attribs:HashMap::new(),
-                            // calcd_in_template: None,
-                            // calcd_in_apply: None,
                             calcd_node_params:BTreeSet::new(),
-                            // from_path:Vec::new(),
                             calcd_created_from:cur_element_ind,
                         });
 
@@ -523,21 +403,12 @@ pub fn on_asset_load<'a>(
 
                         //
                         elements.push(Element {
-                            element_type: ElementType::Script {
-                                // srcs : walk.record().text_values().map(|v|(v.str(),v.start_loc())).collect(),
-                                record : walk.record(),
-                            },
-                            // parent: Some(cur_element_ind),
+                            element_type: ElementType::Script { record : walk.record(), },
                             children: Vec::new(),
                             applies: Vec::new(),
                             apply_after,
-                            // depth:elements.get(cur_element_ind).unwrap().depth+1,
                             calcd_from_element_ind: None,
-                            // calcd_attribs:HashMap::new(),
-                            // calcd_in_template: None,
-                            // calcd_in_apply: None,
                             calcd_node_params:BTreeSet::new(),
-                            // from_path:Vec::new(),
                             calcd_created_from:cur_element_ind,
                         });
                     }
@@ -561,17 +432,11 @@ pub fn on_asset_load<'a>(
 
                         elements.push(Element {
                             element_type: ElementType::Stub { name, },
-                            // parent: Some(cur_element_ind),
                             children: Vec::new(),
                             applies: Vec::new(),
                             apply_after,
-                            // depth:elements.get(cur_element_ind).unwrap().depth+1,
                             calcd_from_element_ind: None,
-                            // calcd_attribs:HashMap::new(),
-                            // calcd_in_template: None,
-                            // calcd_in_apply: None,
                             calcd_node_params:BTreeSet::new(),
-                            // from_path:Vec::new(),
                             calcd_created_from:cur_element_ind,
                         });
 
@@ -1157,17 +1022,11 @@ pub fn on_asset_load<'a>(
                                     in_node,
                                     calcd:Default::default(),
                                 },
-                                // parent: Some(cur_element_ind),
                                 children: Vec::new(),
                                 applies: Vec::new(),
                                 apply_after,
-                                // depth:elements.get(cur_element_ind).unwrap().depth+1,
                                 calcd_from_element_ind: None,
-                                // calcd_attribs:HashMap::new(),
-                                // calcd_in_template: None,
-                                // calcd_in_apply: None,
                                 calcd_node_params:BTreeSet::new(),
-                                // from_path:Vec::new(),
                                 calcd_created_from:cur_element_ind,
                             });
                         }
@@ -1193,99 +1052,54 @@ pub fn on_asset_load<'a>(
                 work_stk.extend(cur_element.children.iter().rev().map(|&c|Work { element_ind: c,depth:cur_work.depth+1 }));
                 ancestor_stk.truncate(cur_work.depth);
 
-                /*
-                apply x
-                    apply a #ignored
-                    apply y
-                        apply a #ignored
-                        apply z
-                            apply b #used
-                            node a b
-                apply b
-                node x
-                    node y
-                        node z
-                -------------
-                apply x
-                    node
-                        apply y
-                            apply z
-                                node a
-                        apply a #used
-                        node y
-                            node z
-                node x
-                -------------
-                apply x
-                    apply q
-                        apply a #used? yes
-                        apply y
-                            apply a
-                            apply z
-                                node a
-                        node y
-                            node z
-                node x
-                    node q
-
-
-                */
-
-                /*
-                apply x
-                    node y
-                apply y #no?
-                node x
-                    apply y #yes
-                */
-                //
-
-                // if let ElementType::Node { .. } = &cur_element.element_type {
-
-                //     let mut calcd_ignores = HashSet::new();
-
-                //     if ancestor_stk.len()>0 {
-                //         for ancestor_ind in (0.. ancestor_stk.len()-1).rev() { //ancestor_stk.len()-1 == grandparent
-                //             let ancestor_element_ind=ancestor_stk.get(ancestor_ind).cloned().unwrap();
-                //             let ancestor_element=elements.get(ancestor_element_ind).unwrap();
-
-                //             if let //ElementType::Root|
-                //                 ElementType::Node{..}|ElementType::TemplateDecl{..}
-                //                 |ElementType::Stub { .. } //needed? probably since similar to a node, no ? yes stub can contain nodes which can contain applies
-                //                 // |ElementType::ApplyUse { .. }
-                //                 // |ElementType::ApplyUse { .. }|ElementType::TemplateUse { .. } //these needed? don't think so, since when element tree created, these aren't filled, and working off applies which aren't evaluated
-                //                 =&ancestor_element.element_type { //why? and what about apply_use? or stub, or template_use?
-                //                 break;
-                //             }
-                //             println!("=== {:?} {:?}",ancestor_element.element_type,ancestor_element.applies);
-                //             // break;
-
-                //             // calcd_ignores.extend(ancestor_element.applies.iter().map(|&apply_element_ind|{
-                //             //     // let apply_element=elements.get(apply_element_ind).unwrap();
-                //             //     // let ElementType::Apply { .. }=apply_element.element_type else {panic!("");};
-                //             //     // apply_decl_id
-                //             //     apply_element_ind
-                //             // }));
-                //             calcd_ignores.extend(ancestor_element.applies.iter());
-                //         }
-                //     }
-
-                //     //
-
-
-                //     let cur_element=elements.get_mut(cur_work.element_ind).unwrap();
-                //     let ElementType::Node { ignore_applies, .. } = &mut cur_element.element_type else {panic!("");};
-                //     *ignore_applies=calcd_ignores;
-                // }
-
-
-
-                // let cur_element=elements.get(cur_work.element_ind).unwrap();
-                // println!("= {} : {:?} : {:?}",cur_work.element_ind,ancestor_stk,cur_element.element_type);
                 //
                 ancestor_stk.push(cur_work.element_ind);
 
             }
+
+            /*
+            apply x
+                apply a #ignored
+                apply y
+                    apply a #ignored
+                    apply z
+                        apply b #used
+                        node a b
+            apply b
+            node x
+                node y
+                    node z
+            -------------
+            apply x
+                node
+                    apply y
+                        apply z
+                            node a
+                    apply a #used
+                    node y
+                        node z
+            node x
+            -------------
+            apply x
+                apply q
+                    apply a #used? yes
+                    apply y
+                        apply a
+                        apply z
+                            node a
+                    node y
+                        node z
+            node x
+                node q
+            */
+
+            /*
+            apply x
+                node y
+            apply y #no?
+            node x
+                apply y #yes
+            */
         }
 
         //
@@ -1293,8 +1107,8 @@ pub fn on_asset_load<'a>(
         // attrib set by apply/template are always overwritten
 
         //
-        if false {
-
+        // if false
+        {
             println!("\n");
 
             {
@@ -1320,113 +1134,57 @@ pub fn on_asset_load<'a>(
 
         }
 
-        // struct ElementAttribCalc {
-        //     in_template : Option<usize>, //template_use_id
-        //     in_apply : Option<usize>, //apply_decl_id
-        //     used:bool,
-        //     ok:bool,
-        // }
-
-        // let mut element_attrib_calcs: HashMap<usize,ElementAttribCalc> = HashMap::new(); //[attrib_element_ind]
-
-        // struct CallElement {
-        //     element_ind:usize,
-        //     children:Vec<CallElement>,
-
-        // }
-
-        // let mut call_element_trees: HashMap<Option<usize>, Vec<CallElement>> = HashMap::new(); // [stub]=
         //
         {
             struct Thing { //
-                // entity : Entity,
-                // names : HashSet<&'a str>,
-                applies : Vec<(usize, //apply_element_ind
-                    // Option<usize>
-                    // Vec<usize>,
+                applies : Vec<(
+                    usize, //apply_element_ind
                     usize, //from_element_ind
                 )>, //apply_element_ind, from_apply_use_element_ind
-                // attribs:HashMap<(&'a str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool)>, //[(name,state)]=(in_template,in_apply.in_node,)
                 apply_after:usize,
                 element_ind:usize,
-
-                // attribs:HashMap<(&'a str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc)>, //[(name,state)]=(in_template,in_apply.in_node,func)
             }
 
             #[derive(Clone)]
             struct Work {
                 element_ind:usize,
-                // exit:bool,
                 from_applies:HashSet<usize>, //apply_element_ind
                 in_template:Option<usize>, //template_use_id
                 in_apply:Option<usize>, //apply_decl_id
-
-                // from_element2_ind:Option<usize>,
-
-                // inside_decl:bool, //inside template or apply decl
                 new_from_parent:Option<usize>, //element_ind
                 thing_apply_after_offset:usize, //Option<usize>,
 
                 node_depth:usize,
                 thing_depth:usize,
 
-                // last_apply_use:Option<usize>, //element_ind
-                // from_path:Vec<usize>,  //element_ind
                 created_from:usize,
-
             }
 
             let mut work_stk=vec![Work{
                 element_ind:0,
-                // exit:false,
                 in_template:None,
                 in_apply:None,
                 from_applies:HashSet::new(),
-                // from_element2_ind:None,
-                // inside_decl:false,
                 new_from_parent:None,
                 thing_apply_after_offset:0,
 
                 node_depth:0,
                 thing_depth:0,
 
-                // last_apply_use:None,
-                // from_path:Vec::new(),
                 created_from:0,
             }];
 
-            // struct Callll {
-            //     ret:usize, //apply_use_element_ind
-            //     call:usize, //apply_element_ind
-            //     from:Vec<usize>, //top_node,
-            // }
-
             let mut things: Vec<Thing>=vec![];
             let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
-            // let mut call_element_key_stk;
+
             while let Some(cur_work)=work_stk.pop() {
-
-                // if let ElementType::Apply{..}=&elements.get(cur_work.element_ind).unwrap().element_type {
-                //     println!("is an apply {}",cur_work.element_ind);
-                // }
-
-                // if let ElementType::Apply{..} //stop
-                //     |ElementType::TemplateDecl{..} //not necessary?
-                //     =&elements.get(cur_work.element_ind).unwrap().element_type {
-                //     continue;
-                // }
-
-
                 //
                 let mut the_new_element_ind:Option<usize> = None;
 
                 //replace element added via apply/template with new copy
                 // if enter
                 {
-                    // Node {.. },Script {..},TemplateUse {..}, Stub {..},
-                    // Attrib {..}, Apply {..}, ApplyUse {..}, TemplateDecl {..},
-                    //
-                    //
+
                     // cur_work.inside_apply_after
                     if let Some(new_from_parent)=cur_work.new_from_parent {
                         let cur_element=elements.get(cur_work.element_ind).unwrap();
@@ -1507,11 +1265,8 @@ pub fn on_asset_load<'a>(
                         let in_apply=cur_work.in_apply;
                         let in_template=cur_work.in_template;
 
-
                         let ok = in_node || !prev_in_node || (in_apply!=prev_in_apply || prev_in_template!=in_template);
-
                         let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
-
 
                         calcd.in_template=in_template;
                         calcd.in_apply=in_apply;
@@ -1522,17 +1277,13 @@ pub fn on_asset_load<'a>(
                         if ok {
                             node_attribs.insert((name,on_state), (in_template,in_apply,in_node,func.clone(),cur_element_ind));
 
-                            // if let Some(prev_element_attrib_calc)=element_attrib_calcs.get_mut(&prev_element_ind) {
-                            //     prev_element_attrib_calc.used=false;
-                            // }
                             if let Some(prev_element_ind)=prev_element_ind{
                                 let ElementType::Attrib { calcd,.. } = &mut elements.get_mut(prev_element_ind).unwrap().element_type else {
                                     panic!("");
                                 };
+
                                 calcd.used=false;
-
                             }
-
                         }
                     }
                 }
@@ -1550,33 +1301,18 @@ pub fn on_asset_load<'a>(
                     cur_element.calcd_created_from=cur_work.created_from;
                 }
 
-
                 //
-                let mut new_applies: Vec<(usize,
-                    // Option<usize>
-                    // Vec<usize>,
-                    usize,
-                )> = Vec::new();
+                let mut new_applies: Vec<(usize, usize, )> = Vec::new();
 
                 //get template applies
                 // if enter
                 {
                     let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
                     let cur_element=elements.get(cur_work.element_ind).unwrap();
-                    // let mut from_path = cur_work.from_path.clone();
-                    // from_path.push(cur_work.element_ind);
 
                     if let ElementType::TemplateUse { template_decl_element_ind, .. } = &cur_element.element_type {
                         let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
-                        // new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|apply_element_ind));
-                        new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|(
-                            apply_element_ind,
-                            // None
-                            // cur_work.last_apply_use,
-                            // cur_work.from_path.clone(),
-                            cur_element_ind,
-                        )));
-                        //
+                        new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
                     }
                 }
 
@@ -1609,14 +1345,12 @@ pub fn on_asset_load<'a>(
                         });
 
                         //
-                        let mut before_applies: Vec<(usize,
-                            // Option<usize>
-                            // Vec<usize>,
+                        let mut before_applies: Vec<(
+                            usize,
                             usize, //from
                         )> = Vec::new();
-                        let mut after_applies: Vec<(usize,
-                            // Option<usize>
-                            // Vec<usize>,
+                        let mut after_applies: Vec<(
+                            usize,
                             usize, //from
                         )> = Vec::new();
 
@@ -1665,26 +1399,20 @@ pub fn on_asset_load<'a>(
                             }
                         }
 
-
                         //apply the applies on cur
                         //  should add ApplyUse, with children added to its element, filter_map_children, removing Apply
                         // let mut the_apply_after=cur_element.applies.len();
                         let mut the_apply_after_count=0;
-
 
                         //
                         let mut apply_use_element_inds: Vec<Option<usize>>=Vec::new();
 
                         //add apply_use elements
                         {
-
                             let parent_applies_len=cur_element.applies.len();
 
                             for &(apply_element_ind,from) in before_applies.iter().chain(after_applies.iter()) {
                                 // let apply_element_ind=*apply_element_ind;
-
-
-
 
                                 //
                                 // let apply_element=elements.get(apply_element_ind).unwrap();
@@ -1698,41 +1426,24 @@ pub fn on_asset_load<'a>(
                                 let apply_use_element_ind=elements.len();
                                 apply_use_element_inds.push(Some(apply_use_element_ind));
 
-
-
                                 elements.get_mut(cur_element_ind).unwrap().children.push(apply_use_element_ind);  //the cur_work.element_ind was wrong,
 
-                                // println!("------- apply use {}")
                                 elements.push(Element {
-                                    // element_type: ElementType::ApplyUse { apply_decl_element_ind: apply_element_ind },
-                                    element_type:ElementType::ApplyUse { apply_decl_element_ind: apply_element_ind,
-                                        // from_path: from_path.clone(),
-                                    } ,
-                                    // parent: Some(cur_work.element_ind),
-                                    // parent:None, //don't need it
+                                    element_type:ElementType::ApplyUse { apply_decl_element_ind: apply_element_ind,} ,
                                     children: Vec::new(),
                                     applies: Vec::new(),
-                                    // apply_after: cur_element.applies.len(), //correct? no
                                     apply_after:parent_applies_len, //new_applies.len(), //wrong? since this refers to parent.applies and not thing.applies, so should be parent.applies.len()
-                                    // depth: cur_element_depth+1,
                                     calcd_from_element_ind: None,
-                                    // calcd_from_element_ind: Some(cur_work.element_ind),
-                                    // calcd_attribs:HashMap::new(),
-                                    // calcd_in_template: None,
-                                    // calcd_in_apply: None,
                                     calcd_node_params:BTreeSet::new(),
-                                    // from_path:Vec::new(),
                                     calcd_created_from:from,
                                 });
-
                             }
-
                         }
+
                         //
                         // for (i,&(apply_element_ind,_from)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
                         for (i,&(apply_element_ind,_)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
                         {
-
                             //apply_use
                             // let apply_element_ind=*apply_element_ind;
                             // let apply_use_element_ind=apply_use_element_inds[apply_use_element_inds.len()-i-1];
@@ -1761,13 +1472,14 @@ pub fn on_asset_load<'a>(
                             //what happens with apply children
                             // applies are added to thing with new_applies
 
-
                             //
                             work_stk.extend(apply_element.children.iter().rev().map(|&child_element_ind|{
                                 let child_element=elements.get(child_element_ind).unwrap();
+
                                 // if let ElementType::Apply{..}=&child_element.element_type {
                                 //     println!("is an apply {child_element_ind}");
                                 // }
+
                                 let in_apply=if let ElementType::Attrib{..}|ElementType::TemplateUse{..}=child_element.element_type.clone(){
                                     parent_owner_apply_decl_id //use cur apply's parent
                                 }else{ //use cur apply
@@ -1783,20 +1495,13 @@ pub fn on_asset_load<'a>(
 
                                 Work{
                                     element_ind: child_element_ind,
-                                    // exit : false,
                                     in_template,
                                     in_apply,
                                     from_applies:from_applies.clone(),
-                                    // from_element2_ind:Some(new_element2_ind),
-
-                                    // inside_decl:true,
                                     new_from_parent:Some(apply_use_element_ind),
-                                    // inside_decl: todo!(),
                                     thing_apply_after_offset: the_apply_after,
                                     node_depth,
                                     thing_depth,
-                                    // last_apply_use:Some(apply_use_element_ind),
-                                    // from_path:from_path.clone(),
                                     created_from:apply_use_element_ind,
                                 }
                             }));
@@ -1823,37 +1528,34 @@ pub fn on_asset_load<'a>(
                             let element=elements.get(element_ind).unwrap();
 
                             // let apply_use_element_ind=*apply_use_element_inds.get(i).unwrap();
-
                             // if let ElementType::Node{..}|ElementType::Apply {..}|ElementType::TemplateUse{..} = &element.element_type { //should always be apply or node?
 
-                                let from=if let Some(i)=i {
-                                    // from_path.push(apply_use_element_inds[i]);
-                                    let Some(apply_use_element_ind)=apply_use_element_inds[i] else {
-                                        continue;
-                                    };
-                                    apply_use_element_ind
-                                    // 88
-                                } else {
-                                    // cur_work.last_apply_use
-                                    // println!("aaa {} {}",cur_element_ind,cur_work.created_from);
-                                    // cur_work.created_from
-                                    cur_element_ind
-                                    // 99
+                            let from=if let Some(i)=i {
+                                // from_path.push(apply_use_element_inds[i]);
+                                let Some(apply_use_element_ind)=apply_use_element_inds[i] else {
+                                    continue;
                                 };
+                                apply_use_element_ind
+                                // 88
+                            } else {
+                                // cur_work.last_apply_use
+                                // println!("aaa {} {}",cur_element_ind,cur_work.created_from);
+                                // cur_work.created_from
+                                cur_element_ind
+                                // 99
+                            };
 
-                                // let u=if let Some(i)=i {
-                                //     Some(apply_use_element_inds[i])
-                                // } else {
-                                //     cur_work.last_apply_use
-                                // };
-                                new_applies.extend(element.applies.iter().map(|&apply_element_ind|(apply_element_ind,from)));
-                                //(apply_element_ind,Some(apply_use_element_ind))
+                            // let u=if let Some(i)=i {
+                            //     Some(apply_use_element_inds[i])
+                            // } else {
+                            //     cur_work.last_apply_use
+                            // };
+                            new_applies.extend(element.applies.iter().map(|&apply_element_ind|(apply_element_ind,from)));
+                            //(apply_element_ind,Some(apply_use_element_ind))
                             // }
                         }
-
                     }
                 }
-
 
                 //push children (to work)
                 // if enter
@@ -1895,18 +1597,13 @@ pub fn on_asset_load<'a>(
                                 } else {
                                     let w=Work{
                                         element_ind: child_element_ind,
-                                        // exit:false,
                                         from_applies:cur_work.from_applies.clone(),
                                         in_apply:cur_work.in_apply,
                                         in_template:cur_work.in_template,
                                         new_from_parent: the_new_element_ind, //so new element is created for child
                                         thing_apply_after_offset: 0,
-                                        // from_element2_ind: cur_element2_ind,
-                                        // inside_parent:cur_work.inside_parent,
                                         node_depth,
                                         thing_depth,
-                                        // last_apply_use:cur_work.last_apply_use,
-                                        // from_path:from_path.clone(),
                                         created_from:cur_element_ind,
                                     };
                                     Some(w)
@@ -1928,17 +1625,13 @@ pub fn on_asset_load<'a>(
                             //
                             work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                                 element_ind: child_element_ind,
-                                // exit:false,
                                 from_applies:cur_work.from_applies.clone(),
                                 in_apply:cur_work.in_apply,
                                 in_template:cur_work.in_template,
-                                // from_element2_ind: cur_element2_ind,
                                 new_from_parent: the_new_element_ind, //so new element is created for child
                                 thing_apply_after_offset: 0,
                                 node_depth,
                                 thing_depth,
-                                // last_apply_use:cur_work.last_apply_use,
-                                // from_path:from_path.clone(),
                                 created_from:cur_element_ind,
                             }));
                         }
@@ -1966,24 +1659,19 @@ pub fn on_asset_load<'a>(
 
                                 Work{
                                     element_ind: child_element_ind,
-                                    // exit:false,
                                     from_applies:cur_work.from_applies.clone(),
                                     in_apply:cur_work.in_apply,
                                     in_template,
-                                    // from_element2_ind: cur_element2_ind,
                                     // new_from_parent: if the_new_element_ind.is_some(){the_new_element_ind}else{Some(cur_work.element_ind)}, //so new element is created for child
                                     new_from_parent: Some(the_new_element_ind.unwrap_or(cur_work.element_ind)), //so new element is created for child
                                     thing_apply_after_offset: 0,
                                     node_depth,
                                     thing_depth,
-                                    // last_apply_use:cur_work.last_apply_use,
-                                    // from_path:from_path.clone(),
                                     created_from:cur_element_ind,
                                 }
                             }));
                         }
                         // ElementType::ApplyUse { apply_decl_element_ind } => {
-
                         // }
                         _=> {}
                     }
@@ -2020,82 +1708,11 @@ pub fn on_asset_load<'a>(
                         _=> {}
                     }
                 }
-
-
             }
         }
 
-        //calc attribs
-        // {
-
-        //     #[derive(Clone)]
-        //     struct Work {
-        //         element_ind:usize,
-        //         depth:usize,
-        //         exit:bool,
-        //     }
-
-        //     let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false, }];
-        //     let mut node_stk=Vec::new();
-
-        //     while let Some(cur_work)=work_stk.pop() {
-        //         let cur_element=elements.get(cur_work.element_ind).unwrap();
-
-
-        //         match &cur_element.element_type {
-        //             ElementType::Node{..} if cur_work.exit => {
-        //                 node_stk.pop().unwrap();
-        //             }
-        //             ElementType::Node{..} => {
-        //                 node_stk.push(cur_work.element_ind);
-        //                 work_stk.push(Work{exit:true, ..cur_work.clone()})
-        //             }
-        //             ElementType::TemplateUse{..} => {
-        //             }
-        //             ElementType::Stub{..} => {
-        //             }
-        //             ElementType::ApplyUse{..} => {
-        //             }
-        //             ElementType::Attrib { ..  } => {
-        //             }
-        //             _ => {
-        //                 continue;
-        //             }
-        //         }
-
-        //         if cur_work.exit {
-        //             continue;
-        //         }
-
-        //         work_stk.extend(cur_element.children.iter().rev().map(|&child|Work { element_ind: child, depth: cur_work.depth+1, exit:false, }));
-
-        //         if let ElementType::Attrib { name,in_node, on_state, func, .. } = cur_element.element_type.clone() {
-        //             let node_element=elements.get(*node_stk.last().unwrap()).unwrap();
-        //             // node_element.calcd_attribs.push(value);
-
-
-        //             let prev=node_element.calcd_attribs.get(&(name,on_state));
-        //             let (prev_in_template,prev_in_apply,prev_in_node)=prev.map(|x|(x.0,x.1,x.2)).unwrap_or_default();
-
-        //             let in_apply=cur_element.calcd_in_apply;
-        //             let in_template=cur_element.calcd_in_template;
-
-
-        //             let ok = in_node || !prev_in_node || (in_apply!=prev_in_apply || prev_in_template!=in_template);
-
-        //             if ok {
-        //                 let node_element=elements.get_mut(*node_stk.last().unwrap()).unwrap();
-        //                 node_element.calcd_attribs.insert((name,on_state), (in_template,in_apply,in_node,func.clone()));
-        //             }
-        //         }
-        //     }
-
-        // }
-
-
         //calc nodes params
         {
-
             #[derive(Clone)]
             struct Work {
                 element_ind:usize,
@@ -2104,14 +1721,12 @@ pub fn on_asset_load<'a>(
                 in_decl:bool,
             }
 
-
             let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_decl:false, }];
 
             while let Some(cur_work)=work_stk.pop() {
                 let cur_element=elements.get(cur_work.element_ind).unwrap();
 
                 if !cur_work.exit {
-
                     // if let
                     //     //ElementType::TemplateUse{..}|
                     //     ElementType::ApplyUse{..}=&cur_element.element_type {
@@ -2188,37 +1803,15 @@ pub fn on_asset_load<'a>(
                         }
                     }
                 }
-                // match &cur_element.element_type {
-                //     ElementType::Node { .. } => {
-                //         let parent_element=elements.get_mut(parent_element_ind).unwrap();
-                //         parent_element.calcd_node_params.insert(cur_work.element_ind);
-                //     }
-                //     ElementType::TemplateUse { .. } => {
-                //     }
-                //     ElementType::Apply { .. } => {
-                //     }
-                //     ElementType::Attrib { .. } => {
-                //     }
-                //     ElementType::Script { .. } => {
-                //     }
-                //     ElementType::TemplateDecl { .. } => {
-                //     }
-                //     ElementType::Stub { .. } => {
-                //     }
-                //     ElementType::ApplyUse { .. } => {
-                //     }
-                // }
             }
         }
 
         //debug
-        if false {
+        // if false
+        {
             println!("=====");
 
-            struct Work {
-                element_ind:usize,
-                depth:usize,
-            }
+            struct Work { element_ind:usize, depth:usize, }
 
             let mut work_stk=vec![Work{ element_ind: 0, depth: 0 }];
 
@@ -2244,16 +1837,6 @@ pub fn on_asset_load<'a>(
                         println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}",);
                     }
                     ElementType::Attrib { name,in_node,calcd, ..  } => {
-
-                        // let s=if let Some(calc)=element_attrib_calcs.get(&cur_work.element_ind) {
-                        //     let in_template=calc.in_template;
-                        //     let in_apply=calc.in_apply;
-                        //     let ok=calc.ok;
-                        //     let used=calc.used;
-                        //     format!("in_template_use={in_template:?}, in_apply_decl={in_apply:?}, ok={ok}, used={used}")
-                        // } else {String::new()};
-
-
                         println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}", );
                     }
                     ElementType::Script { .. } => {
@@ -2276,19 +1859,16 @@ pub fn on_asset_load<'a>(
         }
 
         //get attribs
-        {
-
-        }
-
+        //{ }
 
         let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
         let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
         let mut all_attribs: Vec<AttribFunc>=Vec::new(); //[]=func
         let mut all_names: Vec<script_lang::StringT>=Vec::new();
         let mut all_names_map = HashSet::<script_lang::StringT>::new();
+
         //
         {
-
             #[derive(Clone)]
             struct Work {
                 element_ind:usize,
@@ -2297,7 +1877,6 @@ pub fn on_asset_load<'a>(
             }
 
             let mut work_stk=vec![Work{ element_ind: 0, parent:None,stub:None,}];
-
             let mut creates:BTreeMap<usize,BTreeMap<usize,usize>>= BTreeMap::new(); //[root/stub][node]=parent
             let mut attribs:HashMap<usize,Vec<AttribFunc>> = HashMap::new(); //[element_ind]=attribs
             let mut element_ind_inds: HashMap<usize,usize>=HashMap::new(); //[element_ind]=ind;
@@ -2320,7 +1899,6 @@ pub fn on_asset_load<'a>(
                         if calcd.used {
                             attribs.entry(cur_work.parent.unwrap()).or_default().push(func.clone());
                         }
-                        // cur_element.
                     }
                     _=>{}
                 }
@@ -2354,7 +1932,6 @@ pub fn on_asset_load<'a>(
             //attribs[ind]=attrib_func
             // let mut element_ind_to_ind: HashMap<usize, usize>= HashMap::new(); //[element_ind]=ind
             // element_ind_to_ind.insert(0,0);
-
             // all_nodes.resize(element_ind_inds.len(), Default::default());
 
             for (&stub_element_ind,node_parents) in creates.iter() {
@@ -2411,7 +1988,6 @@ pub fn on_asset_load<'a>(
         // let mut all_nodes: Vec<(usize,usize,usize,usize)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
         // let mut all_attribs=Vec::new(); //[]=func
 
-
         //script
         {
 
@@ -2426,11 +2002,13 @@ pub fn on_asset_load<'a>(
             }
 
             let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_use:false,inside:None}];
+
             struct ApplyCall {
                 inside_element_ind:Option<usize>,
                 parent_element_ind:usize,
                 apply_use_element_ind:usize,
             }
+
             let mut apply_calls_stk: Vec<Vec<ApplyCall>> = Vec::new();//vec![Vec::new()]; //[[element_ind]] //(Option<usize>,usize,usize)
             // let mut node_ret_stk: Vec<Vec<(usize,usize)>> = Vec::new(); //()
 
@@ -2440,9 +2018,7 @@ pub fn on_asset_load<'a>(
             src+="var _stubs;\n";
 
             while let Some(cur_work)=work_stk.pop() {
-
                 // println!("cur element={}, depth={}, dir={}, call_stk={:?}",cur_work.element_ind,cur_work.depth,if cur_work.exit{"exit"}else{"enter"},apply_calls_stk);
-
 
                 //
                 let cur_element=elements.get(cur_work.element_ind).unwrap();
@@ -2480,7 +2056,6 @@ pub fn on_asset_load<'a>(
                     }
                 }
 
-
                 //
                 if cur_work.exit && !cur_work.in_use {
                     if match &cur_element.element_type {
@@ -2488,12 +2063,10 @@ pub fn on_asset_load<'a>(
                         ElementType::Stub{..} => true,
                         _ => false,
                     } {
-
                         let indent="    ".repeat(cur_work.depth);
 
                         // //
                         // src+=&format!("{indent}var _ns {{_c{}}};\n",cur_work.element_ind);
-
 
                         //
                         let mut v=apply_calls_stk.pop().unwrap();
@@ -2578,6 +2151,7 @@ pub fn on_asset_load<'a>(
                     // src+=&format!("{indent}_apply_use{} ns\n",cur_work.element_ind);
                     // calls_stk.get_mut(cur_work.depth-1).unwrap().push(cur_work.element_ind);
                     // calls_stk.last_mut().unwrap().push((*apply_decl_element_ind));
+
                     if !cur_work.exit {
                         //(cur_work.inside,cur_work.parent.unwrap(),cur_work.element_ind)
                         apply_calls_stk.last_mut().unwrap().push(ApplyCall {
@@ -2592,8 +2166,6 @@ pub fn on_asset_load<'a>(
                         ElementType::Apply{..} => true,
                         _=>false,
                     } {
-
-
                         let indent="    ".repeat(cur_work.depth);
                         let mut params=Vec::new();
 
@@ -2608,7 +2180,6 @@ pub fn on_asset_load<'a>(
                         // }).flatten().collect::<Vec<_>>();
                         // // if template use, store its dict eg t123:r123 instead of flattening it
                         // while let Some((element_ind,   ))=tmp_stk.pop() {
-
                         // }
 
                         for &child_element_ind in cur_element.children.iter() {
@@ -2682,7 +2253,6 @@ pub fn on_asset_load<'a>(
                         // }
                     }
 
-
                     match &cur_element.element_type {
                         ElementType::Node{..} if cur_work.depth==0 && !cur_work.exit => { //enter
                             apply_calls_stk.push(Vec::new());
@@ -2704,9 +2274,7 @@ pub fn on_asset_load<'a>(
                             let indent="    ".repeat(cur_work.depth-1);
                             // src+=&format!("{indent}    return {{array}};\n");
                             // src+=&format!("{indent}    return r;\n");
-
                             src+=&format!("{indent}}}\n");
-
                             // src+=&format!("{indent}var _rn{} {{call _node{}}};\n", cur_work.element_ind, cur_work.element_ind);
 
                             {
@@ -2734,7 +2302,6 @@ pub fn on_asset_load<'a>(
                         }
                         ElementType::Apply{..} => { //exit
                             let indent="    ".repeat(cur_work.depth-1);
-
                             src+=&format!("{indent}}}\n");
                             // src+=&format!("{indent}set _a{} _a;\n",cur_work.element_ind);
                         }
@@ -2766,13 +2333,11 @@ pub fn on_asset_load<'a>(
                         }
                         ElementType::Stub{name,..} if !cur_work.exit => { //enter
                             apply_calls_stk.push(Vec::new());
-
                             let indent="    ".repeat(cur_work.depth-1);
                             src+=&format!("{indent}fn stub_{name} {{parent}} {{ #{}\n",cur_work.element_ind);
                         }
                         ElementType::Stub{..} => { //exit
                             let indent="    ".repeat(cur_work.depth-1);
-
                             src+=&format!("{indent}}}\n");
                         }
                         ElementType::ApplyUse{..} if !cur_work.exit => { //enter
@@ -2820,8 +2385,6 @@ pub fn on_asset_load<'a>(
                     }
 
                     //
-
-                    //
                     if !cur_work.exit //&& !cur_work.in_use
                     {
                         if match &cur_element.element_type {
@@ -2829,37 +2392,26 @@ pub fn on_asset_load<'a>(
                             ElementType::Stub{..} => true,
                             _ => false,
                         } {
-
                             let indent="    ".repeat(cur_work.depth);
-
                             let p=if let ElementType::Stub{..}=&cur_element.element_type{"parent"}else{"root"};
-                            //
                             src+=&format!("{indent}var _ns {{call _stubs {} {p}}};\n",cur_work.element_ind);
                         }
                     }
                 }
-
-
-
-
             }
 
             // println!("===\n\n{src}\n====");
 
             let compiler=script_lang::langs::cexpr_compiler::Compiler::new();
-
             let build = compiler.compile(src.as_str(), 0, None, true, );
             // script_lang::cexpr_compiler::
-
 
             if let Err(e)=&build {
                 eprintln!("{}",e.msg());
                 continue;
             }
 
-
             let stuff = script_lang::Value::custom_unmanaged(Stuff{  all_stubs, all_nodes, all_attribs, all_names });
-
             let compiler=script_lang::cexpr_compiler::Compiler::new();
             let compile_result=compiler.compile(&src, 0,from_asset.handle.path().map(|x|x.path()),  true);
 
@@ -2867,8 +2419,8 @@ pub fn on_asset_load<'a>(
                 eprintln!("{}",e.msg());
                 continue;
             }
-            let build=compile_result.unwrap();
 
+            let build=compile_result.unwrap();
 
             commands.queue(move|world:&mut World|{
                 let lib_scope = world.resource::<UixLibScope>().0.clone();
@@ -2892,16 +2444,7 @@ pub fn on_asset_load<'a>(
 
                 // gc_scope.test();
             });
-
-
-
-
-
         }
-
-        //
-
-
     }
 }
 

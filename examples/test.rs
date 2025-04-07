@@ -31,7 +31,7 @@ fn main() {
                 })
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: "Spadens".into(),
+                        title: "uix test".into(),
                         resolution: (1280.0, 720.0).into(),
                         resizable: true,
                         ..default()
