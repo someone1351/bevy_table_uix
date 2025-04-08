@@ -10,3 +10,4 @@ mod utils;
 pub use plugin::*;
 pub use assets::*;
 pub use components::*;
+pub use event::*;

@@ -254,6 +254,7 @@ fn input_def() -> conf_lang::Def {
                     .param_parse::<i32>()
             .tags([
                 "width","height","hgap","vgap",
+                "hpadding","vpadding","hborder","vborder","hmargin","vmargin",
                 //"hscroll","vscroll",
                 "border_left","border_right","border_top","border_bottom",
                 "padding_left","padding_right","padding_top","padding_bottom",
@@ -294,6 +295,12 @@ fn input_def() -> conf_lang::Def {
             .tags(["size"])
                 .entry()
                     .param_func(parse_uival)
+                    .param_func(parse_uival)
+            .tags(["border","padding","margin","gap"])
+                .entry()
+                    // .goptional(Some(1))
+                    .param_func(parse_uival)
+                    .param_optional()
                     .param_func(parse_uival)
             .tags(["border","padding","margin","gap"])
                 .entry()

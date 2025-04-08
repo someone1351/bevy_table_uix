@@ -571,7 +571,7 @@ pub fn load_elements<'a>(
 
                         "border" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v*-1.0);
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
 
                             attrib_funcs.push(("border_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.border.left=v;
@@ -584,6 +584,22 @@ pub fn load_elements<'a>(
                             })));
                             attrib_funcs.push(("border_bottom",make_attrib_func::<UiEdge>(move|c|{
                                 c.border.bottom=v2;
+                            })));
+                        }
+                        "hborder" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.border.left=v;
+                                c.border.right=v;
+                            })));
+                        }
+                        "vborder" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.border.top=v;
+                                c.border.bottom=v;
                             })));
                         }
                         "border_left" => {
@@ -617,7 +633,7 @@ pub fn load_elements<'a>(
 
                         "padding" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v*-1.0);
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
 
                             attrib_funcs.push(("padding_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.padding.left=v;
@@ -630,6 +646,22 @@ pub fn load_elements<'a>(
                             })));
                             attrib_funcs.push(("padding_bottom",make_attrib_func::<UiEdge>(move|c|{
                                 c.padding.bottom=v2;
+                            })));
+                        }
+                        "hpadding" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.padding.left=v;
+                                c.padding.right=v;
+                            })));
+                        }
+                        "vpadding" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.padding.top=v;
+                                c.padding.bottom=v;
                             })));
                         }
                         "padding_left" => {
@@ -663,7 +695,7 @@ pub fn load_elements<'a>(
 
                         "margin" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v*-1.0);
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
 
                             attrib_funcs.push(("margin_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.margin.left=v;
@@ -676,6 +708,22 @@ pub fn load_elements<'a>(
                             })));
                             attrib_funcs.push(("margin_bottom",make_attrib_func::<UiEdge>(move|c|{
                                 c.margin.bottom=v2;
+                            })));
+                        }
+                        "hmargin" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.margin.left=v;
+                                c.margin.right=v;
+                            })));
+                        }
+                        "vmargin" => {
+                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                                c.margin.top=v;
+                                c.margin.bottom=v;
                             })));
                         }
                         "margin_left" => {
@@ -820,7 +868,7 @@ pub fn load_elements<'a>(
 
                         "gap" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v*-1.0);
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
 
                             attrib_funcs.push(("hgap",make_attrib_func::<UiGap>(move|c|{
                                 c.hgap=v;
