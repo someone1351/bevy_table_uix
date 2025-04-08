@@ -665,7 +665,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let world=context.core_mut();
         world.send_event(UixUserEvent{ entity, event, params });
         Ok(Value::Void)
-    }).custom_ref::<Entity>().str().any().variadic_end();
+    }).custom_ref::<Entity>().str().optional().any().variadic_end();
 
     //call(stuff,ind,entity)
     lib_scope.method("call",|mut context|{

@@ -6,6 +6,13 @@
     env.0 ??
 */
 
+// #![allow(unused_mut)]
+// #![allow(unused_variables)]
+#![allow(dead_code)]
+// #![allow(unused_imports)]
+// #![allow(unused_assignments)]
+// #[allow(unused_parens)]
+
 use core::panic;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ops::Range;
@@ -1892,7 +1899,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
     for (&stub_element_ind,node_parents) in creates.iter() {
         let nodes_start=all_nodes.len();
-        println!("{node_parents:?}");
+        // println!("{node_parents:?}");
         //
         for (&node_element_ind,&parent_element_ind) in node_parents.iter() {
             //
