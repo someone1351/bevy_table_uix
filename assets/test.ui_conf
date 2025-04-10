@@ -1,22 +1,9 @@
+template a
+	width 50
+	height 50
+	#script
+		#var a self;
+	color 222 0 0
 
-node b
-	width 25
-	height 25
-	color 0 255 110
-	pressable
-
-	script
-		println "self is {self}"
-		var q 5;
-		add_event_listener self "click" [fn {} {
-			println "clicking"
-			println "{self} was clicked";
-			send self "test" 33 44;
-		}];
-
-		add_event_listener self "press_begin" [fn {} {
-			println "{self} was pressing";
-		}];
-		add_event_listener self "test" [fn {a b} {
-			println "received {a} {b}";
-		}];
+node
+	template a

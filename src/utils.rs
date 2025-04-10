@@ -571,7 +571,8 @@ pub fn load_elements<'a>(
 
                         "border" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
 
                             attrib_funcs.push(("border_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.border.left=v;
@@ -633,7 +634,8 @@ pub fn load_elements<'a>(
 
                         "padding" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
 
                             attrib_funcs.push(("padding_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.padding.left=v;
@@ -695,7 +697,8 @@ pub fn load_elements<'a>(
 
                         "margin" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
 
                             attrib_funcs.push(("margin_left",make_attrib_func::<UiEdge>(move|c|{
                                 c.margin.left=v;
@@ -868,7 +871,8 @@ pub fn load_elements<'a>(
 
                         "gap" => {
                             let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
 
                             attrib_funcs.push(("hgap",make_attrib_func::<UiGap>(move|c|{
                                 c.hgap=v;
@@ -2200,11 +2204,11 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                                 tmp_stk.extend(tmp_element.children.iter());
 
                                 for &apply_element_ind in tmp_element.applies.iter() {
-                                    params.push(format!(":a{apply_element_ind} _r{child_element_ind}.a{apply_element_ind}"));
+                                    params.push(format!("\"a{apply_element_ind}\" _r{child_element_ind}.a{apply_element_ind}"));
                                 }
                             }
                             ElementType::TemplateUse{..}=>{
-                                params.push(format!(":t{tmp_element_ind} _r{child_element_ind}")); //.t{tmp_element_ind}
+                                params.push(format!("\"t{tmp_element_ind}\" _r{child_element_ind}")); //.t{tmp_element_ind}
 
                             }
                             _=>{}
@@ -2225,7 +2229,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                 //
 
-                params.extend(cur_element.applies.iter().map(|&x|format!(":a{x} _a{x}")));
+                params.extend(cur_element.applies.iter().map(|&x|format!("\"a{x}\" _a{x}")));
                 let applies_ret=params.join(" ");
 
                 let s=if params.is_empty(){""}else{" "};
@@ -2321,7 +2325,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                 }
                 ElementType::TemplateDecl{..} => { //exit
                     let indent="    ".repeat(cur_work.depth-1);
-                    let applies_ret=cur_element.applies.iter().map(|&x|format!(":a{x} _a{x}")).collect::<Vec<_>>().join(" ");
+                    let applies_ret=cur_element.applies.iter().map(|&x|format!("\"a{x}\" _a{x}")).collect::<Vec<_>>().join(" ");
                     let s=if cur_element.applies.is_empty(){""}else{" "};
                     src+=&format!("{indent}    return {{dict{s}{applies_ret}}};\n");
                     src+=&format!("{indent}}}\n");
