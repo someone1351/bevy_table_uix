@@ -3,7 +3,7 @@ template a
 	height 50
 	#script
 		#var a self;
-	color 222 0 0
+	color "#F022AA"
 
 node
 	template a

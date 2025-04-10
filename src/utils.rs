@@ -402,6 +402,12 @@ pub fn load_elements<'a>(
                                     let a:[u8;4]=walk.record().get_parsed_array(255).unwrap();
                                     Color::srgba_u8(a[0],a[1],a[2],a[3])
                                 }
+                                "colorh" => {
+                                    walk.record().value(0).get_parsed::<HexColor>().unwrap().0
+                                }
+                                "colorn" => {
+                                    walk.record().value(0).get_parsed::<NamedColor>().unwrap().0
+                                }
                                 _ => {panic!("");}
                             };
 
