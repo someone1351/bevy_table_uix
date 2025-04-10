@@ -1,4 +1,8 @@
+/*
+Problems
+* on asset modified, error reporting twice
 
+*/
 use std::collections::HashSet;
 
 use bevy::{ecs::prelude::*, prelude::DespawnRecursiveExt};
@@ -86,6 +90,7 @@ pub fn on_asset_load<'a>(
     asset_server: Res<AssetServer>,
     mut from_asset_query: Query<(Entity,&mut UixFromAsset)>,
     mut commands: Commands,
+    mut event_listeners_query: Query<&mut UixEventListener,>,
 ) {
     //
     for (top_entity, mut from_asset) in from_asset_query.iter_mut() {
@@ -100,6 +105,10 @@ pub fn on_asset_load<'a>(
             .despawn_descendants()
             .remove::<UixEnv>()
             ;
+
+        if let Ok(mut x)=event_listeners_query.get_mut(top_entity) {
+            x.event_listeners.clear();
+        }
 
         //
         let asset=ui_assets.get(from_asset.handle.id()).unwrap();
