@@ -2176,11 +2176,16 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
             }
         } else if !cur_work.in_use {
             // if cur_element.has_script
-            { //can't just use cur_element.has_script, as nodes under apply/template use don't have has_script
-            //and the reason to not make them has_script=true, is because a node that doesn't have a script,
-            // but an apply on them does, then want the apply to be called on it, but not call the node
-            // template_uses if their decl has an apply use, then node that uses it needs to return the template res
-            //need to make apply_uses/nodes/template_uses that don't return anything to not use a ret var
+            {
+/*
+* can't just use cur_element.has_script, as nodes under apply/template use don't have has_script
+** and the reason to not make them has_script=true, is because a node that doesn't have a script,
+** but an apply on them does, then want the apply to be called on it, but not call the node
+** template_uses if their decl has an apply use, then node that uses it needs to return the template res
+*need to make apply_uses/nodes/template_uses that don't return anything to not use a ret var
+* could attach script info to elements, eg returns etc or create a tree struct
+*/
+
             //cur_element.has_script &&
                 if cur_work.exit && match &cur_element.element_type {
                     ElementType::Node{..} if cur_work.parent.is_some() => true,
