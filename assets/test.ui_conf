@@ -1,10 +1,8 @@
-template a
-	width 50
-	height 50
-	#script
-	#	var a self;
-	color #F022AA
+
+template "t"
+    node
+        node "x"
+        apply "x"
 
 node
-	template a
-	#xx
+    template "t"

@@ -154,6 +154,8 @@ pub fn on_asset_load<'a>(
 
         //script
         {
+            mark_has_script(&mut elements);
+
             let src=gen_script(&elements);
 
             let stuff=gen_stubs(&elements);
