@@ -1,8 +1,15 @@
+template "s"
+	script
 
 template "t"
+	script
     node
         node "x"
         apply "x"
+			template "s"
+        apply "x"
+			script
+				var x
 
 node
     template "t"

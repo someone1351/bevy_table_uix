@@ -144,8 +144,9 @@ pub fn on_asset_load<'a>(
         //calc nodes params
         calc_node_params(&mut elements);
 
+        mark_has_script(&mut elements);
         //debug
-        // debug_print_elements(&elements);
+        debug_print_elements(&elements);
 
         //get attribs
         //{ }
@@ -154,7 +155,6 @@ pub fn on_asset_load<'a>(
 
         //script
         {
-            mark_has_script(&mut elements);
 
             let src=gen_script(&elements);
 
@@ -164,7 +164,7 @@ pub fn on_asset_load<'a>(
             // println!("all_nodes : {:?}",stuff.all_nodes);
 
             let stuff = script_lang::Value::custom_unmanaged(stuff);
-            // println!("===\n\n{src}\n====");
+            println!("===\n\n{src}\n====");
 
             // let compiler=script_lang::langs::cexpr_compiler::Compiler::new();
             // let build = compiler.compile(src.as_str(), 0, None, true, );

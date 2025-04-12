@@ -14,6 +14,7 @@
 // #[allow(unused_parens)]
 
 use core::panic;
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ops::Range;
 use std::path::PathBuf;
@@ -2021,19 +2022,22 @@ TODO
 
 */
 pub fn mark_has_script(elements:&mut Vec<Element>) {
-
     let mut parents: HashMap<usize, usize>=HashMap::new(); //[element]=parent
-
     let mut work_stk=vec![0];
 
     while let Some(cur_element_ind)=work_stk.pop() {
         let cur_element=elements.get(cur_element_ind).unwrap();
+
+        if cur_element.has_script {
+            break;
+        }
+
+        //
         work_stk.extend(cur_element.children.iter());
         parents.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
 
-        let is_script=if let ElementType::Script { .. } = cur_element.element_type {true}else{false};
-
-        if is_script {
+        //
+        if let ElementType::Script { .. } = cur_element.element_type  {
             let mut element_ind=Some(cur_element_ind);
 
             while let Some(element_ind2)=element_ind {
@@ -2065,46 +2069,32 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
         apply_use_element_ind:usize,
     }
 
-    let mut apply_calls_stk: Vec<Vec<ApplyCall>> = Vec::new();//vec![Vec::new()]; //[[element_ind]] //(Option<usize>,usize,usize)
-    // let mut node_ret_stk: Vec<Vec<(usize,usize)>> = Vec::new(); //()
+    let mut apply_calls_stk: Vec<Vec<ApplyCall>> = Vec::new();
 
-    // let mut src_decls = String::new();
     let mut src = String::new();
     src+="var root;\n";
     src+="var _stubs;\n";
 
     while let Some(cur_work)=work_stk.pop() {
-        // println!("cur element={}, depth={}, dir={}, call_stk={:?}",cur_work.element_ind,cur_work.depth,if cur_work.exit{"exit"}else{"enter"},apply_calls_stk);
-
-        //
         let cur_element=elements.get(cur_work.element_ind).unwrap();
-
-        // if !cur_element.has_script {
-        //     continue;
-        // }
+        // if !cur_element.has_script { continue; }
 
         if !cur_work.exit {
             if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}
-                |ElementType::ApplyUse{..}|ElementType::TemplateUse{..}
-                =&cur_element.element_type
+                |ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type
             {
                 let in_use = if let ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
-                    // Some(cur_work.element_ind)
                     true
                 } else {
-                    // cur_work.in_apply_use
                     cur_work.in_use
                 };
 
-                let inside = if let ElementType::Node{..}
-                    |ElementType::ApplyUse{..}
-                    |ElementType::TemplateUse{..}
-                =&cur_element.element_type {
+                let inside = if let ElementType::Node{..}|ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
                     Some(cur_work.element_ind)
                 } else {
-                    // cur_work.in_apply_use
                     cur_work.inside
                 };
+
                 // calls_stk.push(Vec::new());
                 work_stk.push(Work{exit:true, ..cur_work.clone()});
                 work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
@@ -2116,7 +2106,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
             }
         }
 
-        //
+        //call applies, at root node and stubs
         if cur_work.exit && !cur_work.in_use {
             if match &cur_element.element_type {
                 ElementType::Node{..} if cur_work.depth==0 => true,
@@ -2124,39 +2114,18 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                 _ => false,
             } {
                 let indent="    ".repeat(cur_work.depth);
-
-                // //
-                // src+=&format!("{indent}var _ns {{_c{}}};\n",cur_work.element_ind);
-
-                //
                 let mut v=apply_calls_stk.pop().unwrap();
 
                 v.sort_by(|x,y|{
-                    let ElementType::ApplyUse {
-                        //apply_decl_element_ind:a,
-                        ..
-                    }=&elements.get(x.apply_use_element_ind).unwrap().element_type else {panic!("");};
-
-                    let ElementType::ApplyUse {
-                        //apply_decl_element_ind:b,
-                        ..
-                    }=&elements.get(y.apply_use_element_ind).unwrap().element_type else {panic!("");};
-
-                    // let r=a.cmp(b);
-                    let r=x.apply_use_element_ind.cmp(&y.apply_use_element_ind);
-
-                    if let std::cmp::Ordering::Equal=r{
-                        x.inside_element_ind.cmp(&y.inside_element_ind)
-                    } else {
-                        r
+                    match x.apply_use_element_ind.cmp(&y.apply_use_element_ind) {
+                        Ordering::Equal=>x.inside_element_ind.cmp(&y.inside_element_ind),
+                        r=>r,
                     }
                 });
 
                 for x in v.iter() {
                     let apply_use_element=elements.get(x.apply_use_element_ind).unwrap();
                     let ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
-                    // let apply_decl_element=elements.get(*apply_decl_element_ind).unwrap();
-                    // let ElementType::Apply {is_root, .. }=&apply_decl_element.element_type else {panic!("");};
 
                     let params=[x.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter()).map(|&x|format!("_ns.{x}")).collect::<Vec<_>>();
                     let params=params.join(" ");
@@ -2174,111 +2143,108 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                             ElementType::TemplateUse { .. } => {
                                 pres.push(format!("t{cur_from}"));
                             }
-
                             ElementType::Node { .. } if from_element.calcd_created_from==0 => {
                                 pres.push(format!("r{cur_from}"));
                             }
                             _ => {}
                         }
 
-                        // pres.push(cur_from);
                         cur_from=from_element.calcd_created_from;
                     }
 
                     pres.reverse();
                     pres.push(format!("a{apply_decl_element_ind}"));
 
-                    let pre=pres.join(".");
-
-                    // for i in 0..pres.len() {
-                    //     let p=pres[0..i+1].join(".");
-                    //     src+=format!("println \"func3.{i} _{p} is {{}}\" _{p}\n").as_str();
-                    // }
-
+                    let pres=pres.join(".");
                     let apply_use_element_ind=x.apply_use_element_ind;
-                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call _{pre} {params}}};\n");
+                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call _{pres} {params}}};#2\n");
                 }
             }
         }
 
-        if let ElementType::ApplyUse{..} = &cur_element.element_type {
-            // let indent="    ".repeat(cur_work.depth-1);
-            // src+=&format!("{indent}_apply_use{} ns\n",cur_work.element_ind);
-            // calls_stk.get_mut(cur_work.depth-1).unwrap().push(cur_work.element_ind);
-            // calls_stk.last_mut().unwrap().push((*apply_decl_element_ind));
-
+        if let ElementType::ApplyUse{ apply_decl_element_ind } = &cur_element.element_type {
             if !cur_work.exit {
-                //(cur_work.inside,cur_work.parent.unwrap(),cur_work.element_ind)
-                apply_calls_stk.last_mut().unwrap().push(ApplyCall {
-                    inside_element_ind:cur_work.inside,
-                    parent_element_ind:cur_work.parent.unwrap(),
-                    apply_use_element_ind:cur_work.element_ind,
-                });
+
+                if elements.get(*apply_decl_element_ind).unwrap().has_script
+                {
+                    apply_calls_stk.last_mut().unwrap().push(ApplyCall {
+                        inside_element_ind:cur_work.inside,
+                        parent_element_ind:cur_work.parent.unwrap(),
+                        apply_use_element_ind:cur_work.element_ind,
+                    });
+                }
             }
         } else if !cur_work.in_use {
-            if cur_work.exit && match &cur_element.element_type {
-                ElementType::Node{..} if cur_work.parent.is_some() => true,
-                ElementType::Apply{..} => true,
-                ElementType::TemplateDecl{..}=>true, //added
-                _=>false,
-            } {
-                let indent="    ".repeat(cur_work.depth);
-                let mut params=Vec::new();
+            // if cur_element.has_script
+            { //can't just use cur_element.has_script, as nodes under apply/template use don't have has_script
+            //and the reason to not make them has_script=true, is because a node that doesn't have a script,
+            // but an apply on them does, then want the apply to be called on it, but not call the node
+            // template_uses if their decl has an apply use, then node that uses it needs to return the template res
+            //need to make apply_uses/nodes/template_uses that don't return anything to not use a ret var
+            //cur_element.has_script &&
+                if cur_work.exit && match &cur_element.element_type {
+                    ElementType::Node{..} if cur_work.parent.is_some() => true,
+                    ElementType::Apply{..} => true,
+                    ElementType::TemplateDecl{..}=>true, //added
+                    _=>false,
+                } {
+                    let indent="    ".repeat(cur_work.depth);
+                    let mut params=Vec::new();
 
-                for &child_element_ind in cur_element.children.iter() {
-                    let mut tmp_stk=vec![child_element_ind];
+                    //apply/template uses returned by cur element's descendents
+                    for &child_element_ind in cur_element.children.iter() {
+                        let mut tmp_stk=vec![child_element_ind];
 
-                    while let Some(tmp_element_ind)=tmp_stk.pop() {
-                        let tmp_element=elements.get(tmp_element_ind).unwrap();
-                        match &tmp_element.element_type {
-                            ElementType::Node{..}=>{
-                                tmp_stk.extend(tmp_element.children.iter());
+                        while let Some(tmp_element_ind)=tmp_stk.pop() {
+                            let tmp_element=elements.get(tmp_element_ind).unwrap();
+                            match &tmp_element.element_type {
+                                ElementType::Node{..}=>{
+                                    tmp_stk.extend(tmp_element.children.iter());
 
-                                for &apply_element_ind in tmp_element.applies.iter() {
-                                    params.push(format!("\"a{apply_element_ind}\" _r{child_element_ind}.a{apply_element_ind}"));
+                                    for &apply_element_ind in tmp_element.applies.iter() {
+                                        // if elements.get(apply_element_ind).unwrap().has_script
+                                        {
+                                            params.push(format!("\"a{apply_element_ind}\" _r{child_element_ind}.a{apply_element_ind}"));
+                                        }
+                                    }
                                 }
+                                ElementType::TemplateUse{..}=>{
+                                    params.push(format!("\"t{tmp_element_ind}\" _r{child_element_ind}")); //.t{tmp_element_ind}
+                                }
+                                _=>{}
                             }
-                            ElementType::TemplateUse{..}=>{
-                                params.push(format!("\"t{tmp_element_ind}\" _r{child_element_ind}")); //.t{tmp_element_ind}
-                            }
-                            _=>{}
                         }
                     }
+
+                    //apply uses returned from cur element
+                    for &apply_element_ind in cur_element.applies.iter() {
+                        // if elements.get(apply_element_ind).unwrap().has_script
+                        {
+                            params.push(format!("\"a{apply_element_ind}\" _a{apply_element_ind}"));
+                        }
+                    }
+
+                    let applies_ret=params.join(" ");
+                    let s=if params.is_empty(){""}else{" "};
+                    src+=&format!("{indent}return {{dict{s}{applies_ret}}};\n");
                 }
 
-                //
-                params.extend(cur_element.applies.iter().map(|&x|format!("\"a{x}\" _a{x}")));
-                let applies_ret=params.join(" ");
+                match &cur_element.element_type {
+                    ElementType::Node{..} if cur_work.depth==0 && !cur_work.exit => { //enter
+                        apply_calls_stk.push(Vec::new());
+                    }
+                    ElementType::Node{..} if cur_work.depth==0 => { //exit
+                    }
+                    ElementType::Node{..} if !cur_work.exit => { //enter
+                        let indent="    ".repeat(cur_work.depth-1);
+                        let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
+                        let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
+                        src+=&format!("{indent}fn _n{} {{self{s}{params}}} {{\n",cur_work.element_ind);
+                    }
+                    ElementType::Node{..} => { //exit
+                        let indent="    ".repeat(cur_work.depth-1);
+                        src+=&format!("{indent}}}\n");
 
-                let s=if params.is_empty(){""}else{" "};
-                src+=&format!("{indent}return {{dict{s}{applies_ret}}};\n");
-            }
-
-            match &cur_element.element_type {
-                ElementType::Node{..} if cur_work.depth==0 && !cur_work.exit => { //enter
-                    apply_calls_stk.push(Vec::new());
-                    // node_ret_stk.push(Vec::new());
-                }
-                ElementType::Node{..} if cur_work.depth==0 => { //exit
-                }
-                ElementType::Node{..} if !cur_work.exit => { //enter
-                    // calls_stk.get_mut(cur_work.depth-1).unwrap().push(cur_work.element_ind);
-
-                    let indent="    ".repeat(cur_work.depth-1);
-                    let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
-                    let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
-
-                    src+=&format!("{indent}fn _n{} {{self{s}{params}}} {{\n",cur_work.element_ind);
-                    // src+=&format!("{indent}    var r {{dict}};\n",);
-                }
-                ElementType::Node{..} => { //exit
-                    let indent="    ".repeat(cur_work.depth-1);
-                    // src+=&format!("{indent}    return {{array}};\n");
-                    // src+=&format!("{indent}    return r;\n");
-                    src+=&format!("{indent}}}\n");
-                    // src+=&format!("{indent}var _rn{} {{call _node{}}};\n", cur_work.element_ind, cur_work.element_ind);
-
-                    {
                         let parent_element=elements.get(cur_work.parent.unwrap()).unwrap();
                         let params=[cur_work.element_ind].iter().chain(cur_element.calcd_node_params.iter()).map(|&x|{
                             if cur_work.depth==1 {
@@ -2288,106 +2254,83 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                             } else {
                                 format!("_p{x}")
                             }
-
                         }).collect::<Vec<_>>().join(" ");
-                        src+=&format!("{indent}var _r{} {{call _n{} {params}}};\n", cur_work.element_ind, cur_work.element_ind,);
+
+                        src+=&format!("{indent}var _r{} {{call _n{} {params}}};#0\n", cur_work.element_ind, cur_work.element_ind,);
+                    }
+                    ElementType::Apply{..} if !cur_work.exit => { //enter
+                        // if cur_element.has_script
+                        {
+                            let indent="    ".repeat(cur_work.depth-1);
+                            let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
+                            let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
+                            src+=&format!("{indent}fn _a{} {{self{s}{params}}} {{\n",cur_work.element_ind);
+                        }
+                    }
+                    ElementType::Apply{..} => { //exit
+                        // if cur_element.has_script
+                        {
+                            let indent="    ".repeat(cur_work.depth-1);
+                            src+=&format!("{indent}}}\n");
+                        }
+                    }
+                    ElementType::TemplateDecl{..} if !cur_work.exit => { //enter
+                        let indent="    ".repeat(cur_work.depth-1);
+                        let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
+                        let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
+
+                        src+=&format!("{indent}fn _t{} {{self{s}{params}}} {{\n",cur_work.element_ind);
+                    }
+                    ElementType::TemplateDecl{..} => { //exit
+                        let indent="    ".repeat(cur_work.depth-1);
+                        // let applies_ret=cur_element.applies.iter().map(|&x|format!("\"a{x}\" _a{x}")).collect::<Vec<_>>().join(" ");
+                        // let s=if cur_element.applies.is_empty(){""}else{" "};
+                        // src+=&format!("{indent}    #return {{dict{s}{applies_ret}}};#abc\n");
+                        src+=&format!("{indent}}}\n");
+                    }
+                    ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
+                        let indent="    ".repeat(cur_work.depth-1);
+                        let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
+                        let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
+                        src+=&format!("{indent}var _r{} {{call _t{template_decl_element_ind} self{s}{params}}};#1\n",cur_work.element_ind);
+                        continue;
+                    }
+                    ElementType::TemplateUse{..} => { //exit
+                    }
+                    ElementType::Stub{name,..} if !cur_work.exit => { //enter
+                        apply_calls_stk.push(Vec::new());
+                        let indent="    ".repeat(cur_work.depth-1);
+                        src+=&format!("{indent}fn stub_{name} {{parent}} {{ #{}\n",cur_work.element_ind);
+                    }
+                    ElementType::Stub{..} => { //exit
+                        let indent="    ".repeat(cur_work.depth-1);
+                        src+=&format!("{indent}}}\n");
+                    }
+                    ElementType::ApplyUse{..} if !cur_work.exit => { //enter
+                        continue;
+                    }
+                    ElementType::ApplyUse{..} => { //exit
+                    }
+                    ElementType::Script { record  } if !cur_work.exit => { //enter
+                        let indent="    ".repeat(cur_work.depth-1);
+
+                        //todo add pragma loc
+                        for t in record.text_values() {
+                            src+=&format!("{indent}{}\n",t.str());
+                        }
+
+                        continue;
+                    }
+                    ElementType::Script { .. } => { //exit
+                    }
+                    ElementType::Attrib {..} => {
+                        continue;
                     }
                 }
-                ElementType::Apply{..} if !cur_work.exit => { //enter
-                    let indent="    ".repeat(cur_work.depth-1);
-                    let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
-                    let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
-                    // let r= if cur_work.parent==Some(0){"_"}else{"_r."};
-                    src+=&format!("{indent}fn _a{} {{self{s}{params}}} {{\n",cur_work.element_ind);
-                    // src+=&format!("{indent}    var r {{dict}};\n",);
-                }
-                ElementType::Apply{..} => { //exit
-                    let indent="    ".repeat(cur_work.depth-1);
-                    src+=&format!("{indent}}}\n");
-                    // src+=&format!("{indent}set _a{} _a;\n",cur_work.element_ind);
-                }
-                ElementType::TemplateDecl{..} if !cur_work.exit => { //enter
-                    let indent="    ".repeat(cur_work.depth-1);
-                    let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
-                    let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
-
-                    src+=&format!("{indent}fn _t{} {{self{s}{params}}} {{\n",cur_work.element_ind);
-                }
-                ElementType::TemplateDecl{..} => { //exit
-                    let indent="    ".repeat(cur_work.depth-1);
-                    // let applies_ret=cur_element.applies.iter().map(|&x|format!("\"a{x}\" _a{x}")).collect::<Vec<_>>().join(" ");
-                    // let s=if cur_element.applies.is_empty(){""}else{" "};
-                    // src+=&format!("{indent}    #return {{dict{s}{applies_ret}}};#abc\n");
-                    src+=&format!("{indent}}}\n");
-                }
-                ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
-                    // calls_stk.get_mut(cur_work.depth-1).unwrap().push(cur_work.element_ind);
-                    let indent="    ".repeat(cur_work.depth-1);
-                    // let element=elements.get(*template_decl_element_ind).unwrap();
-                    let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>().join(" ");
-                    let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
-
-                    src+=&format!("{indent}var _r{} {{call _t{template_decl_element_ind} self{s}{params}}};\n",cur_work.element_ind);
-                    continue;
-                }
-                ElementType::TemplateUse{..} => { //exit
-                }
-                ElementType::Stub{name,..} if !cur_work.exit => { //enter
-                    apply_calls_stk.push(Vec::new());
-                    let indent="    ".repeat(cur_work.depth-1);
-                    src+=&format!("{indent}fn stub_{name} {{parent}} {{ #{}\n",cur_work.element_ind);
-                }
-                ElementType::Stub{..} => { //exit
-                    let indent="    ".repeat(cur_work.depth-1);
-                    src+=&format!("{indent}}}\n");
-                }
-                ElementType::ApplyUse{..} if !cur_work.exit => { //enter
-                    // let indent="    ".repeat(cur_work.depth-1);
-                    // src+=&format!("{indent}_apply_use{} ns\n",cur_work.element_ind);
-                    // calls_stk.get_mut(cur_work.depth-1).unwrap().push(cur_work.element_ind);
-                    // calls_stk.last_mut().unwrap().push((*apply_decl_element_ind));
-                    // calls_stk.last_mut().unwrap().push((cur_work.parent.unwrap(),cur_work.element_ind));
-                    continue;
-                }
-                ElementType::ApplyUse{..} => { //exit
-                }
-                ElementType::Script { record  } if !cur_work.exit => { //enter
-                    let indent="    ".repeat(cur_work.depth-1);
-                    //src+=&format!("{indent}_script\n");
-                    // if let Some(loc)=record.text_values().next().map(|x|x.start_loc())
-                    // if record.has_text()
-                    // {
-                    //     if let Some(p)=record.path() {
-                    //         src+=&format!("{indent}#pragma_source {p:?}\n");
-                    //     }
-
-                    //     let loc=record.text_values().next().unwrap().start_loc();
-                    //     src+=&format!("{indent}#pragma_loc {} {} {}\n",loc.pos,loc.row,loc.col);
-                    // }
-                    for t in record.text_values() {
-                        src+=&format!("{indent}{}\n",t.str());
-                        // loc.
-                    }
-
-                    // if record.has_text() {
-                    //     src+=&format!("{indent}#pragma_clear_loc\n");
-
-                    //     if record.path().is_some() {
-                    //         src+=&format!("{indent}#pragma_clear_source\n");
-                    //     }
-                    // }
-
-                    continue;
-                }
-                ElementType::Script { .. } => { //exit
-                }
-                ElementType::Attrib {..} => {continue;}
-                // _ => { continue; }
             }
 
             //
-            if !cur_work.exit //&& !cur_work.in_use
-            {
+            if !cur_work.exit {//&& !cur_work.in_use
                 if match &cur_element.element_type {
                     ElementType::Node{..} if cur_work.depth==0 => true,
                     ElementType::Stub{..} => true,
@@ -2404,6 +2347,24 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
     src
 }
 
+
+                        // if let Some(loc)=record.text_values().next().map(|x|x.start_loc())
+                        // if record.has_text()
+                        // {
+                        //     if let Some(p)=record.path() {
+                        //         src+=&format!("{indent}#pragma_source {p:?}\n");
+                        //     }
+
+                        //     let loc=record.text_values().next().unwrap().start_loc();
+                        //     src+=&format!("{indent}#pragma_loc {} {} {}\n",loc.pos,loc.row,loc.col);
+                        // }
+                        // if record.has_text() {
+                        //     src+=&format!("{indent}#pragma_clear_loc\n");
+
+                        //     if record.path().is_some() {
+                        //         src+=&format!("{indent}#pragma_clear_source\n");
+                        //     }
+                        // }
 
 pub fn debug_print_elements2(elements:&Vec<Element>) {
     println!("\n");
@@ -2447,35 +2408,36 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
         let indent="    ".repeat(cur_work.depth);
         let from_path=&cur_element.calcd_created_from;
         let params = &cur_element.calcd_node_params;
+        let has_script=cur_element.has_script;
 
         match &cur_element.element_type {
             ElementType::Node { names,ignore_applies,.. } => {
-                println!("{indent}node {names:?}, e={cur_element_ind}, ignore_applies={ignore_applies:?}, from={from_path:?}, params={params:?}", );
+                println!("{indent}node {names:?}, e={cur_element_ind}, ignore_applies={ignore_applies:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}", );
             }
             ElementType::TemplateUse { template_decl_element_ind, .. } => {
                 let ElementType::TemplateDecl { name, .. }=elements.get(*template_decl_element_ind).unwrap().element_type else {panic!("");};
 
-                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}",);
+                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
             }
             ElementType::Apply { name,.. } => {
-                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}",);
+                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
-                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}", );
+                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}", );
             }
             ElementType::Script { .. } => {
-                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}");
+                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
             }
             ElementType::TemplateDecl { name, .. } => {
                 // let name=texts[*name];
-                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?},",);
+                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?} , ");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};
-                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}",);
+                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
             }
         }
         // println!("{indent}={:?}",cur_element.calcd_node_params);
