@@ -156,8 +156,8 @@ pub fn on_asset_load<'a>(
         //script
         {
 
-            let src=gen_script(&elements);
-
+            let syntax_tree=gen_script_syntax_tree(&elements);
+            let src=gen_script_src(&syntax_tree);
             let stuff=gen_stubs(&elements);
 
             // println!("all_stubs : {:?}",stuff.all_stubs);

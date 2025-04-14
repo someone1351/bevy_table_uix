@@ -21,16 +21,25 @@ node
     template "t"
 
 ---!#
+template t
 
+    node
+        node
+            apply y
+            node y
+
+template s
+    template t
 node
 
     node
         stub x
+            node
+                apply z
+                    template s
+                node z
             script
                 testscript
 
-            node
-                node y
-                apply y
         #node y
 

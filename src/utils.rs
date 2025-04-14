@@ -2058,16 +2058,16 @@ pub enum ScriptSyntax {
     Root {
         children:Vec<usize>,
     },
-    InitStub {
-        name:String,
-        children:Vec<usize>,
-    },
+    // InitStub {
+    //     name:String,
+    //     children:Vec<usize>,
+    // },
     // InitVar {name:String,},
 
     Insert {
         path:Option<PathBuf>,
         loc :conf_lang::Loc,
-        src : String,
+        insert : String,
     },
     // Return {
     //     vars : HashMap<String,String>,
@@ -2087,7 +2087,7 @@ pub enum ScriptSyntax {
 // pub struct ScriptSyntax {
 //     pub syntax_type:ScriptSyntaxType,
 // }
-pub fn gen_script(elements:&Vec<Element>) -> String {
+pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     // let mut syntax_tree: Vec<ScriptSyntax> = Vec::new();
     let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new() }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
@@ -2176,10 +2176,11 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                     let mut pres=Vec::new();
 
-                    let apply_inside_stub = {
+                    let apply_in = {
                         if let ElementType::Stub{..} = &cur_element.element_type {
                             let mut b=false;
                             let mut cur_from=apply_use_element.calcd_created_from;
+
                             while cur_from!=0 {
                                 let from_element=elements.get(cur_from).unwrap();
 
@@ -2190,6 +2191,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                                 cur_from=from_element.calcd_created_from;
                             }
+
                             b
                         } else {
                             true
@@ -2198,7 +2200,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                     // println!("apply_inside_stub is {apply_inside_stub}");
 
-                    if apply_inside_stub
+                    if apply_in
                     {
                         let mut cur_from=apply_use_element.calcd_created_from;
 
@@ -2215,14 +2217,15 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                             match &from_element.element_type {
                                 ElementType::ApplyUse { .. } => {
-                                    pres.push(format!("r{cur_from}"));
+                                    pres.push(format!("_r{cur_from}"));
                                     break;
                                 }
                                 ElementType::TemplateUse { .. } => {
                                     pres.push(format!("t{cur_from}"));
                                 }
                                 ElementType::Node { .. } if from_element.calcd_created_from==to => { //||from_element.calcd_created_from==0
-                                    pres.push(format!("r{cur_from}"));
+                                    pres.push(format!("_r{cur_from}"));
+                                    break; //not necessary
                                 }
                                 _ => {
                                 }
@@ -2243,7 +2246,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                     let new_syntax_ind=syntax_tree.len();
                     match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                        ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                        ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                        // |ScriptSyntax::InitStub{children,..}
+                        => {
                             children.push(new_syntax_ind);
                         }
                         _ => {}
@@ -2256,7 +2261,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                     let params=params.join(" ");
 
-                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call _{pres} {params}}};#2 {:?}, {:?}, {:?}\n"
+                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call {pres} {params}}};#2 {:?}, {:?}, {:?}\n"
                         ,cur_element.calcd_created_from
                         ,cur_work.element_ind
                         ,apply_use_element.calcd_created_from
@@ -2355,9 +2360,13 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                     // syntax_tree.push(ScriptSyntax::Return { vars: params.clone() });
 
                     let params = params.iter().map(|(k,v)|format!("{k:?} {v}")).collect::<Vec<_>>();
-                    let applies_ret=params.join(" ");
-                    let s=if params.is_empty(){""}else{" "};
-                    src+=&format!("{indent}return {{dict{s}{applies_ret}}};\n");
+
+                    if !params.is_empty() {
+                        let params=params.join(" ");
+                        // let s=if params.is_empty(){""}else{" "};
+                        src+=&format!("{indent}return {{dict {params}}};\n");
+
+                    }
                 }
 
                 match &cur_element.element_type {
@@ -2374,7 +2383,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                         //
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2414,7 +2425,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                         syntax_stk.pop().unwrap();
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2439,7 +2452,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                             //
                             let new_syntax_ind=syntax_tree.len();
                             match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                                ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                                ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                                // |ScriptSyntax::InitStub{children,..}
+                                => {
                                     children.push(new_syntax_ind);
                                 }
                                 _ => {}
@@ -2477,7 +2492,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                         //
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2507,11 +2524,14 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                     }
                     ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
                         let indent="    ".repeat(cur_work.depth-1);
-                        let params=cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")).collect::<Vec<_>>();
+                        let mut params=vec!["self".to_string()];
+                        params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
 
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2524,8 +2544,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                         //
                         let params=params.join(" ");
-                        let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
-                        src+=&format!("{indent}var _r{} {{call _t{template_decl_element_ind} self{s}{params}}};#1\n",cur_work.element_ind);
+                        // let s=if cur_element.calcd_node_params.is_empty(){""}else{" "};
+                        // src+=&format!("{indent}var _r{} {{call _t{template_decl_element_ind} self{s}{params}}};#1\n",cur_work.element_ind);
+                        src+=&format!("{indent}var _r{} {{call _t{template_decl_element_ind} {params}}};#1\n",cur_work.element_ind);
                         continue;
                     }
                     ElementType::TemplateUse{..} => { //exit
@@ -2540,7 +2561,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
 
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2572,7 +2595,9 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                         //
                         let new_syntax_ind=syntax_tree.len();
                         match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
-                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}|ScriptSyntax::InitStub{children,..}=> {
+                            ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                            // |ScriptSyntax::InitStub{children,..}
+                            => {
                                 children.push(new_syntax_ind);
                             }
                             _ => {}
@@ -2581,7 +2606,7 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                         //todo add pragma loc
                         for t in record.text_values() {
                             src+=&format!("{indent}{}\n",t.str());
-                            syntax_tree.push(ScriptSyntax::Insert { path: t.path().map(|x|x.to_path_buf()), loc: t.start_loc(), src: t.str().to_string() } );
+                            syntax_tree.push(ScriptSyntax::Insert { path: t.path().map(|x|x.to_path_buf()), loc: t.start_loc(), insert: t.str().to_string() } );
                         }
 
                         continue;
@@ -2604,14 +2629,89 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                     let indent="    ".repeat(cur_work.depth);
                     let p=if let ElementType::Stub{..}=&cur_element.element_type{"parent"}else{"root"};
                     src+=&format!("{indent}var _ns {{call _stubs {} {p}}};\n",cur_work.element_ind);
+
+
+
+                    let new_syntax_ind=syntax_tree.len();
+                    match syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap() {
+                        ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..} => {
+                            children.push(new_syntax_ind);
+                        }
+                        _ => {}
+                    }
+                    syntax_tree.push(ScriptSyntax::Call {
+                        ret_var: format!("_ns"),
+                        func: format!("_stubs",),
+                        params: vec![format!("{} {p}",cur_work.element_ind)],
+                    });
+
                 }
             }
         }
     }
 
-    src
+    println!("====\n{src}====\n");
+    // src
+    syntax_tree
 }
 
+
+pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
+    let mut stk=vec![(0,0,false)]; //ind,depth,exit
+    let mut src=String::new();
+    src+="var root;\n";
+    src+="var _stubs;\n";
+    while let Some((cur_ind,depth, exit))=stk.pop() {
+        let indent="    ".repeat(if depth<=1{0}else{depth-1});
+        let cur=syntax_tree.get(cur_ind).unwrap();
+        match cur {
+            ScriptSyntax::Root { .. } => {
+
+            }
+            // ScriptSyntax::InitStub { name, children } => {
+
+            // }
+            ScriptSyntax::Insert { //path, loc,
+                insert , ..} => {
+                src+=&format!("{indent}{insert}\n");
+            }
+            ScriptSyntax::Func { name, params, .. } if !exit => { //enter
+                let params=params.join(" ");
+                src+=&format!("{indent}fn {name} {{{params}}} {{\n");
+            }
+            ScriptSyntax::Func { returns,.. } => { //exit
+                if !returns.is_empty() {
+                    let returns=returns.iter().map(|(k,v)|format!("{k:?} {v}")).collect::<Vec<_>>().join(" ");
+                    src+=&format!("{indent}    return {{dict {returns}}}\n");
+                }
+                src+=&format!("{indent}}}\n");
+            }
+            ScriptSyntax::Call { ret_var, func, params } => {
+                let params=params.join(" ");
+                src+=&format!("{indent}var {ret_var} {{call {func} {params}}}\n");
+            }
+        }
+
+        if !exit {
+            if let ScriptSyntax::Func{..}=cur {
+                stk.push((cur_ind,depth,true));
+            }
+            match cur {
+                ScriptSyntax::Root{children}|ScriptSyntax::Func{children,..}
+                // |ScriptSyntax::InitStub{children,..}
+                => {
+                    stk.extend(children.iter().map(|&child_ind|(child_ind,depth+1,false)).rev());
+                }
+                _ => {}
+            }
+
+        } else {
+
+        }
+    }
+
+    src
+}
 
                         // if let Some(loc)=record.text_values().next().map(|x|x.start_loc())
                         // if record.has_text()
