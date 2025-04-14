@@ -1,9 +1,15 @@
+#!---
 template "s"
 	script
 
+apply y
 template "t"
 	script
     node
+        apply y
+        stub sx
+            node y
+        apply y
         node "x"
         apply "x"
 			template "s"
@@ -13,3 +19,18 @@ template "t"
 
 node
     template "t"
+
+---!#
+
+node
+
+    node
+        stub x
+            script
+                testscript
+
+            node
+                node y
+                apply y
+        #node y
+

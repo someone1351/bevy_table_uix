@@ -1171,7 +1171,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         created_from:0,
     }];
 
-    let mut things: Vec<Thing>=vec![];
+    let mut things: Vec<Thing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
     let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
     while let Some(cur_work)=work_stk.pop() {
@@ -1300,8 +1300,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         }
 
         //
-        let mut new_applies: Vec<(usize, usize, )> = Vec::new();
-
+        let mut new_applies: Vec<(usize, usize, )> = Vec::new(); //apply_element_ind,from_element_ind
         //get template applies
         // if enter
         {
@@ -1311,6 +1310,9 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             if let ElementType::TemplateUse { template_decl_element_ind, .. } = &cur_element.element_type {
                 let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
                 new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
+            }
+            if let ElementType::Stub { .. } = &cur_element.element_type {
+                new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
             }
         }
 
@@ -1373,15 +1375,16 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 //get after applies
                 for (thing_ind,thing) in things.iter().enumerate().rev() {
                     //don't allow nodes in stubs to use applies that come after the stub
-                    if let Some(last_stub)=last_stub_thing_ind {
-                        // println!("thing {thing_ind}, last_stub {last_stub}");
-                        if thing_ind<=last_stub {
+                    //  except if node's first stub ancestor is also parent of the apply
+                    if let Some(last_stub_thing_ind)=last_stub_thing_ind { //ancestor or cur element stub,
+                        if thing_ind<last_stub_thing_ind { //swapped <=
                             continue;
                         }
                     }
 
                     //
-                    let apply_after=things.get(thing_ind+1).map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
+                    let apply_after=things.get(thing_ind+1) //why +1 ? a descendant?
+                        .map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
 
                     for (thing_apply_ind,&(apply_element_ind,from)) in thing.applies.iter().enumerate() {
                         // let apply_element_ind=*apply_element_ind;
@@ -1692,7 +1695,8 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 }
                 ElementType::Stub { .. } => {
                     things.push(Thing {
-                        applies: Vec::new(), //new_applies, //doesn't use new applies? should be empty anyway
+                        // applies: Vec::new(), //new_applies, //doesn't use new applies? should be empty anyway
+                        applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
                         element_ind:cur_element_ind,
                     });
@@ -2049,6 +2053,18 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
     }
 }
 
+pub enum ScriptSyntaxType {
+    Stub {},
+    Return {},
+    Func {},
+    Insert {},
+    Call {},
+    Var {},
+}
+pub struct ScriptSyntax {
+    pub syntax_type:ScriptSyntaxType,
+    pub children:Vec<usize>,
+}
 pub fn gen_script(elements:&Vec<Element>) -> String {
 
     #[derive(Clone)]
@@ -2114,58 +2130,139 @@ pub fn gen_script(elements:&Vec<Element>) -> String {
                 _ => false,
             } {
                 let indent="    ".repeat(cur_work.depth);
-                let mut v=apply_calls_stk.pop().unwrap();
+                let mut apply_calls=apply_calls_stk.pop().unwrap();
 
-                v.sort_by(|x,y|{
+                apply_calls.sort_by(|x,y|{
                     match x.apply_use_element_ind.cmp(&y.apply_use_element_ind) {
                         Ordering::Equal=>x.inside_element_ind.cmp(&y.inside_element_ind),
                         r=>r,
                     }
                 });
 
-                for x in v.iter() {
-                    let apply_use_element=elements.get(x.apply_use_element_ind).unwrap();
+                for apply_call in apply_calls.iter() {
+                    let apply_use_element=elements.get(apply_call.apply_use_element_ind).unwrap();
                     let ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
 
-                    let params=[x.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter()).map(|&x|format!("_ns.{x}")).collect::<Vec<_>>();
+                    let params=[apply_call.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter())
+                        .map(|&x|format!("_ns.{x}"))
+                        .collect::<Vec<_>>();
                     let params=params.join(" ");
                     let mut pres=Vec::new();
-                    let mut cur_from=apply_use_element.calcd_created_from;
 
-                    while cur_from!=0 {
-                        let from_element=elements.get(cur_from).unwrap();
-
-                        match &from_element.element_type {
-                            ElementType::ApplyUse { .. } => {
-                                pres.push(format!("r{cur_from}"));
-                                break;
-                            }
-                            ElementType::TemplateUse { .. } => {
-                                pres.push(format!("t{cur_from}"));
-                            }
-                            ElementType::Node { .. } if from_element.calcd_created_from==0 => {
-                                pres.push(format!("r{cur_from}"));
-                            }
-                            _ => {}
+                    match &cur_element.element_type {
+                        ElementType::Node{..} if cur_work.depth==0 => {
                         }
+                        ElementType::Stub{..} => {
 
-                        cur_from=from_element.calcd_created_from;
+                        }
+                        _ => {}
                     }
 
-                    pres.reverse();
+                    //
+
+                    // let b={
+
+                    //     let mut cur_from=cur_element.calcd_created_from;
+                    //     let mut b=false;
+
+                    //     while cur_from!=0 {
+                    //         let from_element=elements.get(cur_from).unwrap();
+
+                    //         if from_element.calcd_created_from==apply_use_element.calcd_created_from {
+                    //             b=true;
+                    //             break;
+                    //         }
+
+                    //         cur_from=from_element.calcd_created_from;
+                    //     }
+                    //     b
+                    // };
+                    // println!("b is {b}");
+                    //
+                    let apply_inside_stub = {
+
+                        // match &cur_element.element_type {
+                        //     ElementType::Stub{..} => {
+
+                        //     }
+                        //     _ => {}
+                        // }
+                        if let ElementType::Stub{..} = &cur_element.element_type {
+                            let mut b=false;
+                            let mut cur_from=apply_use_element.calcd_created_from;
+                            while cur_from!=0 {
+                                let from_element=elements.get(cur_from).unwrap();
+
+                                if from_element.calcd_created_from==cur_work.element_ind {
+                                    b=true;
+                                    break;
+                                }
+                                cur_from=from_element.calcd_created_from;
+                            }
+                            b
+                        } else {
+                            true
+                        }
+                    };
+
+                    println!("apply_inside_stub is {apply_inside_stub}");
+
+                    if apply_inside_stub
+                    {
+                        let mut cur_from=apply_use_element.calcd_created_from;
+
+                        let to=if let ElementType::Stub{..} = &cur_element.element_type { cur_work.element_ind } else {0};
+                        println!("to is {to}");
+                        println!("cur_from is {cur_from}");
+                        while cur_from!=to { //&& cur_from!=0
+                            // if cur_from==to {
+                            //     break;
+                            // }
+                            let from_element=elements.get(cur_from).unwrap();
+                            println!("cur_from1 is {cur_from}");
+
+                            match &from_element.element_type {
+                                ElementType::ApplyUse { .. } => {
+                                    pres.push(format!("r{cur_from}"));
+                                    break;
+                                }
+                                ElementType::TemplateUse { .. } => {
+                                    pres.push(format!("t{cur_from}"));
+                                }
+                                ElementType::Node { .. } if from_element.calcd_created_from==to => { //||from_element.calcd_created_from==0
+                                    pres.push(format!("r{cur_from}"));
+                                }
+                                _ => {
+                                }
+                            }
+
+                            cur_from=from_element.calcd_created_from;
+                        }
+                        pres.reverse();
+                    }
+                    println!("pres {pres:?}");
+
+                    //
                     pres.push(format!("a{apply_decl_element_ind}"));
 
                     let pres=pres.join(".");
-                    let apply_use_element_ind=x.apply_use_element_ind;
-                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call _{pres} {params}}};#2\n");
+                    let apply_use_element_ind=apply_call.apply_use_element_ind;
+                    src+=&format!("{indent}var _r{apply_use_element_ind} {{call _{pres} {params}}};#2 {:?}, {:?}, {:?}\n"
+                        ,cur_element.calcd_created_from
+                        ,cur_work.element_ind
+                        ,apply_use_element.calcd_created_from
+                    );
                 }
             }
         }
 
-        if let ElementType::ApplyUse{ apply_decl_element_ind } = &cur_element.element_type {
+        if let ElementType::ApplyUse{
+            // apply_decl_element_ind
+            ..
+        } = &cur_element.element_type {
             if !cur_work.exit {
 
-                if elements.get(*apply_decl_element_ind).unwrap().has_script
+                // if elements.get(*apply_decl_element_ind).unwrap().has_script
                 {
                     apply_calls_stk.last_mut().unwrap().push(ApplyCall {
                         inside_element_ind:cur_work.inside,
