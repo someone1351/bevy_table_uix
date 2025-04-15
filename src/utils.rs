@@ -2239,7 +2239,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     // println!("pres {pres:?}");
 
                     //
-                    pres.push(format!("a{apply_decl_element_ind}"));
+                    pres.push(format!("_a{apply_decl_element_ind}"));
 
                     let apply_use_element_ind=apply_call.apply_use_element_ind;
                     let pres=pres.join(".");

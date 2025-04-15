@@ -1,45 +1,9 @@
-#!---
-template "s"
-	script
-
-apply y
-template "t"
-	script
-    node
-        apply y
-        stub sx
-            node y
-        apply y
-        node "x"
-        apply "x"
-			template "s"
-        apply "x"
-			script
-				var x
-
-node
-    template "t"
-
----!#
 template t
+    script
+        insertedstuff
 
-    node
-        node
-            apply y
-            node y
 
-template s
+apply x
     template t
-node
 
-    node
-        stub x
-            node
-                apply z
-                    template s
-                node z
-            script
-                testscript
-
-        #node y
-
+node x
