@@ -1,9 +1,11 @@
+
+
 template t
-    script
-        insertedstuff
+    node x
+    apply x
+        node
 
-
-apply x
-    template t
-
-node x
+node
+    stub xxx
+        node
+            template t
