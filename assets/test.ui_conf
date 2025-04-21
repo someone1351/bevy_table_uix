@@ -1,11 +1,10 @@
 
 
+
+template s
 template t
     node x
-    apply x
-        node
-
+        template s
 node
-    stub xxx
-        node
-            template t
+    node
+        template t
