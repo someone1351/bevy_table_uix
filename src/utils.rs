@@ -16,6 +16,7 @@
 use core::panic;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::fmt::Display;
 // use std::fmt::format;
 use std::ops::Range;
 use std::path::PathBuf;
@@ -2084,6 +2085,45 @@ pub enum ScriptSyntaxDecl {
     Template,
 }
 
+
+pub struct ScriptSyntaxNode(usize);
+
+
+pub struct ScriptSyntaxTemplateUse(usize);
+
+pub struct ScriptSyntaxTemplateDecl(usize);
+
+pub struct ScriptSyntaxApplyDecl(usize);
+pub struct ScriptSyntaxApplyUse(usize);
+
+
+impl Display for ScriptSyntaxNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+
+impl Display for ScriptSyntaxTemplateUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+impl Display for ScriptSyntaxTemplateDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+
+impl Display for ScriptSyntaxApplyDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+impl Display for ScriptSyntaxApplyUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
 pub enum ScriptSyntax {
     Root {
         children:Vec<usize>,
@@ -2108,14 +2148,14 @@ pub enum ScriptSyntax {
         params : Vec<usize>, //node element_inds
         children:Vec<usize>, //syntax_inds
         returns : Vec<(
-            Option<usize>, //node_element_ind
+            Option<ScriptSyntaxNode>, //node_element_ind
             ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
         )>,
     },
 
     Stub {
         name : String,
-        children:Vec<usize>,
+        children:Vec<usize>, //syntax_inds
     },
 
     CallStub {
@@ -2124,23 +2164,23 @@ pub enum ScriptSyntax {
 
     },
     CallTemplate {
-        ret : usize, //template_use_element_ind
-        func : usize, //template_decl_element_ind
-        params : Vec<usize>, //node_element_inds
+        ret : ScriptSyntaxTemplateUse, //template_use_element_ind
+        func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
+        params : Vec<ScriptSyntaxNode>, //node_element_inds
     },
     CallApply {
-        ret : usize, //apply_use_element_ind
+        ret : ScriptSyntaxApplyUse, //apply_use_element_ind
         func_froms : Option<(
             ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
-            Vec<usize>, //template_use_element_inds
+            Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
         )>,
-        func_apply : usize, //apply_decl_element_ind
-        params : Vec<usize>, //node_element_inds
+        func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
+        params : Vec<ScriptSyntaxNode>, //node_element_inds
     },
     CallNode {
         in_func:bool, //inside template_decl, apply_decl or node
-        func : usize, //node_element_ind
-        params : Vec<usize>, //node_element_inds
+        func : ScriptSyntaxNode, //node_element_ind
+        params : Vec<ScriptSyntaxNode>, //node_element_inds
     },
 }
 
@@ -2302,7 +2342,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                                 }
                                 ElementType::TemplateUse { .. } => {
                                     pres.push(format!("t{cur_from}"));
-                                    from_template_decls.push(cur_from);
+                                    from_template_decls.push(ScriptSyntaxTemplateUse(cur_from));
                                 }
                                 ElementType::Node { .. } if from_element.calcd_created_from==to => { //||from_element.calcd_created_from==0
                                     pres.push(format!("r{cur_from}"));
@@ -2342,11 +2382,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                     // let from_template_uses = (1..froms.len()).map(|i|froms.get(i).cloned().unwrap()).collect();
                     syntax_tree.push(ScriptSyntax::CallApply {
-                        ret: apply_use_element_ind,
+                        ret: ScriptSyntaxApplyUse(apply_use_element_ind),
                         // func_froms: froms.iter().rev().cloned().collect(),
                         func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),
-                        func_apply: *apply_decl_element_ind,
-                        params: [apply_call.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter()).cloned().collect(),
+                        func_apply: ScriptSyntaxApplyDecl(*apply_decl_element_ind),
+                        params: [apply_call.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter()).map(|&x|ScriptSyntaxNode(x)).collect(),
                     });
                     let pres=pres.join(".");
                     let params=params.join(" ");
@@ -2388,7 +2428,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     // let mut params=Vec::new();
                     let mut params: HashMap<String, String> = HashMap::new();
 
-                    let mut paramsx: Vec<(Option<usize>,ScriptSyntaxTemplateUseOrApplyDecl)> = Vec::new();
+                    let mut paramsx: Vec<(Option<ScriptSyntaxNode>,ScriptSyntaxTemplateUseOrApplyDecl)> = Vec::new();
                     // (
                     //     Option<usize>, //node_element_ind
                     //     ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
@@ -2414,7 +2454,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                                                 format!("a{apply_element_ind}"),
                                                 format!("_r{child_element_ind}.a{apply_element_ind}"),
                                             );
-                                            paramsx.push((Some(child_element_ind),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
+                                            paramsx.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                                         }
                                     }
                                 }
@@ -2434,7 +2474,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                                             format!("t{tmp_element_ind}"), //template_use?
                                             format!("_r{child_element_ind}.t{tmp_element_ind}"),
                                         );
-                                        paramsx.push((Some(child_element_ind),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
+                                        paramsx.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
                                     }
                                 }
                                 _=>{}
@@ -2541,8 +2581,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                         syntax_tree.push(ScriptSyntax::CallNode {
                             in_func,
-                            func: cur_work.element_ind,
-                            params: [cur_work.element_ind].iter().chain(cur_element.calcd_node_params.iter()).cloned().collect(),
+                            func: ScriptSyntaxNode(cur_work.element_ind),
+                            params: [cur_work.element_ind].iter().chain(cur_element.calcd_node_params.iter()).map(|&x|ScriptSyntaxNode(x)).collect(),
                         });
 
                         let params=params.join(" ");
@@ -2648,9 +2688,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         // });
 
                         syntax_tree.push(ScriptSyntax::CallTemplate {
-                            ret: cur_work.element_ind,
-                            func: *template_decl_element_ind,
-                            params: cur_element.calcd_node_params.iter().cloned().collect(),
+                            ret: ScriptSyntaxTemplateUse(cur_work.element_ind),
+                            func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
+                            params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect(),
                         });
 
                         //
