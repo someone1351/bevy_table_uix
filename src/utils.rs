@@ -2079,12 +2079,16 @@ pub enum ScriptSyntaxNodeOrApplyUse {
     Node(usize),
     ApplyUse(usize),
 }
-pub enum ScriptSyntaxDecl {
-    Node,
-    Apply,
-    Template,
+// pub enum ScriptSyntaxDecl {
+//     Node,
+//     Apply,
+//     Template,
+// }
+pub enum ScriptSyntaxNodeOrApplyOrTemplate {
+    Node(usize),
+    Apply(usize),
+    Template(usize),
 }
-
 
 pub struct ScriptSyntaxNode(usize);
 
@@ -2143,9 +2147,9 @@ pub enum ScriptSyntax {
 
 
     Decl {
-        decl : ScriptSyntaxDecl,
-        name : usize, //element_ind
-        params : Vec<usize>, //node element_inds
+        // decl : ScriptSyntaxDecl,
+        name : ScriptSyntaxNodeOrApplyOrTemplate, //element_ind
+        params : Vec<ScriptSyntaxNode>, //node element_inds
         children:Vec<usize>, //syntax_inds
         returns : Vec<(
             Option<ScriptSyntaxNode>, //node_element_ind
@@ -2528,9 +2532,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                         syntax_stk.push(new_syntax_ind);
                         syntax_tree.push(ScriptSyntax::Decl {
-                            decl: ScriptSyntaxDecl::Node,
-                            name: cur_work.element_ind,
-                            params: cur_element.calcd_node_params.iter().cloned().collect::<Vec<_>>(),
+                            // decl: ScriptSyntaxDecl::Node,
+                            name: ScriptSyntaxNodeOrApplyOrTemplate::Node(cur_work.element_ind),
+                            params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
                             children: Vec::new(),
                             returns: Vec::new(),
                         });
@@ -2603,9 +2607,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                             syntax_stk.push(new_syntax_ind);
                             syntax_tree.push(ScriptSyntax::Decl {
-                                decl: ScriptSyntaxDecl::Apply,
-                                name: cur_work.element_ind,
-                                params: cur_element.calcd_node_params.iter().cloned().collect::<Vec<_>>(),
+                                // decl: ScriptSyntaxDecl::Apply,
+                                name: ScriptSyntaxNodeOrApplyOrTemplate::Apply(cur_work.element_ind),
+                                params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
                                 children: Vec::new(),
                                 returns: Vec::new(),
                             });
@@ -2645,9 +2649,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                         syntax_stk.push(new_syntax_ind);
                         syntax_tree.push(ScriptSyntax::Decl {
-                            decl: ScriptSyntaxDecl::Template,
-                            name: cur_work.element_ind,
-                            params: cur_element.calcd_node_params.iter().cloned().collect::<Vec<_>>(),
+                            // decl: ScriptSyntaxDecl::Template,
+                            name: ScriptSyntaxNodeOrApplyOrTemplate::Template(cur_work.element_ind),
+                            params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
                             children: Vec::new(),
                             returns: Vec::new(),
                         });
@@ -2848,14 +2852,14 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 src+=&format!("{indent}var _r{func} {{call _n{func} {params}}}\n");
 
             }
-            ScriptSyntax::Decl { decl, name, params, .. }  if !exit => { //enter
+            ScriptSyntax::Decl { name, params, .. }  if !exit => { //enter
                 let mut params2=vec!["self".to_string()];
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
-                let name = match decl {
-                    ScriptSyntaxDecl::Node => format!("_n{name}"),
-                    ScriptSyntaxDecl::Apply => format!("_a{name}"),
-                    ScriptSyntaxDecl::Template => format!("_t{name}"),
+                let name = match name {
+                    ScriptSyntaxNodeOrApplyOrTemplate::Node(x) => format!("_n{x}"),
+                    ScriptSyntaxNodeOrApplyOrTemplate::Apply(x) => format!("_a{x}"),
+                    ScriptSyntaxNodeOrApplyOrTemplate::Template(x) => format!("_t{x}"),
                 };
 
                 src+=&format!("{indent}fn {name} {{{params2}}} {{\n");
