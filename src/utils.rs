@@ -65,12 +65,14 @@ pub enum ElementType<'a> {
     Apply {
         name : &'a str, //text_ind
         owner_apply_decl_id : Option<usize>, //element_ind
+        used:bool,
     },
     ApplyUse {
         apply_decl_element_ind:usize,
     },
     TemplateDecl {
         name : &'a str, //text_ind
+        used:bool,
     },
     TemplateUse {
         template_decl_element_ind:usize,
@@ -175,7 +177,7 @@ pub fn load_elements<'a>(
 
                     //
                     elements.push(Element {
-                        element_type: ElementType::TemplateDecl { name: template_name, },
+                        element_type: ElementType::TemplateDecl { name: template_name, used: true },
                         children: Vec::new(),
                         applies: Vec::new(),
                         apply_after,
@@ -256,7 +258,7 @@ pub fn load_elements<'a>(
                         //
                         // let new_apply_decl_id=apply_decl_count;
                         elements.push(Element {
-                            element_type: ElementType::Apply { name, owner_apply_decl_id: prev_owner_apply_decl_id, },
+                            element_type: ElementType::Apply { name, owner_apply_decl_id: prev_owner_apply_decl_id, used: true },
                             apply_after,
                             children: Vec::new(),
                             applies: Vec::new(),
@@ -375,619 +377,11 @@ pub fn load_elements<'a>(
                     // let in_apply: Option<usize>=walk.get_named_note("in_apply").cloned();
                     let in_template: Option<usize>=walk.find_named_note("in_template").cloned();
 
-                    let mut attrib_funcs = Vec::new();
-
-                    match x {
-                        "size" => {
-                            let w = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            let h = walk.record().value(1).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push(("width",make_attrib_func::<UiSize>(move|c|{
-                                c.width=w;
-                            })));
-
-                            attrib_funcs.push(("height",make_attrib_func::<UiSize>(move|c|{
-                                c.height=h;
-                            })));
-                        }
-                        "width" => {
-                            let width = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSize>(move|c|{
-                                c.width=width;
-                            })));
-                        }
-                        "height" => {
-                            let height = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSize>(move|c|{
-                                c.height=height;
-                            })));
-                        }
-                        tag @ ("color"|"border_color"|"text_color"|"padding_color"|"margin_color"|"cell_color") => {
-                            let color=match walk.record().node_label().unwrap() {
-                                "colorf" => {
-                                    let a:[f32;4]=walk.record().get_parsed_array(1.0).unwrap();
-                                    Color::srgba(a[0],a[1],a[2],a[3])
-                                }
-                                "colori" => {
-                                    let a:[u8;4]=walk.record().get_parsed_array(255).unwrap();
-                                    Color::srgba_u8(a[0],a[1],a[2],a[3])
-                                }
-                                "colorh" => {
-                                    walk.record().value(0).get_parsed::<HexColor>().unwrap().0
-                                }
-                                "colorn" => {
-                                    walk.record().value(0).get_parsed::<NamedColor>().unwrap().0
-                                }
-                                _ => {panic!("");}
-                            };
-
-                            match tag {
-                                "color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.back_color.insert(on_state, color);
-                                    })));
-                                }
-                                "border_color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.border_color.insert(on_state, color);
-                                    })));
-                                }
-                                "text_color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.text_color.insert(on_state, color);
-                                    })));
-                                }
-                                "padding_color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.padding_color.insert(on_state, color);
-                                    })));
-                                }
-                                "margin_color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.margin_color.insert(on_state, color);
-                                    })));
-                                }
-                                "cell_color" => {
-                                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
-                                        c.cell_color.insert(on_state, color);
-                                    })));
-                                }
-                                _=>{panic!("");}
-                            }
-                        }
-                        "hoverable" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiHoverable>(move|c|{
-                                c.enable=v;
-                            })));
-                        }
-                        "pressable" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
-                                c.enable=v;
-                            })));
-                        }
-                        "draggable" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiDraggable>(move|c|{
-                                c.enable=v;
-                            })));
-                        }
-                        "selectable" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
-                                c.enable=v;
-                            })));
-                        }
-                        "focusable" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.enable=v;
-                            })));
-                        }
-
-                        "press_always"=> {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
-                                c.always=v;
-                            })));
-                        }
-                        "press_physical" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
-                                c.physical=v;
-                            })));
-                        }
-
-                        "focused" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.focused=v;
-                            })));
-                        }
-                        "focus_group" => {
-                            let v: i32 = walk.record().value(0).get_parsed().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.group=v;
-                            })));
-                        }
-                        "focus_tab_exit" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.tab_exit=v;
-                            })));
-                        }
-                        "focus_hdir_exit" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.hdir_exit=v;
-                            })));
-                        }
-                        "focus_vdir_exit" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.vdir_exit=v;
-                            })));
-                        }
-                        "focus_hdir_wrap" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.hdir_wrap=v;
-                            })));
-                        }
-                        "focus_vdir_wrap" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.vdir_wrap=v;
-                            })));
-                        }
-                        "focus_hdir_press" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.hdir_press=v;
-                            })));
-                        }
-                        "focus_vdir_press" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
-                                c.vdir_press=v;
-                            })));
-                        }
-
-                        "selected" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
-                                c.selected=v;
-                            })));
-                        }
-                        "select_group" => {
-                            let v = walk.record().value(0).get_str().unwrap().to_string();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
-                                c.group=v.clone(); //can't move from func's capture to c.group
-                            })));
-                        }
-
-                        "border" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
-
-                            attrib_funcs.push(("border_left",make_attrib_func::<UiEdge>(move|c|{
-                                c.border.left=v;
-                            })));
-                            attrib_funcs.push(("border_right",make_attrib_func::<UiEdge>(move|c|{
-                                c.border.right=v;
-                            })));
-                            attrib_funcs.push(("border_top",make_attrib_func::<UiEdge>(move|c|{
-                                c.border.top=v2;
-                            })));
-                            attrib_funcs.push(("border_bottom",make_attrib_func::<UiEdge>(move|c|{
-                                c.border.bottom=v2;
-                            })));
-                        }
-                        "hborder" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.left=v;
-                                c.border.right=v;
-                            })));
-                        }
-                        "vborder" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.top=v;
-                                c.border.bottom=v;
-                            })));
-                        }
-                        "border_left" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.left=v;
-                            })));
-                        }
-                        "border_right" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.right=v;
-                            })));
-                        }
-                        "border_top" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.top=v;
-                            })));
-                        }
-                        "border_bottom" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.border.bottom=v;
-                            })));
-                        }
-
-                        "padding" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
-
-                            attrib_funcs.push(("padding_left",make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.left=v;
-                            })));
-                            attrib_funcs.push(("padding_right",make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.right=v;
-                            })));
-                            attrib_funcs.push(("padding_top",make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.top=v2;
-                            })));
-                            attrib_funcs.push(("padding_bottom",make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.bottom=v2;
-                            })));
-                        }
-                        "hpadding" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.left=v;
-                                c.padding.right=v;
-                            })));
-                        }
-                        "vpadding" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.top=v;
-                                c.padding.bottom=v;
-                            })));
-                        }
-                        "padding_left" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.left=v;
-                            })));
-                        }
-                        "padding_right" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.right=v;
-                            })));
-                        }
-                        "padding_top" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.top=v;
-                            })));
-                        }
-                        "padding_bottom" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.padding.bottom=v;
-                            })));
-                        }
-
-                        "margin" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
-
-                            attrib_funcs.push(("margin_left",make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.left=v;
-                            })));
-                            attrib_funcs.push(("margin_right",make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.right=v;
-                            })));
-                            attrib_funcs.push(("margin_top",make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.top=v2;
-                            })));
-                            attrib_funcs.push(("margin_bottom",make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.bottom=v2;
-                            })));
-                        }
-                        "hmargin" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.left=v;
-                                c.margin.right=v;
-                            })));
-                        }
-                        "vmargin" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.top=v;
-                                c.margin.bottom=v;
-                            })));
-                        }
-                        "margin_left" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.left=v;
-                            })));
-                        }
-                        "margin_right" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.right=v;
-                            })));
-                        }
-                        "margin_top" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.top=v;
-                            })));
-                        }
-                        "margin_bottom" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
-                                c.margin.bottom=v;
-                            })));
-                        }
-
-                        "font" => {
-                            let v = walk.record().value(0).get_str().unwrap();
-                            let handle=asset_server.load(PathBuf::from(v)).clone();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.font=handle.clone(); //can't move
-                                c.update=true;
-                            })));
-
-                            attrib_funcs.push(("inner_size",make_attrib_func::<UiInnerSize>(move|_|{})));
-                            attrib_funcs.push(("text_computed",make_attrib_func::<UiTextComputed>(move|_|{})));
-
-                            // commands.add(move |world: &mut World| {
-                            //     let mut e=world.entity_mut(parent_entity);
-                            //     e.entry::<UiTextComputed>().or_default();
-                            //     e.entry::<UiInnerSize>().or_default();
-                            // });
-                        }
-                        "text" => {
-                            let v = walk.record().value(0).get_str().unwrap().to_string();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.value=v.clone(); //can't move from func's capture
-                                c.update=true;
-                            })));
-                        }
-                        "text_halign" => {
-                            let v: UiTextHAlign = walk.record().value(0).get_parsed().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.halign=v;
-                                c.update=true;
-                            })));
-                        }
-                        "text_valign" => {
-                            let v: UiTextVAlign = walk.record().value(0).get_parsed().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.valign=v;
-                                c.update=true;
-                            })));
-                        }
-                        "text_size" => {
-                            let v = walk.record().value(0).get_parsed::<f32>().unwrap().abs();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.font_size=v;
-                                c.update=true;
-                            })));
-                        }
-                        "text_hlen" => {
-                            let v: u32 = walk.record().value(0).get_parsed().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.hlen=v;
-                                c.update=true;
-                            })));
-                        }
-                        "text_vlen" => {
-                            let v: u32 = walk.record().value(0).get_parsed().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
-                                c.vlen=v;
-                                c.update=true;
-                            })));
-                        }
-
-                        "image" => {
-                            let v = walk.record().value(0).get_str().unwrap();
-                            let handle=asset_server.load(PathBuf::from(v));
-
-                            attrib_funcs.push((x,make_attrib_func::<UiImage>(move|c|{
-                                c.handle=handle.clone(); //can't move from func's capture
-                            })));
-
-                            attrib_funcs.push(("inner_size",make_attrib_func::<UiInnerSize>(move|_|{})));
-                            // commands.add(move |world: &mut World| {
-                            //     let mut e=world.entity_mut(parent_entity);
-                            //     e.entry::<UiInnerSize>().or_default();
-                            // });
-                        }
-
-                        "disabled" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiDisable>(move|c|{
-                                c.disable=v;
-                            })));
-                        }
-                        "hidden" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiHide>(move|c|{
-                                c.hide=v;
-                            })));
-                        }
-                        "floating" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFloat>(move|c|{
-                                c.float=v;
-                            })));
-                        }
-                        "locked" => {
-                            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiLock>(move|c|{
-                                c.lock=v;
-                            })));
-                        }
-
-                        "gap" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-                            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
-                            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
-
-                            attrib_funcs.push(("hgap",make_attrib_func::<UiGap>(move|c|{
-                                c.hgap=v;
-                            })));
-                            attrib_funcs.push(("vgap",make_attrib_func::<UiGap>(move|c|{
-                                c.vgap=v2;
-                            })));
-                        }
-                        "hgap" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiGap>(move|c|{
-                                c.hgap=v;
-                            })));
-                        }
-                        "vgap" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiGap>(move|c|{
-                                c.vgap=v;
-                            })));
-                        }
-
-                        "hexpand" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiExpand>(move|c|{
-                                c.hexpand=v;
-                            })));
-                        }
-                        "vexpand" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiExpand>(move|c|{
-                                c.vexpand=v;
-                            })));
-                        }
-
-                        "hfill" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFill>(move|c|{
-                                c.hfill=v;
-                            })));
-                        }
-                        "vfill" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiFill>(move|c|{
-                                c.vfill=v;
-                            })));
-                        }
-
-                        "row_width_scale" => {
-                            let v = walk.record().value(0).get_parsed::<f32>().unwrap().max(0.0);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiCongruent>(move|c|{
-                                c.row_width_scale=v;
-                            })));
-                        }
-                        "col_height_scale" => {
-                            let v = walk.record().value(0).get_parsed::<f32>().unwrap().max(0.0);
-
-                            attrib_funcs.push((x,make_attrib_func::<UiCongruent>(move|c|{
-                                c.col_height_scale=v;
-                            })));
-                        }
-
-                        "halign" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiAlign>(move|c|{
-                                c.halign=v;
-                            })));
-                        }
-                        "valign" => {
-                            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiAlign>(move|c|{
-                                c.valign=v;
-                            })));
-                        }
-
-                        "span" => {
-                            let v = walk.record().value(0).get_parsed::<u32>().unwrap();
-
-                            attrib_funcs.push((x,make_attrib_func::<UiSpan>(move|c|{
-                                c.span=v;
-                            })));
-                        }
-
-                        // "hscroll" => {}
-                        // "vscroll" => {}
-                        x => {
-                            panic!("{x:?}",)
-                        }
-                    }
+                    //
+                    let mut attrib_funcs: Vec<(&str, Arc<dyn Fn(Entity, &mut World) + Send + Sync>)> = Vec::new();
+
+                    //
+                    do_attribs(x,on_state,asset_server,&walk,&mut attrib_funcs);
 
                     //
                     for (attrib_name,func) in attrib_funcs {
@@ -1023,6 +417,626 @@ pub fn load_elements<'a>(
     Some(elements)
 }
 
+fn do_attribs<'a>(
+    x:&'a str,
+    on_state:Option<UiAffectState>,
+    asset_server: &AssetServer,
+    walk : &conf_lang::Walk,
+    attrib_funcs: &mut Vec<(&'a str, Arc<dyn Fn(Entity, &mut World) + Send + Sync>)>,
+) {
+    match x {
+        "size" => {
+            let w = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+            let h = walk.record().value(1).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push(("width",make_attrib_func::<UiSize>(move|c|{
+                c.width=w;
+            })));
+
+            attrib_funcs.push(("height",make_attrib_func::<UiSize>(move|c|{
+                c.height=h;
+            })));
+        }
+        "width" => {
+            let width = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiSize>(move|c|{
+                c.width=width;
+            })));
+        }
+        "height" => {
+            let height = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiSize>(move|c|{
+                c.height=height;
+            })));
+        }
+        tag @ ("color"|"border_color"|"text_color"|"padding_color"|"margin_color"|"cell_color") => {
+            let color=match walk.record().node_label().unwrap() {
+                "colorf" => {
+                    let a:[f32;4]=walk.record().get_parsed_array(1.0).unwrap();
+                    Color::srgba(a[0],a[1],a[2],a[3])
+                }
+                "colori" => {
+                    let a:[u8;4]=walk.record().get_parsed_array(255).unwrap();
+                    Color::srgba_u8(a[0],a[1],a[2],a[3])
+                }
+                "colorh" => {
+                    walk.record().value(0).get_parsed::<HexColor>().unwrap().0
+                }
+                "colorn" => {
+                    walk.record().value(0).get_parsed::<NamedColor>().unwrap().0
+                }
+                _ => {panic!("");}
+            };
+
+            match tag {
+                "color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.back_color.insert(on_state, color);
+                    })));
+                }
+                "border_color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.border_color.insert(on_state, color);
+                    })));
+                }
+                "text_color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.text_color.insert(on_state, color);
+                    })));
+                }
+                "padding_color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.padding_color.insert(on_state, color);
+                    })));
+                }
+                "margin_color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.margin_color.insert(on_state, color);
+                    })));
+                }
+                "cell_color" => {
+                    attrib_funcs.push((x,make_attrib_func::<UiAffect>(move|c|{
+                        c.cell_color.insert(on_state, color);
+                    })));
+                }
+                _=>{panic!("");}
+            }
+        }
+        "hoverable" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiHoverable>(move|c|{
+                c.enable=v;
+            })));
+        }
+        "pressable" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
+                c.enable=v;
+            })));
+        }
+        "draggable" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiDraggable>(move|c|{
+                c.enable=v;
+            })));
+        }
+        "selectable" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
+                c.enable=v;
+            })));
+        }
+        "focusable" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.enable=v;
+            })));
+        }
+
+        "press_always"=> {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
+                c.always=v;
+            })));
+        }
+        "press_physical" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{
+                c.physical=v;
+            })));
+        }
+
+        "focused" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.focused=v;
+            })));
+        }
+        "focus_group" => {
+            let v: i32 = walk.record().value(0).get_parsed().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.group=v;
+            })));
+        }
+        "focus_tab_exit" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.tab_exit=v;
+            })));
+        }
+        "focus_hdir_exit" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.hdir_exit=v;
+            })));
+        }
+        "focus_vdir_exit" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.vdir_exit=v;
+            })));
+        }
+        "focus_hdir_wrap" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.hdir_wrap=v;
+            })));
+        }
+        "focus_vdir_wrap" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.vdir_wrap=v;
+            })));
+        }
+        "focus_hdir_press" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.hdir_press=v;
+            })));
+        }
+        "focus_vdir_press" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{
+                c.vdir_press=v;
+            })));
+        }
+
+        "selected" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
+                c.selected=v;
+            })));
+        }
+        "select_group" => {
+            let v = walk.record().value(0).get_str().unwrap().to_string();
+
+            attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{
+                c.group=v.clone(); //can't move from func's capture to c.group
+            })));
+        }
+
+        "border" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
+
+            attrib_funcs.push(("border_left",make_attrib_func::<UiEdge>(move|c|{
+                c.border.left=v;
+            })));
+            attrib_funcs.push(("border_right",make_attrib_func::<UiEdge>(move|c|{
+                c.border.right=v;
+            })));
+            attrib_funcs.push(("border_top",make_attrib_func::<UiEdge>(move|c|{
+                c.border.top=v2;
+            })));
+            attrib_funcs.push(("border_bottom",make_attrib_func::<UiEdge>(move|c|{
+                c.border.bottom=v2;
+            })));
+        }
+        "hborder" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.left=v;
+                c.border.right=v;
+            })));
+        }
+        "vborder" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.top=v;
+                c.border.bottom=v;
+            })));
+        }
+        "border_left" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.left=v;
+            })));
+        }
+        "border_right" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.right=v;
+            })));
+        }
+        "border_top" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.top=v;
+            })));
+        }
+        "border_bottom" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.border.bottom=v;
+            })));
+        }
+
+        "padding" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
+
+            attrib_funcs.push(("padding_left",make_attrib_func::<UiEdge>(move|c|{
+                c.padding.left=v;
+            })));
+            attrib_funcs.push(("padding_right",make_attrib_func::<UiEdge>(move|c|{
+                c.padding.right=v;
+            })));
+            attrib_funcs.push(("padding_top",make_attrib_func::<UiEdge>(move|c|{
+                c.padding.top=v2;
+            })));
+            attrib_funcs.push(("padding_bottom",make_attrib_func::<UiEdge>(move|c|{
+                c.padding.bottom=v2;
+            })));
+        }
+        "hpadding" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.left=v;
+                c.padding.right=v;
+            })));
+        }
+        "vpadding" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.top=v;
+                c.padding.bottom=v;
+            })));
+        }
+        "padding_left" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.left=v;
+            })));
+        }
+        "padding_right" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.right=v;
+            })));
+        }
+        "padding_top" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.top=v;
+            })));
+        }
+        "padding_bottom" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.padding.bottom=v;
+            })));
+        }
+
+        "margin" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
+
+            attrib_funcs.push(("margin_left",make_attrib_func::<UiEdge>(move|c|{
+                c.margin.left=v;
+            })));
+            attrib_funcs.push(("margin_right",make_attrib_func::<UiEdge>(move|c|{
+                c.margin.right=v;
+            })));
+            attrib_funcs.push(("margin_top",make_attrib_func::<UiEdge>(move|c|{
+                c.margin.top=v2;
+            })));
+            attrib_funcs.push(("margin_bottom",make_attrib_func::<UiEdge>(move|c|{
+                c.margin.bottom=v2;
+            })));
+        }
+        "hmargin" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.left=v;
+                c.margin.right=v;
+            })));
+        }
+        "vmargin" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.top=v;
+                c.margin.bottom=v;
+            })));
+        }
+        "margin_left" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.left=v;
+            })));
+        }
+        "margin_right" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.right=v;
+            })));
+        }
+        "margin_top" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.top=v;
+            })));
+        }
+        "margin_bottom" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiEdge>(move|c|{
+                c.margin.bottom=v;
+            })));
+        }
+
+        "font" => {
+            let v = walk.record().value(0).get_str().unwrap();
+            let handle=asset_server.load(PathBuf::from(v)).clone();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.font=handle.clone(); //can't move
+                c.update=true;
+            })));
+
+            attrib_funcs.push(("inner_size",make_attrib_func::<UiInnerSize>(move|_|{})));
+            attrib_funcs.push(("text_computed",make_attrib_func::<UiTextComputed>(move|_|{})));
+
+            // commands.add(move |world: &mut World| {
+            //     let mut e=world.entity_mut(parent_entity);
+            //     e.entry::<UiTextComputed>().or_default();
+            //     e.entry::<UiInnerSize>().or_default();
+            // });
+        }
+        "text" => {
+            let v = walk.record().value(0).get_str().unwrap().to_string();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.value=v.clone(); //can't move from func's capture
+                c.update=true;
+            })));
+        }
+        "text_halign" => {
+            let v: UiTextHAlign = walk.record().value(0).get_parsed().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.halign=v;
+                c.update=true;
+            })));
+        }
+        "text_valign" => {
+            let v: UiTextVAlign = walk.record().value(0).get_parsed().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.valign=v;
+                c.update=true;
+            })));
+        }
+        "text_size" => {
+            let v = walk.record().value(0).get_parsed::<f32>().unwrap().abs();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.font_size=v;
+                c.update=true;
+            })));
+        }
+        "text_hlen" => {
+            let v: u32 = walk.record().value(0).get_parsed().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.hlen=v;
+                c.update=true;
+            })));
+        }
+        "text_vlen" => {
+            let v: u32 = walk.record().value(0).get_parsed().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{
+                c.vlen=v;
+                c.update=true;
+            })));
+        }
+
+        "image" => {
+            let v = walk.record().value(0).get_str().unwrap();
+            let handle=asset_server.load(PathBuf::from(v));
+
+            attrib_funcs.push((x,make_attrib_func::<UiImage>(move|c|{
+                c.handle=handle.clone(); //can't move from func's capture
+            })));
+
+            attrib_funcs.push(("inner_size",make_attrib_func::<UiInnerSize>(move|_|{})));
+            // commands.add(move |world: &mut World| {
+            //     let mut e=world.entity_mut(parent_entity);
+            //     e.entry::<UiInnerSize>().or_default();
+            // });
+        }
+
+        "disabled" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiDisable>(move|c|{
+                c.disable=v;
+            })));
+        }
+        "hidden" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiHide>(move|c|{
+                c.hide=v;
+            })));
+        }
+        "floating" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiFloat>(move|c|{
+                c.float=v;
+            })));
+        }
+        "locked" => {
+            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+
+            attrib_funcs.push((x,make_attrib_func::<UiLock>(move|c|{
+                c.lock=v;
+            })));
+        }
+
+        "gap" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+            // let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or_else(||if let UiVal::Scale(_)=v{v*-1.0}else{v});
+            let v2 = walk.record().value(1).get_parsed::<UiVal>().unwrap_or(v);
+
+            attrib_funcs.push(("hgap",make_attrib_func::<UiGap>(move|c|{
+                c.hgap=v;
+            })));
+            attrib_funcs.push(("vgap",make_attrib_func::<UiGap>(move|c|{
+                c.vgap=v2;
+            })));
+        }
+        "hgap" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiGap>(move|c|{
+                c.hgap=v;
+            })));
+        }
+        "vgap" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiGap>(move|c|{
+                c.vgap=v;
+            })));
+        }
+
+        "hexpand" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiExpand>(move|c|{
+                c.hexpand=v;
+            })));
+        }
+        "vexpand" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiExpand>(move|c|{
+                c.vexpand=v;
+            })));
+        }
+
+        "hfill" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiFill>(move|c|{
+                c.hfill=v;
+            })));
+        }
+        "vfill" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiFill>(move|c|{
+                c.vfill=v;
+            })));
+        }
+
+        "row_width_scale" => {
+            let v = walk.record().value(0).get_parsed::<f32>().unwrap().max(0.0);
+
+            attrib_funcs.push((x,make_attrib_func::<UiCongruent>(move|c|{
+                c.row_width_scale=v;
+            })));
+        }
+        "col_height_scale" => {
+            let v = walk.record().value(0).get_parsed::<f32>().unwrap().max(0.0);
+
+            attrib_funcs.push((x,make_attrib_func::<UiCongruent>(move|c|{
+                c.col_height_scale=v;
+            })));
+        }
+
+        "halign" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiAlign>(move|c|{
+                c.halign=v;
+            })));
+        }
+        "valign" => {
+            let v = walk.record().value(0).get_parsed::<UiVal>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiAlign>(move|c|{
+                c.valign=v;
+            })));
+        }
+
+        "span" => {
+            let v = walk.record().value(0).get_parsed::<u32>().unwrap();
+
+            attrib_funcs.push((x,make_attrib_func::<UiSpan>(move|c|{
+                c.span=v;
+            })));
+        }
+
+        // "hscroll" => {}
+        // "vscroll" => {}
+        x => {
+            panic!("{x:?}",)
+        }
+    }
+
+}
 pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently used?
 
     struct Work{element_ind:usize,depth:usize,}
@@ -1442,6 +1456,12 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                             calcd_created_from:from,
                             has_script:false,
                         });
+
+                        //
+                        // let apply_element=elements.get_mut(apply_element_ind).unwrap();
+                        // let ElementType::Apply { used, .. }=&mut apply_element.element_type else {panic!("");};
+                        // *used=true;
+
                     }
                 }
 
@@ -1653,7 +1673,9 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     // let mut from_path = cur_work.from_path.clone();
                     // from_path.push(cur_work.element_ind);
 
-                    work_stk.extend(elements.get(*template_decl_element_ind).unwrap().children.iter().rev().map(|&child_element_ind|{
+                    let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
+
+                    work_stk.extend(template_decl_element.children.iter().rev().map(|&child_element_ind|{
                         let child_element=elements.get(child_element_ind).unwrap();
                         let in_template=if let ElementType::Attrib{..}=&child_element.element_type {
                             cur_work.in_template
@@ -2029,11 +2051,50 @@ TODO
 
 */
 pub fn mark_used(elements:&mut Vec<Element>) {
+    for element in elements.iter_mut() {
+
+        match &mut element.element_type {
+            ElementType::Apply { used, .. } => {
+                *used=false;
+            }
+            ElementType::TemplateDecl { used, .. } => {
+                *used=false;
+            }
+            _ => {
+
+            }
+        }
+    }
+
+    //
     let mut work_stk=vec![0];
 
     while let Some(cur_element_ind)=work_stk.pop() {
         let cur_element=elements.get(cur_element_ind).unwrap();
-        work_stk.extend(cur_element.children.iter());
+
+        match &cur_element.element_type {
+            ElementType::Apply { .. }|ElementType::TemplateDecl { .. } => {},
+            _ => {
+                work_stk.extend(cur_element.children.iter());
+            }
+        }
+
+        match &cur_element.element_type {
+            ElementType::ApplyUse { apply_decl_element_ind } => {
+                let apply_decl_element_ind=*apply_decl_element_ind;
+                let apply_element=elements.get_mut(apply_decl_element_ind).unwrap();
+                let ElementType::Apply { used, .. }=&mut apply_element.element_type else {panic!("");};
+                *used=true;
+            },
+            ElementType::TemplateUse { template_decl_element_ind } => {
+                let template_decl_element_ind=*template_decl_element_ind;
+                let tempalate_decl_element=elements.get_mut(template_decl_element_ind).unwrap();
+                let ElementType::TemplateDecl { used, .. }=&mut tempalate_decl_element.element_type else {panic!("");};
+                *used=true;
+            },
+            _ => {
+            }
+        }
     }
 }
 
@@ -2049,13 +2110,18 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
         }
 
         //
-        work_stk.extend(cur_element.children.iter());
+        work_stk.extend(cur_element.children.iter().rev());
         parents.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
 
         //
         let has_script=match cur_element.element_type {
             ElementType::Script { .. } => true,
-            ElementType::TemplateUse { template_decl_element_ind  } => elements.get(template_decl_element_ind).unwrap().has_script,
+            ElementType::TemplateUse { template_decl_element_ind  } => {
+                let element=elements.get(template_decl_element_ind).unwrap();
+                let ElementType::TemplateDecl { name,used, .. }=&element.element_type else {panic!("");};
+                println!("---- {name:?} used={used}, script={}",element.has_script);
+                *used && element.has_script
+            },
             _ => false,
         };
 
@@ -2064,8 +2130,16 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
 
             while let Some(element_ind2)=element_ind {
                 let element=elements.get_mut(element_ind2).unwrap();
-                element.has_script=true;
-                element_ind=parents.get(&element_ind2).cloned();
+
+                match &element.element_type {
+                    ElementType::Apply { used, .. }|ElementType::TemplateDecl { used, .. } if !(*used) => {
+                        break;
+                    }
+                    _ => {
+                        element.has_script=true;
+                        element_ind=parents.get(&element_ind2).cloned();
+                    }
+                }
             }
         }
     }
@@ -2202,11 +2276,8 @@ impl ScriptSyntax {
         }
     }
 }
-// pub struct ScriptSyntax {
-//     pub syntax_type:ScriptSyntaxType,
-// }
+
 pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
-    // let mut syntax_tree: Vec<ScriptSyntax> = Vec::new();
     let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new() }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
@@ -2974,8 +3045,8 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
 
                 println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
             }
-            ElementType::Apply { name,.. } => {
-                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
+            ElementType::Apply { name,used,.. } => {
+                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, has_script={has_script:?}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
                 println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}", );
@@ -2983,9 +3054,9 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
             ElementType::Script { .. } => {
                 println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
             }
-            ElementType::TemplateDecl { name, .. } => {
+            ElementType::TemplateDecl { name, used, .. } => {
                 // let name=texts[*name];
-                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
+                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, has_script={has_script:?}",);
             }
             ElementType::Stub { name } => {
                 println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
