@@ -1192,7 +1192,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
     let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
     while let Some(cur_work)=work_stk.pop() {
-        //
         let mut the_new_element_ind:Option<usize> = None;
 
         //replace element added via apply/template with new copy
@@ -1201,24 +1200,19 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         if let Some(new_from_parent)=cur_work.new_from_parent {
             let cur_element=elements.get(cur_work.element_ind).unwrap();
 
-            //if ElementType::Script{..}, set parent.script=true?
-
             if let ElementType::Node {..}|ElementType::TemplateUse{..}|ElementType::Stub{..}
-                // |ElementType::Script{..}
                 //not needed, can just pass the same one around, actually is needed, need unique element_ind for attrib for debug purposes
                 //  also attrib needs to be added to its new parent, but don't need a new copy for that
                 //
-                |ElementType::Attrib{..}
-                =&cur_element.element_type {
+                |ElementType::Attrib{..}=&cur_element.element_type
+            {
 
                 //
                 let mut new_element=Element {
                     children: Vec::new(), ..cur_element.clone()
                 };
-                // new_element.depth=elements.get(new_from_parent).unwrap().depth+1;
+
                 new_element.calcd_from_element_ind=Some(cur_work.element_ind);
-                // new_element.apply_after+=cur_work.inside_apply_after;
-                // new_element.parent=; //no
 
                 //
                 let new_element_ind=elements.len();
@@ -1226,10 +1220,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 elements.push(new_element);
 
                 the_new_element_ind=Some(new_element_ind);
-
-                // cur_work.element_ind=new_element_ind;
-            // } else if let ElementType::Attrib {..}=&cur_element.element_type { //not needed
-                // elements.get_mut(new_from_parent).unwrap().children.push(cur_work.element_ind);
             }
         }
 
@@ -1261,7 +1251,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         }
 
         //attrib
-        // if enter
         {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind); //for attribs added via applies
             let cur_element=elements.get_mut(cur_element_ind).unwrap();
@@ -1287,8 +1276,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 calcd.ok=ok;
                 calcd.used=ok;
 
-                // element_attrib_calcs.insert(cur_element_ind, ElementAttribCalc { in_template, in_apply, used: ok, ok, });
-
                 if ok {
                     node_attribs.insert((name,on_state), (in_template,in_apply,in_node,func.clone(),cur_element_ind));
 
@@ -1304,14 +1291,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         }
 
         //
-        // if let ElementType::Apply{..}
-        //     |ElementType::TemplateDecl{..} //not necessary
-        //     =&elements.get(cur_work.element_ind).unwrap().element_type {
-
-        // } else
         if let Some(cur_element_ind)=the_new_element_ind {
-
-            // let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
             let cur_element=elements.get_mut(cur_element_ind).unwrap();
             cur_element.calcd_created_from=cur_work.created_from;
         }
@@ -1320,7 +1300,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         let mut new_applies: Vec<(usize, usize, )> = Vec::new(); //apply_element_ind,from_element_ind
         //get template applies
         //applies...
-        // if enter
+
         {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
 
@@ -1335,7 +1315,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             //    would need to increment it by the amount added when before after_apply,
             //    in thing have a count of the number added, which can be added to element.apply_after
 
-
             match cur_element.element_type.clone() {
                 ElementType::TemplateUse { template_decl_element_ind, .. } => {
                     let template_decl_element=elements.get(template_decl_element_ind).unwrap();
@@ -1345,8 +1324,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
                 }
                 ElementType::Node { names, ignore_applies, .. } => {
-
-                    //
                     let last_stub_thing_ind=things.iter().enumerate().rev().find_map(|(i,t)|{
                         if let ElementType::Stub{..}=&elements.get(t.element_ind).unwrap().element_type {
                             Some(i)
@@ -1356,14 +1333,8 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     });
 
                     //
-                    let mut before_applies: Vec<(
-                        usize,
-                        usize, //from
-                    )> = Vec::new();
-                    let mut after_applies: Vec<(
-                        usize,
-                        usize, //from
-                    )> = Vec::new();
+                    let mut before_applies: Vec<(usize, usize)> = Vec::new(); //(apply_element_ind,from_element_ind)
+                    let mut after_applies: Vec<(usize, usize)> = Vec::new();
 
                     //get before applies
                     for (thing_ind,thing) in things.iter().enumerate() {
@@ -1424,12 +1395,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                         let parent_applies_len=cur_element.applies.len();
 
                         for &(apply_element_ind,from) in before_applies.iter().chain(after_applies.iter()) {
-                            // let apply_element_ind=*apply_element_ind;
-
-                            //
-                            // let apply_element=elements.get(apply_element_ind).unwrap();
-                            // let ElementType::Apply{..}=apply_element.element_type else {panic!("");};
-
                             if ignore_applies.contains(&apply_element_ind) { //apply_decl_id
                                 apply_use_element_inds.push(None);
                                 continue;
@@ -1450,29 +1415,15 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 calcd_created_from:from,
                                 has_script:false,
                             });
-
-                            //
-                            // let apply_element=elements.get_mut(apply_element_ind).unwrap();
-                            // let ElementType::Apply { used, .. }=&mut apply_element.element_type else {panic!("");};
-                            // *used=true;
-
                         }
                     }
 
                     //
-                    // for (i,&(apply_element_ind,_from)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
-                    for (i,&(apply_element_ind,_)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
-                    {
+                    for (i,&(apply_element_ind,_)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate() {
                         //apply_use
-                        // let apply_element_ind=*apply_element_ind;
-                        // let apply_use_element_ind=apply_use_element_inds[apply_use_element_inds.len()-i-1];
-
                         let Some(apply_use_element_ind)=apply_use_element_inds[apply_use_element_inds.len()-i-1] else {
                             continue;
                         };
-
-                        // let mut from_path=from_path.clone();
-                        // from_path.push(apply_use_element_ind);
 
                         //
                         let apply_element=elements.get(apply_element_ind).unwrap();
@@ -1494,10 +1445,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                         //
                         work_stk.extend(apply_element.children.iter().rev().map(|&child_element_ind|{
                             let child_element=elements.get(child_element_ind).unwrap();
-
-                            // if let ElementType::Apply{..}=&child_element.element_type {
-                            //     println!("is an apply {child_element_ind}");
-                            // }
 
                             let in_apply=if let ElementType::Attrib{..}|ElementType::TemplateUse{..}=child_element.element_type.clone(){
                                 parent_owner_apply_decl_id //use cur apply's parent
@@ -1524,21 +1471,12 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 created_from:apply_use_element_ind,
                             }
                         }));
-
                     }
-
 
                     //get applies for new thing
                     //  add cur_element.applies then before+after applies
                     //  could do before_applies, cur_applies, after_applies
 
-                    // // for element_ind in [cur_work.element_ind].into_iter().chain(before_applies.into_iter()).chain(after_applies.into_iter())
-                    // // for element_ind in before_applies.into_iter().chain([cur_work.element_ind].into_iter()).chain(after_applies.into_iter())
-                    // for &element_ind in before_applies.iter().chain([cur_work.element_ind].iter()).chain(after_applies.iter())
-                    // for (i,(element_ind,_from)) in
-                    //     before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x))
-                    //     .chain([(None,(cur_work.element_ind,cur_work.created_from))])
-                    //     .chain(after_applies.iter().enumerate().map(|(i,&x)|(Some(i+before_applies.len()),x)))
                     for (i,element_ind) in
                         before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x.0))
                         .chain([(None,cur_work.element_ind)])
@@ -1546,32 +1484,16 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     {
                         let element=elements.get(element_ind).unwrap();
 
-                        // let apply_use_element_ind=*apply_use_element_inds.get(i).unwrap();
-                        // if let ElementType::Node{..}|ElementType::Apply {..}|ElementType::TemplateUse{..} = &element.element_type { //should always be apply or node?
-
                         let from=if let Some(i)=i {
-                            // from_path.push(apply_use_element_inds[i]);
                             let Some(apply_use_element_ind)=apply_use_element_inds[i] else {
                                 continue;
                             };
                             apply_use_element_ind
-                            // 88
                         } else {
-                            // cur_work.last_apply_use
-                            // println!("aaa {} {}",cur_element_ind,cur_work.created_from);
-                            // cur_work.created_from
                             cur_element_ind
-                            // 99
                         };
 
-                        // let u=if let Some(i)=i {
-                        //     Some(apply_use_element_inds[i])
-                        // } else {
-                        //     cur_work.last_apply_use
-                        // };
                         new_applies.extend(element.applies.iter().map(|&apply_element_ind|(apply_element_ind,from)));
-                        //(apply_element_ind,Some(apply_use_element_ind))
-                        // }
                     }
                 }
                 _ => {
@@ -1580,38 +1502,12 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         }
 
         //push children (to work)
-        // if enter
         {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
             let cur_element=elements.get(cur_work.element_ind).unwrap();
-            // println!("hmm {}",cur_work.element_ind);
+
             match &cur_element.element_type {
-                // ElementType::Root => {
-                //     work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
-                //         element_ind: child_element_ind,
-                //         exit,
-                //         from_applies:HashSet::new(),
-                //         in_apply:None,
-                //         in_template:None,
-                //     }));
-                // }
                 ElementType::Node { .. } => {
-
-                    // //
-                    // let new_element2_ind=elements2.len();
-                    // elements2.push(Element2 {
-                    //     element2_type: Element2Type::Node { attribs: HashMap::new() } ,
-                    //     parent: cur_work.parent_element2_ind,
-                    //     children: Vec::new(),
-                    // });
-
-                    // let mut from_path = cur_work.from_path.clone();
-                    // from_path.push(
-                    //     // cur_work.element_ind
-                    //     99
-                    // );
-
-                    //
                     work_stk.extend(cur_element.children.iter().rev().filter_map(|&child_element_ind|{
                         let child_element=elements.get(child_element_ind).unwrap();
                         if let ElementType::ApplyUse { .. } =&child_element.element_type {
@@ -1633,18 +1529,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::Stub { .. } => {
-                    // //
-                    // let new_element2_ind=elements2.len();
-                    // elements2.push(Element2 {
-                    //     element2_type: Element2Type::Stub {  },
-                    //     parent: cur_work.parent_element2_ind,
-                    //     children: Vec::new(),
-                    // });
-
-                    // let mut from_path = cur_work.from_path.clone();
-                    // from_path.push(cur_work.element_ind);
-
-                    //
                     work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                         element_ind: child_element_ind,
                         from_applies:cur_work.from_applies.clone(),
@@ -1658,18 +1542,6 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::TemplateUse { template_decl_element_ind,   .. } => {
-                    // //
-                    // let new_element2_ind=elements2.len();
-                    // elements2.push(Element2 {
-                    //     element2_type: Element2Type::TemplateUse {  },
-                    //     parent: cur_work.parent_element2_ind,
-                    //     children: Vec::new(),
-                    // });
-
-                    //
-                    // let mut from_path = cur_work.from_path.clone();
-                    // from_path.push(cur_work.element_ind);
-
                     let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
 
                     work_stk.extend(template_decl_element.children.iter().rev().map(|&child_element_ind|{
@@ -1752,22 +1624,16 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
         if !cur_work.exit {
-            // if let
-            //     //ElementType::TemplateUse{..}|
-            //     ElementType::ApplyUse{..}=&cur_element.element_type {
-            // } else
-            {
-                work_stk.push(Work{exit:true, ..cur_work.clone()});
+            work_stk.push(Work{exit:true, ..cur_work.clone()});
 
-                let in_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {true} else {cur_work.in_decl};
+            let in_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {true} else {cur_work.in_decl};
 
-                work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
-                    element_ind,
-                    exit:false,
-                    parent:Some(cur_work.element_ind),
-                    in_decl,
-                }));
-            }
+            work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
+                element_ind,
+                exit:false,
+                parent:Some(cur_work.element_ind),
+                in_decl,
+            }));
         }
 
         let Some(parent_element_ind)=cur_work.parent else {
@@ -1802,16 +1668,11 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                 }
                 _ =>  {}
             }
-            // if let ElementType::Node { .. }  = &cur_element.element_type {
-            //     let parent_element=elements.get_mut(parent_element_ind).unwrap();
-            //     parent_element.calcd_node_params.insert(cur_work.element_ind);
-            // }
         } else {
             match &cur_element.element_type {
                 ElementType::Stub { .. }|ElementType::Apply { .. }
                 |ElementType::ApplyUse{..}
                 |ElementType::TemplateDecl { .. }
-                // |ElementType::TemplateUse{ .. }
                 => {
                 }
                 // ElementType::TemplateUse{ template_decl_element_ind, .. }  => {
@@ -1901,9 +1762,6 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     //stubs[stub_element_ind]=(nodes_start,nodes_end)
     //nodes[ind]=(node_element_ind,parent_ind,attribs_start,attribs_end)
     //attribs[ind]=attrib_func
-    // let mut element_ind_to_ind: HashMap<usize, usize>= HashMap::new(); //[element_ind]=ind
-    // element_ind_to_ind.insert(0,0);
-    // all_nodes.resize(element_ind_inds.len(), Default::default());
 
     for (&stub_element_ind,node_parents) in creates.iter() {
         let nodes_start=all_nodes.len();
@@ -1939,11 +1797,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
             let names_end=all_names.len();
 
             //
-            // println!("pe is {parent_element_ind}, {:?}",element_ind_to_ind);
-            // let parent_ind=*element_ind_to_ind.get(&parent_element_ind).unwrap();
-            // let ind=element_ind_to_ind.len();
             all_nodes.push((node_element_ind,parent_element_ind,attribs_start..attribs_end,names_start..names_end));
-            // element_ind_to_ind.insert(node_element_ind, ind);
         }
 
         //
