@@ -1319,22 +1319,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         //
         let mut new_applies: Vec<(usize, usize, )> = Vec::new(); //apply_element_ind,from_element_ind
         //get template applies
-        // if enter
-        {
-            let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
-            let cur_element=elements.get(cur_work.element_ind).unwrap();
-
-            if let ElementType::TemplateUse { template_decl_element_ind, .. } = &cur_element.element_type {
-                let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
-                new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
-            }
-            if let ElementType::Stub { .. } = &cur_element.element_type {
-                new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
-            }
-        }
-
         //applies...
-
         // if enter
         {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
@@ -1350,234 +1335,246 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             //    would need to increment it by the amount added when before after_apply,
             //    in thing have a count of the number added, which can be added to element.apply_after
 
-            if let ElementType::Node { names, ignore_applies, .. } = cur_element.element_type.clone() {
 
-                //
-                let last_stub_thing_ind=things.iter().enumerate().rev().find_map(|(i,t)|{
-                    if let ElementType::Stub{..}=&elements.get(t.element_ind).unwrap().element_type {
-                        Some(i)
-                    } else {
-                        None
-                    }
-                });
-
-                //
-                let mut before_applies: Vec<(
-                    usize,
-                    usize, //from
-                )> = Vec::new();
-                let mut after_applies: Vec<(
-                    usize,
-                    usize, //from
-                )> = Vec::new();
-
-                //get before applies
-                for (thing_ind,thing) in things.iter().enumerate() {
-                    let apply_after=things.get(thing_ind+1).map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
-
-                    for (thing_apply_ind,&(apply_element_ind,from)) in thing.applies.iter().enumerate() {
-                        // let apply_element_ind=*apply_element_ind;
-                        let apply_element=elements.get(apply_element_ind).unwrap();
-                        let ElementType::Apply { name:apply_name, .. }=&apply_element.element_type else {panic!("")};
-
-                        if !cur_work.from_applies.contains(&apply_element_ind) //prevent recursion //apply_decl_id
-                            && thing_apply_ind<apply_after //is before
-                            && names.contains(apply_name)
-                        {
-                            before_applies.push((apply_element_ind,from)); //need to add owner of the apply?
-                        }
-                    }
+            match cur_element.element_type.clone() {
+                ElementType::TemplateUse { template_decl_element_ind, .. } => {
+                    let template_decl_element=elements.get(template_decl_element_ind).unwrap();
+                    new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
                 }
-
-                //get after applies
-                for (thing_ind,thing) in things.iter().enumerate().rev() {
-                    //don't allow nodes in stubs to use applies that come after the stub
-                    //  except if node's first stub ancestor is also parent of the apply
-                    if let Some(last_stub_thing_ind)=last_stub_thing_ind { //ancestor or cur element stub,
-                        if thing_ind<last_stub_thing_ind { //swapped <=
-                            continue;
-                        }
-                    }
+                ElementType::Stub { .. } => {
+                    new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
+                }
+                ElementType::Node { names, ignore_applies, .. } => {
 
                     //
-                    let apply_after=things.get(thing_ind+1) //why +1 ? a descendant?
-                        .map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
+                    let last_stub_thing_ind=things.iter().enumerate().rev().find_map(|(i,t)|{
+                        if let ElementType::Stub{..}=&elements.get(t.element_ind).unwrap().element_type {
+                            Some(i)
+                        } else {
+                            None
+                        }
+                    });
 
-                    for (thing_apply_ind,&(apply_element_ind,from)) in thing.applies.iter().enumerate() {
-                        // let apply_element_ind=*apply_element_ind;
-                        let apply_element=elements.get(apply_element_ind).unwrap();
-                        let ElementType::Apply { name:apply_name, .. }=&apply_element.element_type else {panic!("")};
+                    //
+                    let mut before_applies: Vec<(
+                        usize,
+                        usize, //from
+                    )> = Vec::new();
+                    let mut after_applies: Vec<(
+                        usize,
+                        usize, //from
+                    )> = Vec::new();
 
-                        if !cur_work.from_applies.contains(&apply_element_ind) //prevent recursion //apply_decl_id
-                            && thing_apply_ind>=apply_after //is after //what does thing_ind have to do with apply_after? oh thing_apply_ind
-                            && names.contains(apply_name)
-                        {
-                            after_applies.push((apply_element_ind,from));
+                    //get before applies
+                    for (thing_ind,thing) in things.iter().enumerate() {
+                        let apply_after=things.get(thing_ind+1).map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
+
+                        for (thing_apply_ind,&(apply_element_ind,from)) in thing.applies.iter().enumerate() {
+                            // let apply_element_ind=*apply_element_ind;
+                            let apply_element=elements.get(apply_element_ind).unwrap();
+                            let ElementType::Apply { name:apply_name, .. }=&apply_element.element_type else {panic!("")};
+
+                            if !cur_work.from_applies.contains(&apply_element_ind) //prevent recursion //apply_decl_id
+                                && thing_apply_ind<apply_after //is before
+                                && names.contains(apply_name)
+                            {
+                                before_applies.push((apply_element_ind,from)); //need to add owner of the apply?
+                            }
                         }
                     }
-                }
 
-                //apply the applies on cur
-                //  should add ApplyUse, with children added to its element, filter_map_children, removing Apply
-                // let mut the_apply_after=cur_element.applies.len();
-                let mut the_apply_after_count=0;
-
-                //
-                let mut apply_use_element_inds: Vec<Option<usize>>=Vec::new();
-
-                //add apply_use elements
-                {
-                    let parent_applies_len=cur_element.applies.len();
-
-                    for &(apply_element_ind,from) in before_applies.iter().chain(after_applies.iter()) {
-                        // let apply_element_ind=*apply_element_ind;
+                    //get after applies
+                    for (thing_ind,thing) in things.iter().enumerate().rev() {
+                        //don't allow nodes in stubs to use applies that come after the stub
+                        //  except if node's first stub ancestor is also parent of the apply
+                        if let Some(last_stub_thing_ind)=last_stub_thing_ind { //ancestor or cur element stub,
+                            if thing_ind<last_stub_thing_ind { //swapped <=
+                                continue;
+                            }
+                        }
 
                         //
-                        // let apply_element=elements.get(apply_element_ind).unwrap();
-                        // let ElementType::Apply{..}=apply_element.element_type else {panic!("");};
+                        let apply_after=things.get(thing_ind+1) //why +1 ? a descendant?
+                            .map(|x|x.apply_after).unwrap_or(cur_element.apply_after);
 
-                        if ignore_applies.contains(&apply_element_ind) { //apply_decl_id
-                            apply_use_element_inds.push(None);
-                            continue;
+                        for (thing_apply_ind,&(apply_element_ind,from)) in thing.applies.iter().enumerate() {
+                            // let apply_element_ind=*apply_element_ind;
+                            let apply_element=elements.get(apply_element_ind).unwrap();
+                            let ElementType::Apply { name:apply_name, .. }=&apply_element.element_type else {panic!("")};
+
+                            if !cur_work.from_applies.contains(&apply_element_ind) //prevent recursion //apply_decl_id
+                                && thing_apply_ind>=apply_after //is after //what does thing_ind have to do with apply_after? oh thing_apply_ind
+                                && names.contains(apply_name)
+                            {
+                                after_applies.push((apply_element_ind,from));
+                            }
                         }
+                    }
 
-                        let apply_use_element_ind=elements.len();
-                        apply_use_element_inds.push(Some(apply_use_element_ind));
+                    //apply the applies on cur
+                    //  should add ApplyUse, with children added to its element, filter_map_children, removing Apply
+                    // let mut the_apply_after=cur_element.applies.len();
+                    let mut the_apply_after_count=0;
 
-                        elements.get_mut(cur_element_ind).unwrap().children.push(apply_use_element_ind);  //the cur_work.element_ind was wrong,
+                    //
+                    let mut apply_use_element_inds: Vec<Option<usize>>=Vec::new();
 
-                        elements.push(Element {
-                            element_type:ElementType::ApplyUse { apply_decl_element_ind: apply_element_ind,} ,
-                            children: Vec::new(),
-                            applies: Vec::new(),
-                            apply_after:parent_applies_len, //new_applies.len(), //wrong? since this refers to parent.applies and not thing.applies, so should be parent.applies.len()
-                            calcd_from_element_ind: None,
-                            calcd_node_params:BTreeSet::new(),
-                            calcd_created_from:from,
-                            has_script:false,
-                        });
+                    //add apply_use elements
+                    {
+                        let parent_applies_len=cur_element.applies.len();
+
+                        for &(apply_element_ind,from) in before_applies.iter().chain(after_applies.iter()) {
+                            // let apply_element_ind=*apply_element_ind;
+
+                            //
+                            // let apply_element=elements.get(apply_element_ind).unwrap();
+                            // let ElementType::Apply{..}=apply_element.element_type else {panic!("");};
+
+                            if ignore_applies.contains(&apply_element_ind) { //apply_decl_id
+                                apply_use_element_inds.push(None);
+                                continue;
+                            }
+
+                            let apply_use_element_ind=elements.len();
+                            apply_use_element_inds.push(Some(apply_use_element_ind));
+
+                            elements.get_mut(cur_element_ind).unwrap().children.push(apply_use_element_ind);  //the cur_work.element_ind was wrong,
+
+                            elements.push(Element {
+                                element_type:ElementType::ApplyUse { apply_decl_element_ind: apply_element_ind,} ,
+                                children: Vec::new(),
+                                applies: Vec::new(),
+                                apply_after:parent_applies_len, //new_applies.len(), //wrong? since this refers to parent.applies and not thing.applies, so should be parent.applies.len()
+                                calcd_from_element_ind: None,
+                                calcd_node_params:BTreeSet::new(),
+                                calcd_created_from:from,
+                                has_script:false,
+                            });
+
+                            //
+                            // let apply_element=elements.get_mut(apply_element_ind).unwrap();
+                            // let ElementType::Apply { used, .. }=&mut apply_element.element_type else {panic!("");};
+                            // *used=true;
+
+                        }
+                    }
+
+                    //
+                    // for (i,&(apply_element_ind,_from)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
+                    for (i,&(apply_element_ind,_)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
+                    {
+                        //apply_use
+                        // let apply_element_ind=*apply_element_ind;
+                        // let apply_use_element_ind=apply_use_element_inds[apply_use_element_inds.len()-i-1];
+
+                        let Some(apply_use_element_ind)=apply_use_element_inds[apply_use_element_inds.len()-i-1] else {
+                            continue;
+                        };
+
+                        // let mut from_path=from_path.clone();
+                        // from_path.push(apply_use_element_ind);
 
                         //
-                        // let apply_element=elements.get_mut(apply_element_ind).unwrap();
-                        // let ElementType::Apply { used, .. }=&mut apply_element.element_type else {panic!("");};
-                        // *used=true;
+                        let apply_element=elements.get(apply_element_ind).unwrap();
+                        let ElementType::Apply{owner_apply_decl_id:parent_owner_apply_decl_id,..}=apply_element.element_type else {panic!("");};
 
-                    }
-                }
+                        let the_apply_after=the_apply_after_count;
+                        the_apply_after_count+=apply_element.applies.len();
 
-                //
-                // for (i,&(apply_element_ind,_from)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
-                for (i,&(apply_element_ind,_)) in (after_applies.iter().rev().chain(before_applies.iter().rev()) ).enumerate()
-                {
-                    //apply_use
-                    // let apply_element_ind=*apply_element_ind;
-                    // let apply_use_element_ind=apply_use_element_inds[apply_use_element_inds.len()-i-1];
-
-                    let Some(apply_use_element_ind)=apply_use_element_inds[apply_use_element_inds.len()-i-1] else {
-                        continue;
-                    };
-
-                    // let mut from_path=from_path.clone();
-                    // from_path.push(apply_use_element_ind);
-
-                    //
-                    let apply_element=elements.get(apply_element_ind).unwrap();
-                    let ElementType::Apply{owner_apply_decl_id:parent_owner_apply_decl_id,..}=apply_element.element_type else {panic!("");};
-
-                    let the_apply_after=the_apply_after_count;
-                    the_apply_after_count+=apply_element.applies.len();
-
-                    // if ignore_applies.contains(&apply_decl_id) {
-                    //     continue;
-                    // }
-
-                    let mut from_applies = cur_work.from_applies.clone();
-                    from_applies.insert(apply_element_ind); //apply_decl_id
-
-                    //what happens with apply children
-                    // applies are added to thing with new_applies
-
-                    //
-                    work_stk.extend(apply_element.children.iter().rev().map(|&child_element_ind|{
-                        let child_element=elements.get(child_element_ind).unwrap();
-
-                        // if let ElementType::Apply{..}=&child_element.element_type {
-                        //     println!("is an apply {child_element_ind}");
+                        // if ignore_applies.contains(&apply_decl_id) {
+                        //     continue;
                         // }
 
-                        let in_apply=if let ElementType::Attrib{..}|ElementType::TemplateUse{..}=child_element.element_type.clone(){
-                            parent_owner_apply_decl_id //use cur apply's parent
-                        }else{ //use cur apply
-                            // Some(apply_decl_id)
-                            Some(apply_element_ind)
-                        };
+                        let mut from_applies = cur_work.from_applies.clone();
+                        from_applies.insert(apply_element_ind); //apply_decl_id
 
-                        let in_template=if let ElementType::Attrib{in_template,..}=child_element.element_type.clone(){
-                            in_template
+                        //what happens with apply children
+                        // applies are added to thing with new_applies
+
+                        //
+                        work_stk.extend(apply_element.children.iter().rev().map(|&child_element_ind|{
+                            let child_element=elements.get(child_element_ind).unwrap();
+
+                            // if let ElementType::Apply{..}=&child_element.element_type {
+                            //     println!("is an apply {child_element_ind}");
+                            // }
+
+                            let in_apply=if let ElementType::Attrib{..}|ElementType::TemplateUse{..}=child_element.element_type.clone(){
+                                parent_owner_apply_decl_id //use cur apply's parent
+                            }else{ //use cur apply
+                                // Some(apply_decl_id)
+                                Some(apply_element_ind)
+                            };
+
+                            let in_template=if let ElementType::Attrib{in_template,..}=child_element.element_type.clone(){
+                                in_template
+                            } else {
+                                cur_work.in_template //why this?
+                            };
+
+                            Work{
+                                element_ind: child_element_ind,
+                                in_template,
+                                in_apply,
+                                from_applies:from_applies.clone(),
+                                new_from_parent:Some(apply_use_element_ind),
+                                thing_apply_after_offset: the_apply_after,
+                                node_depth,
+                                thing_depth,
+                                created_from:apply_use_element_ind,
+                            }
+                        }));
+
+                    }
+
+
+                    //get applies for new thing
+                    //  add cur_element.applies then before+after applies
+                    //  could do before_applies, cur_applies, after_applies
+
+                    // // for element_ind in [cur_work.element_ind].into_iter().chain(before_applies.into_iter()).chain(after_applies.into_iter())
+                    // // for element_ind in before_applies.into_iter().chain([cur_work.element_ind].into_iter()).chain(after_applies.into_iter())
+                    // for &element_ind in before_applies.iter().chain([cur_work.element_ind].iter()).chain(after_applies.iter())
+                    // for (i,(element_ind,_from)) in
+                    //     before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x))
+                    //     .chain([(None,(cur_work.element_ind,cur_work.created_from))])
+                    //     .chain(after_applies.iter().enumerate().map(|(i,&x)|(Some(i+before_applies.len()),x)))
+                    for (i,element_ind) in
+                        before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x.0))
+                        .chain([(None,cur_work.element_ind)])
+                        .chain(after_applies.iter().enumerate().map(|(i,&x)|(Some(i+before_applies.len()),x.0)))
+                    {
+                        let element=elements.get(element_ind).unwrap();
+
+                        // let apply_use_element_ind=*apply_use_element_inds.get(i).unwrap();
+                        // if let ElementType::Node{..}|ElementType::Apply {..}|ElementType::TemplateUse{..} = &element.element_type { //should always be apply or node?
+
+                        let from=if let Some(i)=i {
+                            // from_path.push(apply_use_element_inds[i]);
+                            let Some(apply_use_element_ind)=apply_use_element_inds[i] else {
+                                continue;
+                            };
+                            apply_use_element_ind
+                            // 88
                         } else {
-                            cur_work.in_template //why this?
+                            // cur_work.last_apply_use
+                            // println!("aaa {} {}",cur_element_ind,cur_work.created_from);
+                            // cur_work.created_from
+                            cur_element_ind
+                            // 99
                         };
 
-                        Work{
-                            element_ind: child_element_ind,
-                            in_template,
-                            in_apply,
-                            from_applies:from_applies.clone(),
-                            new_from_parent:Some(apply_use_element_ind),
-                            thing_apply_after_offset: the_apply_after,
-                            node_depth,
-                            thing_depth,
-                            created_from:apply_use_element_ind,
-                        }
-                    }));
-
+                        // let u=if let Some(i)=i {
+                        //     Some(apply_use_element_inds[i])
+                        // } else {
+                        //     cur_work.last_apply_use
+                        // };
+                        new_applies.extend(element.applies.iter().map(|&apply_element_ind|(apply_element_ind,from)));
+                        //(apply_element_ind,Some(apply_use_element_ind))
+                        // }
+                    }
                 }
-
-
-                //get applies for new thing
-                //  add cur_element.applies then before+after applies
-                //  could do before_applies, cur_applies, after_applies
-
-                // // for element_ind in [cur_work.element_ind].into_iter().chain(before_applies.into_iter()).chain(after_applies.into_iter())
-                // // for element_ind in before_applies.into_iter().chain([cur_work.element_ind].into_iter()).chain(after_applies.into_iter())
-                // for &element_ind in before_applies.iter().chain([cur_work.element_ind].iter()).chain(after_applies.iter())
-                // for (i,(element_ind,_from)) in
-                //     before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x))
-                //     .chain([(None,(cur_work.element_ind,cur_work.created_from))])
-                //     .chain(after_applies.iter().enumerate().map(|(i,&x)|(Some(i+before_applies.len()),x)))
-                for (i,element_ind) in
-                    before_applies.iter().enumerate().map(|(i,&x)|(Some(i),x.0))
-                    .chain([(None,cur_work.element_ind)])
-                    .chain(after_applies.iter().enumerate().map(|(i,&x)|(Some(i+before_applies.len()),x.0)))
-                {
-                    let element=elements.get(element_ind).unwrap();
-
-                    // let apply_use_element_ind=*apply_use_element_inds.get(i).unwrap();
-                    // if let ElementType::Node{..}|ElementType::Apply {..}|ElementType::TemplateUse{..} = &element.element_type { //should always be apply or node?
-
-                    let from=if let Some(i)=i {
-                        // from_path.push(apply_use_element_inds[i]);
-                        let Some(apply_use_element_ind)=apply_use_element_inds[i] else {
-                            continue;
-                        };
-                        apply_use_element_ind
-                        // 88
-                    } else {
-                        // cur_work.last_apply_use
-                        // println!("aaa {} {}",cur_element_ind,cur_work.created_from);
-                        // cur_work.created_from
-                        cur_element_ind
-                        // 99
-                    };
-
-                    // let u=if let Some(i)=i {
-                    //     Some(apply_use_element_inds[i])
-                    // } else {
-                    //     cur_work.last_apply_use
-                    // };
-                    new_applies.extend(element.applies.iter().map(|&apply_element_ind|(apply_element_ind,from)));
-                    //(apply_element_ind,Some(apply_use_element_ind))
-                    // }
+                _ => {
                 }
             }
         }

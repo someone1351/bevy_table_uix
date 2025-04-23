@@ -10,12 +10,14 @@ template s
 template t
     apply x
         apply y
-
+            script
+                println "a"
+        node y
     node x
         template s
         node y
-            script
-                println "a"
+            #script
+            #    println "a"
 node
     node
         template t
