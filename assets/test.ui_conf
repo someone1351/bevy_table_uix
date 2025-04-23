@@ -4,9 +4,9 @@
 template s
     #node
     #color red
-    script
-        println "a"
-        println "b"
+    #script
+    #    println "a"
+    #    println "b"
 template t
     apply x
         apply y
@@ -14,6 +14,8 @@ template t
     node x
         template s
         node y
+            script
+                println "a"
 node
     node
         template t

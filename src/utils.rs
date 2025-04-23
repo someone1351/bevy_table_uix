@@ -2339,6 +2339,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
+        if !cur_element.has_script {
+            continue;
+        }
+
         if !cur_work.exit {
             if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}
                 |ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type
@@ -2472,7 +2476,6 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
             {
                 //returns
 
-            //cur_element.has_script &&
                 if cur_work.exit && match &cur_element.element_type {
                     ElementType::Node{..} if cur_work.parent.is_some() => true,
                     ElementType::Apply{..} => true,
@@ -2483,6 +2486,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                     //apply/template uses returned by cur element's descendents
                     for &child_element_ind in cur_element.children.iter() {
+                        if !elements.get(child_element_ind).unwrap().has_script {
+                            continue;
+                        }
+
+                        //
                         let mut tmp_stk=vec![child_element_ind];
 
                         while let Some(tmp_element_ind)=tmp_stk.pop() {
@@ -2510,6 +2518,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                     //apply uses returned from cur element
                     for &apply_element_ind in cur_element.applies.iter() {
+                        if !elements.get(apply_element_ind).unwrap().has_script {
+                            continue;
+                        }
+
                         paramsx.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                     }
 
@@ -2728,7 +2740,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 src+=&format!("{indent}var _rt{ret} {{call _t{func} {params2}}}\n");
             }
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
-                let mut params2=Vec::new(); //vec!["self".to_string()];
+                let mut params2=Vec::new();
                 params2.extend(params.iter().map(|x|format!("_ns.{x}")));
                 let params2=params2.join(" ");
                 let mut func = Vec::new();
