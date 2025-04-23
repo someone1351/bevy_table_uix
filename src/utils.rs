@@ -2398,7 +2398,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     //     .map(|&x|format!("ns.{x}"))
                     //     .collect::<Vec<_>>();
 
-                    let mut pres=Vec::new();
+                    // let mut pres=Vec::new();
 
                     let apply_in = {
                         if let ElementType::Stub{..} = &cur_element.element_type {
@@ -2445,17 +2445,17 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                             match &from_element.element_type {
                                 ElementType::ApplyUse { .. } => {
-                                    pres.push(format!("r{cur_from}"));
+                                    // pres.push(format!("r{cur_from}"));
                                     // froms.push(cur_from);
                                     from_ret= Some(ScriptSyntaxNodeOrApplyUse::ApplyUse(cur_from));
                                     break;
                                 }
                                 ElementType::TemplateUse { .. } => {
-                                    pres.push(format!("t{cur_from}"));
+                                    // pres.push(format!("t{cur_from}"));
                                     from_template_decls.push(ScriptSyntaxTemplateUse(cur_from));
                                 }
                                 ElementType::Node { .. } if from_element.calcd_created_from==to => { //||from_element.calcd_created_from==0
-                                    pres.push(format!("r{cur_from}"));
+                                    // pres.push(format!("r{cur_from}"));
                                     // froms.push(cur_from);
                                     from_ret= Some(ScriptSyntaxNodeOrApplyUse::Node(cur_from));
                                     break; //not necessary
@@ -2466,13 +2466,13 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                             cur_from=from_element.calcd_created_from;
                         }
-                        pres.reverse();
+                        // pres.reverse();
                     }
 
                     // println!("pres {pres:?}");
 
                     //
-                    pres.push(format!("a{apply_decl_element_ind}"));
+                    // pres.push(format!("a{apply_decl_element_ind}"));
 
                     if from_ret.is_none() && !from_template_decls.is_empty() {
                         panic!("");
@@ -2536,7 +2536,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 } {
                     // let indent="    ".repeat(cur_work.depth);
                     // let mut params=Vec::new();
-                    let mut params: HashMap<String, String> = HashMap::new();
+                    // let mut params: HashMap<String, String> = HashMap::new();
 
                     let mut paramsx: Vec<(Option<ScriptSyntaxNode>,ScriptSyntaxTemplateUseOrApplyDecl)> = Vec::new();
                     // (
@@ -2560,10 +2560,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                                         // if elements.get(apply_element_ind).unwrap().has_script
                                         {
                                             // params.push(format!("\"a{apply_element_ind}\" _r{child_element_ind}.a{apply_element_ind}"));
-                                            params.insert(
-                                                format!("a{apply_element_ind}"),
-                                                format!("_r{child_element_ind}.a{apply_element_ind}"),
-                                            );
+                                            // params.insert(
+                                            //     format!("a{apply_element_ind}"),
+                                            //     format!("_r{child_element_ind}.a{apply_element_ind}"),
+                                            // );
                                             paramsx.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                                         }
                                     }
@@ -2573,17 +2573,17 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                                     if tmp_element_ind==child_element_ind {
 
-                                        params.insert(
-                                            format!("t{tmp_element_ind}"), //template_use?
-                                            format!("_r{child_element_ind}"),
-                                        );
+                                        // params.insert(
+                                        //     format!("t{tmp_element_ind}"), //template_use?
+                                        //     format!("_r{child_element_ind}"),
+                                        // );
                                         paramsx.push((None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
                                     } else {
 
-                                        params.insert(
-                                            format!("t{tmp_element_ind}"), //template_use?
-                                            format!("_r{child_element_ind}.t{tmp_element_ind}"),
-                                        );
+                                        // params.insert(
+                                        //     format!("t{tmp_element_ind}"), //template_use?
+                                        //     format!("_r{child_element_ind}.t{tmp_element_ind}"),
+                                        // );
                                         paramsx.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
                                     }
                                 }
@@ -2597,10 +2597,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         // if elements.get(apply_element_ind).unwrap().has_script
                         {
                             // params.push(format!("\"a{apply_element_ind}\" _a{apply_element_ind}"));
-                            params.insert(
-                                format!("a{apply_element_ind}"),
-                                format!("_a{apply_element_ind}"),
-                            );
+                            // params.insert(
+                            //     format!("a{apply_element_ind}"),
+                            //     format!("_a{apply_element_ind}"),
+                            // );
                             paramsx.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
 
                         }
@@ -2629,8 +2629,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     }
                     ElementType::Node{..} if !cur_work.exit => { //enter
                         // let indent="    ".repeat(cur_work.depth-1);
-                        let mut params=vec!["self".to_string()];
-                        params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
+                        // let mut params=vec!["self".to_string()];
+                        // params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
 
                         //
                         let new_syntax_ind=syntax_tree.len();
@@ -2703,8 +2703,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         // if cur_element.has_script
                         {
                             // let indent="    ".repeat(cur_work.depth-1);
-                            let mut params=vec!["self".to_string()];
-                            params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
+                            // let mut params=vec!["self".to_string()];
+                            // params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
 
                             //
                             let new_syntax_ind=syntax_tree.len();
@@ -2745,8 +2745,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     }
                     ElementType::TemplateDecl{..} if !cur_work.exit => { //enter
                         // let indent="    ".repeat(cur_work.depth-1);
-                        let mut params=vec!["self".to_string()];
-                        params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
+                        // let mut params=vec!["self".to_string()];
+                        // params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
 
                         //
                         let new_syntax_ind=syntax_tree.len();
@@ -2785,8 +2785,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     }
                     ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
                         // let indent="    ".repeat(cur_work.depth-1);
-                        let mut params=vec!["self".to_string()];
-                        params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
+                        // let mut params=vec!["self".to_string()];
+                        // params.extend(cur_element.calcd_node_params.iter().map(|&x|format!("_p{x}")));
 
                         let new_syntax_ind=syntax_tree.len();
 
