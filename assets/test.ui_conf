@@ -5,11 +5,15 @@ template s
     #node
     #color red
     script
-        a
-        b
+        println "a"
+        println "b"
 template t
+    apply x
+        apply y
+
     node x
         template s
+        node y
 node
     node
         template t

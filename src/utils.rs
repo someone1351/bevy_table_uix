@@ -2725,18 +2725,18 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 let mut params2=vec!["self".to_string()];
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
-                src+=&format!("{indent}var _r{ret} {{call _t{func} {params2}}}\n");
+                src+=&format!("{indent}var _rt{ret} {{call _t{func} {params2}}}\n");
             }
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
-                let mut params2=vec!["self".to_string()];
+                let mut params2=Vec::new(); //vec!["self".to_string()];
                 params2.extend(params.iter().map(|x|format!("_ns.{x}")));
                 let params2=params2.join(" ");
                 let mut func = Vec::new();
 
                 if let Some((func_first,rest))=func_froms {
                     let first=match func_first {
-                        ScriptSyntaxNodeOrApplyUse::Node(e) => format!("{e}"),
-                        ScriptSyntaxNodeOrApplyUse::ApplyUse(e) => format!("{e}"),
+                        ScriptSyntaxNodeOrApplyUse::Node(e) => format!("n{e}"),
+                        ScriptSyntaxNodeOrApplyUse::ApplyUse(e) => format!("a{e}"),
                     };
 
                     func.push(format!("r{first}"));
@@ -2746,11 +2746,11 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 func.push(format!("a{func_apply}"));
                 let func=func.join(".");
 
-                src+=&format!("{indent}var _r{ret} {{call _{func} {params2}}}\n");
+                src+=&format!("{indent}var _ra{ret} {{call _{func} {params2}}}\n");
             }
             ScriptSyntax::CallNode { in_func, func, params  } => {
                 let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns."})).collect::<Vec<_>>().join(" ");
-                src+=&format!("{indent}var _r{func} {{call _n{func} {params}}}\n");
+                src+=&format!("{indent}var _rn{func} {{call _n{func} {params}}}\n");
             }
             ScriptSyntax::Decl { name, params, .. }  if !exit => { //enter
                 let mut params2=vec!["self".to_string()];
@@ -2768,10 +2768,10 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // if !returns.is_empty()
                 {
                     let returns=returns.iter().map(|(k,v)|match (k,v) {
-                        (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _r{k}.a{v}"),
-                        (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _r{k}.t{v}"),
+                        (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _rn{k}.a{v}"),
+                        (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _rn{k}.t{v}"),
                         (None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _a{v}"),
-                        (None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _r{v}"),
+                        (None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _rt{v}"),
                     }).collect::<Vec<_>>().join(" ");
 
                     src+=&format!("{indent}    return {{dict {returns}}}\n");
