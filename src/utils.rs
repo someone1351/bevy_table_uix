@@ -2617,10 +2617,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     ElementType::ApplyUse{..} => { //exit
                     }
                     ElementType::Script { record  } if !cur_work.exit => { //enter
-                        let new_syntax_ind=syntax_tree.len();
-                        syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-
                         for t in record.text_values() {
+                            let new_syntax_ind=syntax_tree.len();
+                            syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                             syntax_tree.push(ScriptSyntax::Insert { path: t.path().map(|x|x.to_path_buf()), loc: t.start_loc(), insert: t.str().to_string() } );
                         }
 

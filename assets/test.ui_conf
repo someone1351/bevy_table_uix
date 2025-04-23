@@ -5,6 +5,8 @@ template s
     #node
     #color red
     script
+        a
+        b
 template t
     node x
         template s
