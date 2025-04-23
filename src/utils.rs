@@ -12,7 +12,7 @@
 // #![allow(unused_imports)]
 // #![allow(unused_assignments)]
 // #[allow(unused_parens)]
-
+use std::fmt::Debug;
 use core::panic;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
@@ -2145,10 +2145,17 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
     }
 }
 
+
+
+#[derive(Debug)]
 pub enum ScriptSyntaxTemplateUseOrApplyDecl {
     ApplyDecl(usize),
     TemplateUse(usize),
 }
+
+
+
+#[derive(Debug)]
 pub enum ScriptSyntaxNodeOrApplyUse {
     Node(usize),
     ApplyUse(usize),
@@ -2158,23 +2165,51 @@ pub enum ScriptSyntaxNodeOrApplyUse {
 //     Apply,
 //     Template,
 // }
+
+#[derive(Debug)]
 pub enum ScriptSyntaxNodeOrApplyOrTemplate {
     Node(usize),
     Apply(usize),
     Template(usize),
 }
 
+
 pub struct ScriptSyntaxNode(usize);
 
-
+impl Debug for ScriptSyntaxNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Node").field(&self.0).finish()
+    }
+}
 pub struct ScriptSyntaxTemplateUse(usize);
 
+impl Debug for ScriptSyntaxTemplateUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TemplateUse").field(&self.0).finish()
+    }
+}
 pub struct ScriptSyntaxTemplateDecl(usize);
 
+impl Debug for ScriptSyntaxTemplateDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TemplateDecl").field(&self.0).finish()
+    }
+}
 pub struct ScriptSyntaxApplyDecl(usize);
+
+impl Debug for ScriptSyntaxApplyDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ApplyDecl").field(&self.0).finish()
+    }
+}
 pub struct ScriptSyntaxApplyUse(usize);
 
 
+impl Debug for ScriptSyntaxApplyUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ApplyUse").field(&self.0).finish()
+    }
+}
 impl Display for ScriptSyntaxNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f,"{}",self.0)
@@ -2856,6 +2891,46 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     // println!("====\n{src}====\n");
     // src
     syntax_tree
+}
+
+pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
+    let mut stk=vec![(0,0)]; //ind,depth
+
+    while let Some((cur_ind,depth))=stk.pop() {
+        let indent="    ".repeat(depth);
+        let cur=syntax_tree.get(cur_ind).unwrap();
+        match cur {
+            ScriptSyntax::Root { .. } => {
+                println!("{indent}root");
+            }
+            ScriptSyntax::Insert {..} => {
+                println!("{indent}script");
+            }
+            ScriptSyntax::Stub { name, ..  } => {
+                println!("{indent}stub {name:?}");
+            }
+            ScriptSyntax::CallStub { is_root, stub } => {
+                println!("{indent}call_stub {stub}, is_root={is_root}");
+            }
+            ScriptSyntax::CallTemplate { ret, func, params } => {
+                println!("{indent}call_template {func:?}({params:?}) => {ret:?}");
+            }
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
+                println!("{indent}call_apply {func_froms:?}{func_apply:?}({params:?}) => {ret:?}");
+            }
+            ScriptSyntax::CallNode { in_func, func, params  } => {
+                println!("{indent}call_node {func:?}({params:?}), in_func={in_func}");
+            }
+            ScriptSyntax::Decl { name, params, returns, ..  } => {
+                println!("{indent}decl {name:?}({params:?}), => {returns:?}");
+            }
+        }
+
+        if let Some(children)=cur.get_children() {
+            stk.extend(children.iter().map(|&child_ind|(child_ind,depth+1)).rev());
+        }
+
+    }
 }
 
 

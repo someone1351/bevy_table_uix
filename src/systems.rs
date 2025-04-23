@@ -159,6 +159,7 @@ pub fn on_asset_load<'a>(
         {
 
             let syntax_tree=gen_script_syntax_tree(&elements);
+            debug_print_script_syntax_tree(&syntax_tree);
             let src=gen_script_src(&syntax_tree);
             let stuff=gen_stubs(&elements);
 
