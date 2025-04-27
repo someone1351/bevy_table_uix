@@ -1,0 +1,12 @@
+
+
+
+template s
+    stub xxx
+        apply q
+        node q
+        script
+            println "a"
+node
+    node
+        template s

@@ -1,0 +1,28 @@
+
+
+
+template s
+    #node
+    #color red
+    #script
+    #    println "a"
+    #    println "b"
+    stub xxx
+        apply q
+        node q
+        script
+            println "a"
+template t
+    apply x
+        apply y
+            script
+                println "a"
+        node y
+    node x
+        template s
+        node y
+            #script
+            #    println "a"
+node
+    node
+        template t

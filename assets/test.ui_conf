@@ -1,23 +1,13 @@
+apply x
+    size 50 50
+    color red
 
-
-
-template s
-    #node
-    #color red
-    #script
-    #    println "a"
-    #    println "b"
 template t
-    apply x
-        apply y
-            script
-                println "a"
-        node y
+stub s
     node x
-        template s
-        node y
-            #script
-            #    println "a"
-node
-    node
-        template t
+script
+    call stub_s root
+    call stub_s root
+
+node x
+    template t
