@@ -1,9 +1,15 @@
-apply x
-    size 50 50
-    color red
+
 
 template t
+apply x
+    #script
+    #    println "ax0"
 stub s
+    apply x
+        size 50 50
+        color red
+        script
+            println "ax1"
     node x
 script
     call stub_s root
