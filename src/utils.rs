@@ -99,6 +99,7 @@ pub struct Element<'a> {
     calcd_node_params:BTreeSet<usize>, //element_ind
     calcd_created_from : usize,
     has_script:bool,
+    has_apply_script:bool,
 }
 
 fn make_attrib_func<T:Component+Default>(func : impl Fn(&mut T)+ Send+Sync+'static) -> Arc<dyn Fn(Entity,&mut World)+Send+Sync > {
@@ -128,6 +129,7 @@ pub fn load_elements<'a>(
         calcd_node_params:BTreeSet::new(),
         calcd_created_from:0,
         has_script:false,
+        has_apply_script:false,
     }];
 
     //elements
@@ -185,6 +187,7 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
+                        has_apply_script:false,
                     });
 
                     //
@@ -221,6 +224,7 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
+                        has_apply_script:false,
                     });
 
                     //
@@ -266,6 +270,7 @@ pub fn load_elements<'a>(
                             calcd_node_params:BTreeSet::new(),
                             calcd_created_from:cur_element_ind,
                             has_script:false,
+                            has_apply_script:false,
                         });
 
                         //
@@ -306,6 +311,7 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
+                        has_apply_script:false,
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -333,6 +339,7 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
+                        has_apply_script:false,
                     });
                 }
 
@@ -362,6 +369,7 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
+                        has_apply_script:false,
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -403,6 +411,7 @@ pub fn load_elements<'a>(
                             calcd_node_params:BTreeSet::new(),
                             calcd_created_from:cur_element_ind,
                             has_script:false,
+                            has_apply_script:false,
                         });
                     }
                 }
@@ -1414,6 +1423,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 calcd_node_params:BTreeSet::new(),
                                 calcd_created_from:from,
                                 has_script:false,
+                                has_apply_script:false,
                             });
                         }
                     }
@@ -1870,12 +1880,36 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
         let cur_element=elements.get(cur_element_ind).unwrap();
 
         if cur_element.has_script {
-            break;
+            // break;
         }
 
         //
-        work_stk.extend(cur_element.children.iter().rev());
-        parents.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
+        match &cur_element.element_type {
+            ElementType::Apply { used, .. }|ElementType::TemplateDecl { used, .. } if !(*used) => {
+            }
+            _=>{
+                work_stk.extend(cur_element.children.iter().rev());
+                parents.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
+            }
+        }
+
+        // //
+        // let (has_script,has_apply_script)=match cur_element.element_type {
+        //     ElementType::Script { .. } => (true,false),
+        //     ElementType::TemplateUse { template_decl_element_ind  } => {
+        //         let element=elements.get(template_decl_element_ind).unwrap();
+        //         let ElementType::TemplateDecl { name,used, .. }=&element.element_type else {panic!("");};
+        //         println!("---- {name:?} used={used}, script={}",element.has_script);
+        //         if !used {
+        //             (false,false)
+        //         } else {
+        //             (element.has_script,element.has_apply_script)
+        //         }
+        //         // *used && element.has_script
+        //     },
+        //     // ElementType::Apply { name, owner_apply_decl_id, used }
+        //     _ => (false,false),
+        // };
 
         //
         let has_script=match cur_element.element_type {
@@ -1884,27 +1918,59 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
                 let element=elements.get(template_decl_element_ind).unwrap();
                 let ElementType::TemplateDecl { name,used, .. }=&element.element_type else {panic!("");};
                 println!("---- {name:?} used={used}, script={}",element.has_script);
+
                 *used && element.has_script
             },
             _ => false,
         };
 
+        //
+        let has_apply_script=match cur_element.element_type {
+            ElementType::TemplateUse { template_decl_element_ind  } => {
+                let element=elements.get(template_decl_element_ind).unwrap();
+                let ElementType::TemplateDecl { .. }=&element.element_type else {panic!("");};
+
+                element.has_apply_script
+            },
+            _ => false,
+        };
+
+        //has_apply_script means it returns an apply decl func or a template decl that has a descendent that is an apply decl func with script
+
+        // cur_element
+
         //set ancestors to has_script
         if has_script {
+            let mut has_apply_script=has_apply_script;
             let mut element_ind=Some(cur_element_ind);
 
             while let Some(element_ind2)=element_ind {
                 let element=elements.get_mut(element_ind2).unwrap();
 
-                match &element.element_type {
-                    ElementType::Apply { used, .. }|ElementType::TemplateDecl { used, .. } if !(*used) => {
-                        break;
-                    }
-                    _ => {
-                        element.has_script=true;
-                        element_ind=parents.get(&element_ind2).cloned();
-                    }
+
+                // match &element.element_type {
+                //     ElementType::Apply { used, .. }|ElementType::TemplateDecl { used, .. } if !(*used) => {
+                //         break;
+                //     }
+                //     _ => {
+                element.has_script=true;
+                element.has_apply_script=element.has_apply_script||has_apply_script;
+                element_ind=parents.get(&element_ind2).cloned();
+                //     }
+                // }
+
+                //
+                if let ElementType::Apply{..} = &element.element_type {
+                    has_apply_script=true;
                 }
+
+                // match &element.element_type {
+                //     ElementType::Apply{..} => {
+                //         has_apply_script=true;
+                //     }
+                //     _ => {
+                //     }
+                // }
             }
         }
     }
@@ -2042,12 +2108,12 @@ pub enum ScriptSyntax {
 
     },
     CallTemplate {
-        ret : ScriptSyntaxTemplateUse, //template_use_element_ind
+        ret : Option<ScriptSyntaxTemplateUse>, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
     },
     CallApply {
-        ret : ScriptSyntaxApplyUse, //apply_use_element_ind
+        ret : Option<ScriptSyntaxApplyUse>, //apply_use_element_ind
         func_froms : Option<(
             ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
             Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
@@ -2056,6 +2122,7 @@ pub enum ScriptSyntax {
         params : Vec<ScriptSyntaxNode>, //node_element_inds
     },
     CallNode {
+        ret:bool,
         in_func:bool, //inside template_decl, apply_decl or node
         func : ScriptSyntaxNode, //node_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
@@ -2154,7 +2221,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
             for apply_call in apply_calls.iter() {
                 let apply_use_element=elements.get(apply_call.apply_use_element_ind).unwrap();
-                let ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
+                // let ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
 
                 let apply_in = {
                     if let ElementType::Stub{..} = &cur_element.element_type {
@@ -2216,11 +2283,16 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 }
 
                 let apply_use_element_ind=apply_call.apply_use_element_ind;
+                let ElementType::ApplyUse { apply_decl_element_ind }=&elements.get(apply_use_element_ind).unwrap().element_type else {panic!("");};
+                let apply_decl_element=elements.get(*apply_decl_element_ind).unwrap();
+
+                let ret=apply_decl_element.has_apply_script.then_some(ScriptSyntaxApplyUse(apply_use_element_ind));
+
                 let new_syntax_ind=syntax_tree.len();
                 syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
                 syntax_tree.push(ScriptSyntax::CallApply {
-                    ret: ScriptSyntaxApplyUse(apply_use_element_ind),
+                    ret,
                     // func_froms: froms.iter().rev().cloned().collect(),
                     func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),
                     func_apply: ScriptSyntaxApplyDecl(*apply_decl_element_ind),
@@ -2277,10 +2349,14 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             }
                         }
                         ElementType::TemplateUse{..}=>{
-                            if tmp_element_ind==child_element_ind {
-                                return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
-                            } else {
-                                return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
+                            if tmp_element.has_apply_script
+                            {
+
+                                if tmp_element_ind==child_element_ind {
+                                    return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
+                                } else {
+                                    return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
+                                }
                             }
                         }
                         _=>{}
@@ -2393,6 +2469,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     let in_func=if let ElementType::Stub{..}=&parent_element.element_type {false}else{cur_work.depth!=1};
 
                     syntax_tree.push(ScriptSyntax::CallNode {
+                        ret:cur_element.has_apply_script,
                         in_func,
                         func: ScriptSyntaxNode(cur_work.element_ind),
                         params: [cur_work.element_ind].iter().chain(cur_element.calcd_node_params.iter()).map(|&x|ScriptSyntaxNode(x)).collect(),
@@ -2435,9 +2512,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+                    let ret=cur_element.has_apply_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
 
                     syntax_tree.push(ScriptSyntax::CallTemplate {
-                        ret: ScriptSyntaxTemplateUse(cur_work.element_ind),
+                        ret,
                         func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
                         params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect(),
                     });
@@ -2516,8 +2594,8 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
                 println!("{indent}call_apply {func_froms:?}{func_apply:?}({params:?}) => {ret:?}");
             }
-            ScriptSyntax::CallNode { in_func, func, params  } => {
-                println!("{indent}call_node {func:?}({params:?}), in_func={in_func}");
+            ScriptSyntax::CallNode { in_func, func, params, ret  } => {
+                println!("{indent}call_node {func:?}({params:?}), in_func={in_func}, ret={ret}");
             }
             ScriptSyntax::Decl { name, params, returns, ..  } => {
                 println!("{indent}decl {name:?}({params:?}), => {returns:?}");
@@ -2561,7 +2639,13 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 let mut params2=vec!["self".to_string()];
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
-                src+=&format!("{indent}var _rt{ret} [[call _t{func} {params2}]]\n");
+                let c=format!("call _t{func} {params2}");
+                let x=if let Some(ret)=ret {
+                    format!("var _rt{ret} [{c}]")
+                } else {
+                    c
+                };
+                src+=&format!("{indent}{x}\n");
             }
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
                 let mut params2=Vec::new();
@@ -2582,11 +2666,25 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 func.push(format!("a{func_apply}"));
                 let func=func.join(".");
 
-                src+=&format!("{indent}var _ra{ret} [call _{func} {params2}]\n");
+                let c=format!("call _{func} {params2}");
+                let x=if let Some(ret)=ret {
+                    format!("var _ra{ret} [{c}]")
+                } else {
+                    c
+                };
+                src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallNode { in_func, func, params  } => {
+            ScriptSyntax::CallNode { in_func, func, params, ret  } => {
+
                 let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns."})).collect::<Vec<_>>().join(" ");
-                src+=&format!("{indent}var _rn{func} [call _n{func} {params}]\n");
+
+                let c=format!("call _n{func} {params}");
+                let x=if *ret {
+                    format!("var _rn{func} [{c}]")
+                }else {
+                    c
+                };
+                src+=&format!("{indent}{x}\n");
             }
             ScriptSyntax::Decl { name, params, .. }  if !exit => { //enter
                 let mut params2=vec!["self".to_string()];
@@ -2695,35 +2793,36 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
         let from_path=&cur_element.calcd_created_from;
         let params = &cur_element.calcd_node_params;
         let has_script=cur_element.has_script;
+        let has_apply_script=cur_element.has_apply_script;
 
         match &cur_element.element_type {
             ElementType::Node { names,ignore_applies,.. } => {
-                println!("{indent}node {names:?}, e={cur_element_ind}, ignore_applies={ignore_applies:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}", );
+                println!("{indent}node {names:?}, e={cur_element_ind}, ignore_applies={ignore_applies:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}", );
             }
             ElementType::TemplateUse { template_decl_element_ind, .. } => {
                 let ElementType::TemplateDecl { name, .. }=elements.get(*template_decl_element_ind).unwrap().element_type else {panic!("");};
 
-                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
+                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}",);
             }
             ElementType::Apply { name,used,.. } => {
-                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, has_script={has_script:?}",);
+                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, script={has_script:?}, ascript={has_apply_script:?}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
-                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}", );
+                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}", );
             }
             ElementType::Script { .. } => {
-                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
+                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}");
             }
             ElementType::TemplateDecl { name, used, .. } => {
                 // let name=texts[*name];
-                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, has_script={has_script:?}",);
+                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, script={has_script:?}, ascript={has_apply_script:?}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, has_script={has_script:?}");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};
-                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}, has_script={has_script:?}",);
+                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}",);
             }
         }
         // println!("{indent}={:?}",cur_element.calcd_node_params);

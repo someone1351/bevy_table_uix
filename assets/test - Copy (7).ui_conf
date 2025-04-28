@@ -18,9 +18,6 @@ stub s
         script
             println "ax1"
     node x
-        template t
-        script
-            println "nx0"
 script
     call stub_s root
     call stub_s root
