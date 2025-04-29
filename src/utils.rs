@@ -2340,11 +2340,19 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 while let Some(tmp_element_ind)=tmp_stk.pop() {
                     let tmp_element=elements.get(tmp_element_ind).unwrap();
 
+                    // if tmp_element.has_apply_script {} //should wrap below in this?
+
                     match &tmp_element.element_type {
                         ElementType::Node{..}=>{
                             tmp_stk.extend(tmp_element.children.iter());
 
                             for &apply_element_ind in tmp_element.applies.iter() {
+                                let apply_element=elements.get(apply_element_ind).unwrap();
+
+                                if !apply_element.has_script {
+                                    continue;
+                                }
+
                                 return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                             }
                         }
@@ -2797,32 +2805,32 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
 
         match &cur_element.element_type {
             ElementType::Node { names,ignore_applies,.. } => {
-                println!("{indent}node {names:?}, e={cur_element_ind}, ignore_applies={ignore_applies:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}", );
+                println!("{indent}node {names:?}, e={cur_element_ind}, ignaps={ignore_applies:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}", );
             }
             ElementType::TemplateUse { template_decl_element_ind, .. } => {
                 let ElementType::TemplateDecl { name, .. }=elements.get(*template_decl_element_ind).unwrap().element_type else {panic!("");};
 
-                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}",);
+                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
             ElementType::Apply { name,used,.. } => {
-                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, script={has_script:?}, ascript={has_apply_script:?}",);
+                println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
-                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}", );
+                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}", );
             }
             ElementType::Script { .. } => {
-                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}");
+                println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}");
             }
             ElementType::TemplateDecl { name, used, .. } => {
                 // let name=texts[*name];
-                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, script={has_script:?}, ascript={has_apply_script:?}",);
+                println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};
-                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}, script={has_script:?}, ascript={has_apply_script:?}",);
+                println!("{indent}apply use, e={cur_element_ind} : e2={apply_decl_element_ind:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
         }
         // println!("{indent}={:?}",cur_element.calcd_node_params);

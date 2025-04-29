@@ -1,0 +1,29 @@
+
+
+template t
+    apply x
+        script
+            println "ax0"
+
+        apply y
+            script
+                println "ax0"
+        node y
+    node x
+
+stub s
+    apply x
+        size 50 50
+        color red
+        script
+            println "ax1"
+    node x
+        template t
+        script
+            println "nx0"
+script
+    call stub_s root
+    call stub_s root
+
+node x
+    template t

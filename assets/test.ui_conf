@@ -1,29 +1,10 @@
 
-
-template t
-    apply x
-        script
-            println "ax0"
-
-        apply y
+template "control_options"
+    node "bar"
+        apply "tab_button"
             script
-                println "ax0"
-        node y
-    node x
+        node "tab_button"
 
-stub s
-    apply x
-        size 50 50
-        color red
-        script
-            println "ax1"
-    node x
-        template t
-        script
-            println "nx0"
-script
-    call stub_s root
-    call stub_s root
 
-node x
-    template t
+node "control_options"
+    template "control_options"
