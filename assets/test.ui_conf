@@ -5,6 +5,14 @@ template "control_options"
             script
         node "tab_button"
 
+        node
+        node
+        node
+        node
+        node
+        node
+        node
+
 
 node "control_options"
     template "control_options"

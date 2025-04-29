@@ -2291,12 +2291,19 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 let new_syntax_ind=syntax_tree.len();
                 syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
+                // let params=[apply_call.parent_element_ind].iter().chain().collect();
+                let mut params=vec![ScriptSyntaxNode(apply_call.parent_element_ind)];
+                params.extend(apply_use_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                    let param_element=elements.get(param_element_ind).unwrap();
+                    param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                }));
+
                 syntax_tree.push(ScriptSyntax::CallApply {
                     ret,
                     // func_froms: froms.iter().rev().cloned().collect(),
                     func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),
                     func_apply: ScriptSyntaxApplyDecl(*apply_decl_element_ind),
-                    params: [apply_call.parent_element_ind].iter().chain(apply_use_element.calcd_node_params.iter()).map(|&x|ScriptSyntaxNode(x)).collect(),
+                    params,
                 });
             }
         }
@@ -2460,9 +2467,14 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     syntax_stk.push(new_syntax_ind);
 
+                    let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                        let param_element=elements.get(param_element_ind).unwrap();
+                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    }).collect::<Vec<_>>();
+
                     syntax_tree.push(ScriptSyntax::Decl {
                         name: ScriptSyntaxNodeOrApplyOrTemplate::Node(cur_work.element_ind),
-                        params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
+                        params,
                         children: Vec::new(),
                         returns: Vec::new(),
                     });
@@ -2476,14 +2488,27 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                     let in_func=if let ElementType::Stub{..}=&parent_element.element_type {false}else{cur_work.depth!=1};
 
+                    // let params=[cur_work.element_ind].iter().chain().collect();
+                    let mut params=vec![ScriptSyntaxNode(cur_work.element_ind)];
+
+                    params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                        let param_element=elements.get(param_element_ind).unwrap();
+                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    }));
+
                     syntax_tree.push(ScriptSyntax::CallNode {
                         ret:cur_element.has_apply_script,
                         in_func,
                         func: ScriptSyntaxNode(cur_work.element_ind),
-                        params: [cur_work.element_ind].iter().chain(cur_element.calcd_node_params.iter()).map(|&x|ScriptSyntaxNode(x)).collect(),
+                        params,
                     });
                 }
                 ElementType::Apply{..} if !cur_work.exit => { //enter
+                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                        let param_element=elements.get(param_element_ind).unwrap();
+                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    }).collect::<Vec<_>>();
+
                     //
                     let new_syntax_ind=syntax_tree.len();
 
@@ -2493,7 +2518,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     syntax_tree.push(ScriptSyntax::Decl {
                         // decl: ScriptSyntaxDecl::Apply,
                         name: ScriptSyntaxNodeOrApplyOrTemplate::Apply(cur_work.element_ind),
-                        params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
+                        params,
                         children: Vec::new(),
                         returns: Vec::new(),
                     });
@@ -2503,13 +2528,18 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     syntax_stk.pop().unwrap();
                 }
                 ElementType::TemplateDecl{..} if !cur_work.exit => { //enter
+                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                        let param_element=elements.get(param_element_ind).unwrap();
+                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    }).collect::<Vec<_>>();
+
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     syntax_stk.push(new_syntax_ind);
 
                     syntax_tree.push(ScriptSyntax::Decl {
                         name: ScriptSyntaxNodeOrApplyOrTemplate::Template(cur_work.element_ind),
-                        params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect::<Vec<_>>(),
+                        params,
                         children: Vec::new(),
                         returns: Vec::new(),
                     });
@@ -2521,11 +2551,15 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     let ret=cur_element.has_apply_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
+                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                        let param_element=elements.get(param_element_ind).unwrap();
+                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    }).collect();
 
                     syntax_tree.push(ScriptSyntax::CallTemplate {
                         ret,
                         func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
-                        params: cur_element.calcd_node_params.iter().map(|&x|ScriptSyntaxNode(x)).collect(),
+                        params,
                     });
 
                     continue;
