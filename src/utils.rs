@@ -98,6 +98,7 @@ pub struct Element<'a> {
     calcd_from_element_ind : Option<usize>, //element_ind
     calcd_node_params:BTreeSet<usize>, //element_ind
     calcd_created_from : usize,
+    calcd_original : Option<usize>,
     has_script:bool,
     has_apply_script:bool,
 }
@@ -130,6 +131,7 @@ pub fn load_elements<'a>(
         calcd_created_from:0,
         has_script:false,
         has_apply_script:false,
+        calcd_original:None,
     }];
 
     //elements
@@ -188,6 +190,7 @@ pub fn load_elements<'a>(
                         calcd_created_from:cur_element_ind,
                         has_script:false,
                         has_apply_script:false,
+                        calcd_original:None,
                     });
 
                     //
@@ -208,7 +211,6 @@ pub fn load_elements<'a>(
                         return Err(walk.error("template not found"));
                     };
 
-
                     //
                     let new_element_ind=elements.len();
                     elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
@@ -225,6 +227,7 @@ pub fn load_elements<'a>(
                         calcd_created_from:cur_element_ind,
                         has_script:false,
                         has_apply_script:false,
+                        calcd_original:None,
                     });
 
                     //
@@ -271,6 +274,7 @@ pub fn load_elements<'a>(
                             calcd_created_from:cur_element_ind,
                             has_script:false,
                             has_apply_script:false,
+                            calcd_original:None,
                         });
 
                         //
@@ -312,6 +316,7 @@ pub fn load_elements<'a>(
                         calcd_created_from:cur_element_ind,
                         has_script:false,
                         has_apply_script:false,
+                        calcd_original:None,
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -340,6 +345,7 @@ pub fn load_elements<'a>(
                         calcd_created_from:cur_element_ind,
                         has_script:false,
                         has_apply_script:false,
+                        calcd_original:None,
                     });
                 }
 
@@ -370,6 +376,7 @@ pub fn load_elements<'a>(
                         calcd_created_from:cur_element_ind,
                         has_script:false,
                         has_apply_script:false,
+                        calcd_original:None,
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -412,6 +419,7 @@ pub fn load_elements<'a>(
                             calcd_created_from:cur_element_ind,
                             has_script:false,
                             has_apply_script:false,
+                            calcd_original:None,
                         });
                     }
                 }
@@ -1218,7 +1226,9 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
 
                 //
                 let mut new_element=Element {
-                    children: Vec::new(), ..cur_element.clone()
+                    children: Vec::new(),
+                    calcd_original:Some(cur_work.element_ind),
+                    ..cur_element.clone()
                 };
 
                 new_element.calcd_from_element_ind=Some(cur_work.element_ind);
@@ -1424,6 +1434,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 calcd_created_from:from,
                                 has_script:false,
                                 has_apply_script:false,
+                                calcd_original:None,
                             });
                         }
                     }
@@ -2293,9 +2304,21 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
                 // let params=[apply_call.parent_element_ind].iter().chain().collect();
                 let mut params=vec![ScriptSyntaxNode(apply_call.parent_element_ind)];
+
+                // let param_has_scripts:Vec<bool>=apply_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
+                //     let param_element=elements.get(param_element_ind).unwrap();
+                //     param_element.has_script
+                // }).collect();
+
+                // params.extend(apply_use_element.calcd_node_params.iter().enumerate().filter_map(|(param_ind,&param_element_ind)|{
+                //     // let param_element=elements.get(param_element_ind).unwrap();
+                //     param_has_scripts[param_ind].then_some(ScriptSyntaxNode(param_element_ind))
+                // }));
                 params.extend(apply_use_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                     let param_element=elements.get(param_element_ind).unwrap();
-                    param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                    let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                    has_script.then_some(ScriptSyntaxNode(param_element_ind))
                 }));
 
                 syntax_tree.push(ScriptSyntax::CallApply {
@@ -2467,9 +2490,22 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     syntax_stk.push(new_syntax_ind);
 
+                    // let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                    //     let param_element=elements.get(param_element_ind).unwrap();
+                    //     param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    // }).collect::<Vec<_>>();
+
+                    // let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                    //     let param_element=elements.get(param_element_ind).unwrap();
+                    //     // param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    //     Some(ScriptSyntaxNode(param_element_ind))
+                    // }).collect::<Vec<_>>();
+
                     let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                         let param_element=elements.get(param_element_ind).unwrap();
-                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
                     }).collect::<Vec<_>>();
 
                     syntax_tree.push(ScriptSyntax::Decl {
@@ -2491,9 +2527,16 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     // let params=[cur_work.element_ind].iter().chain().collect();
                     let mut params=vec![ScriptSyntaxNode(cur_work.element_ind)];
 
+                    // params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
+                    //     let param_element=elements.get(param_element_ind).unwrap();
+                    //     param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    // }));
+
                     params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                         let param_element=elements.get(param_element_ind).unwrap();
-                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
                     }));
 
                     syntax_tree.push(ScriptSyntax::CallNode {
@@ -2550,10 +2593,26 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+
+                    // let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
+
+                    // let param_has_scripts:Vec<bool>=template_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
+                    //     let param_element=elements.get(param_element_ind).unwrap();
+                    //     param_element.has_script
+                    // }).collect();
+
                     let ret=cur_element.has_apply_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
+
+                    // let params=cur_element.calcd_node_params.iter().enumerate().filter_map(|(param_ind,&param_element_ind)|{
+                    //     // let param_element=elements.get(param_element_ind).unwrap();
+                    //     param_has_scripts[param_ind].then_some(ScriptSyntaxNode(param_element_ind))
+                    // }).collect();
+
                     let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                         let param_element=elements.get(param_element_ind).unwrap();
-                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
                     }).collect();
 
                     syntax_tree.push(ScriptSyntax::CallTemplate {
@@ -2836,21 +2895,22 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
         let params = &cur_element.calcd_node_params;
         let has_script=cur_element.has_script;
         let has_apply_script=cur_element.has_apply_script;
+        let calcd_original=cur_element.calcd_original.map(|x|format!("{x}")).unwrap_or("_".to_string());
 
         match &cur_element.element_type {
             ElementType::Node { names,ignore_applies,.. } => {
-                println!("{indent}node {names:?}, e={cur_element_ind}, ignaps={ignore_applies:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}", );
+                println!("{indent}node {names:?}, e={cur_element_ind}, ignaps={ignore_applies:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}, orig={calcd_original}", );
             }
             ElementType::TemplateUse { template_decl_element_ind, .. } => {
                 let ElementType::TemplateDecl { name, .. }=elements.get(*template_decl_element_ind).unwrap().element_type else {panic!("");};
 
-                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}",);
+                println!("{indent}template use, e={cur_element_ind} : {name:?}, e2={template_decl_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}, orig={calcd_original}",);
             }
             ElementType::Apply { name,used,.. } => {
                 println!("{indent}apply, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
-                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}", );
+                println!("{indent}attrib {name:?}, e={cur_element_ind}, in_node={in_node}, calcd={calcd:?}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}, orig={calcd_original}", );
             }
             ElementType::Script { .. } => {
                 println!("{indent}script, e={cur_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}");
@@ -2860,7 +2920,7 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
                 println!("{indent}template decl, e={cur_element_ind} : {name:?}, from={from_path:?}, params={params:?}, used={used}, scr={has_script:?}, ascr={has_apply_script:?}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, from={from_path:?}, params={params:?}, scr={has_script:?}, ascr={has_apply_script:?}, orig={calcd_original}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};
