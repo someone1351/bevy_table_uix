@@ -8,14 +8,21 @@ conf_lang = {path = "../conf_lang"}
 script_lang = {path = "../script_lang"}
 bevy_table_ui = {path = "../bevy_table_ui"}
 
-bevy = { version = "0.15", default-features = false, features = [] }
+bevy = { version = "0.16", default-features = false, features = [
+    #"bevy_asset",
+
+] }
 
 thiserror = "1.0"
 ron = "0.8"
 serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
-bevy = { version = "0.15", default-features = false, features = ["file_watcher","dynamic_linking"] }
+bevy = { version = "0.16", default-features = false, features = [
+    "bevy_window","x11",
+    "multi_threaded",
+    "file_watcher","dynamic_linking",
+] }
 
 [[example]]
 name = "test"

@@ -5,7 +5,7 @@ Problems
 */
 use std::collections::HashSet;
 
-use bevy::{ecs::prelude::*, prelude::DespawnRecursiveExt};
+use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
 use table_ui::*;
@@ -102,7 +102,9 @@ pub fn on_asset_load<'a>(
         from_asset.init=true;
 
         commands.entity(top_entity)
-            .despawn_descendants()
+            // .despawn_descendants()
+            .despawn_related::<Children>()
+
             .remove::<UixEnv>()
             ;
 

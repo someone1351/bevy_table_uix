@@ -1,7 +1,7 @@
 
 use std::collections::HashSet;
 
-use bevy::{ecs::prelude::*, utils::HashMap};
+use bevy::{ecs::prelude::*, platform::collections::HashMap};
 use bevy::asset::prelude::*;
 use bevy_table_ui::UiLayoutComputed;
 

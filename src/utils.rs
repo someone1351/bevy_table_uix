@@ -103,10 +103,11 @@ pub struct Element<'a> {
     has_apply_script:bool,
 }
 
-fn make_attrib_func<T:Component+Default>(func : impl Fn(&mut T)+ Send+Sync+'static) -> Arc<dyn Fn(Entity,&mut World)+Send+Sync > {
+fn make_attrib_func<T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(func : impl Fn(&mut T)+Send+Sync+'static) -> Arc<dyn Fn(Entity,&mut World)+Send+Sync > {
     Arc::new(move |entity:Entity,world: &mut World| {
         let mut e=world.entity_mut(entity);
         let mut c=e.entry::<T>().or_default();
+        let mut c=c.get_mut();
         func(&mut c);
     })
 }

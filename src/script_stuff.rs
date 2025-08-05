@@ -6,7 +6,7 @@
 
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, prelude::{BuildChildren, Children, Component, DespawnRecursiveExt, Entity, Parent, Resource, World}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, prelude::{ ChildOf, Children, Entity, Resource, World}};
 use bevy_table_ui::*;
 use script_lang::*;
 
@@ -200,7 +200,7 @@ fn node_get_field(context:FuncContext<World>) -> Result<Value,MachineError> {
         "text_halign" => Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().halign.to_string()),
         "text_valign" => Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().valign.to_string()),
 
-        "parent" => world.entity(entity).get::<Parent>().map(|parent|Value::custom_unmanaged(parent.get())).unwrap_or(Value::Nil),
+        "parent" => world.entity(entity).get::<ChildOf>().map(|parent|Value::custom_unmanaged(parent.parent())).unwrap_or(Value::Nil),
         // "children"   => world.entity(entity).get::<Children>().map(|children|children.iter()),
 
         "env" => {
@@ -222,211 +222,211 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
 
     match field.as_str() {
         "row_width_scale" => {
-            world.entity_mut(entity).entry::<UiCongruent>().or_default().row_width_scale=script_value_to_float(val)?;
+            world.entity_mut(entity).entry::<UiCongruent>().or_default().get_mut().row_width_scale=script_value_to_float(val)?;
         }
         "col_height_scale" => {
-            world.entity_mut(entity).entry::<UiCongruent>().or_default().col_height_scale=script_value_to_float(val)?;
+            world.entity_mut(entity).entry::<UiCongruent>().or_default().get_mut().col_height_scale=script_value_to_float(val)?;
         }
 
         "padding_left" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().padding.left=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.left=script_value_to_uival(val)?;
         }
         "padding_right" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().padding.right=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.right=script_value_to_uival(val)?;
         }
         "padding_top" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().padding.top=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.top=script_value_to_uival(val)?;
         }
         "padding_bottom" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().padding.bottom=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.bottom=script_value_to_uival(val)?;
         }
         "border_left" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().border.left=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.left=script_value_to_uival(val)?;
         }
         "border_right" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().border.right=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.right=script_value_to_uival(val)?;
         }
         "border_top" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().border.top=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.top=script_value_to_uival(val)?;
         }
         "border_bottom" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().border.bottom=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.bottom=script_value_to_uival(val)?;
         }
         "margin_left" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().margin.left=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.left=script_value_to_uival(val)?;
         }
         "margin_right" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().margin.right=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.right=script_value_to_uival(val)?;
         }
         "margin_top" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().margin.top=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.top=script_value_to_uival(val)?;
         }
         "margin_bottom" => {
-            world.entity_mut(entity).entry::<UiEdge>().or_default().margin.bottom=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.bottom=script_value_to_uival(val)?;
         }
 
         "hgap" => {
-            world.entity_mut(entity).entry::<UiGap>().or_default().hgap=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiGap>().or_default().get_mut().hgap=script_value_to_uival(val)?;
         }
         "vgap" => {
-            world.entity_mut(entity).entry::<UiGap>().or_default().vgap=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiGap>().or_default().get_mut().vgap=script_value_to_uival(val)?;
         }
 
         "hexpand" => {
-            world.entity_mut(entity).entry::<UiExpand>().or_default().hexpand=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiExpand>().or_default().get_mut().hexpand=script_value_to_uival(val)?;
         }
         "vexpand" => {
-            world.entity_mut(entity).entry::<UiExpand>().or_default().vexpand=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiExpand>().or_default().get_mut().vexpand=script_value_to_uival(val)?;
         }
 
         "hfill" => {
-            world.entity_mut(entity).entry::<UiFill>().or_default().hfill=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiFill>().or_default().get_mut().hfill=script_value_to_uival(val)?;
         }
         "vfill" => {
-            world.entity_mut(entity).entry::<UiFill>().or_default().vfill=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiFill>().or_default().get_mut().vfill=script_value_to_uival(val)?;
         }
 
         "hscroll" => {
-            world.entity_mut(entity).entry::<UiScroll>().or_default().hscroll=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiScroll>().or_default().get_mut().hscroll=script_value_to_uival(val)?;
         }
         "vscroll" => {
-            world.entity_mut(entity).entry::<UiScroll>().or_default().vscroll=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiScroll>().or_default().get_mut().vscroll=script_value_to_uival(val)?;
         }
 
         "float" => {
-            world.entity_mut(entity).entry::<UiFloat>().or_default().float=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFloat>().or_default().get_mut().float=script_value_to_bool(val)?;
         }
 
         "disable" => {
-            world.entity_mut(entity).entry::<UiDisable>().or_default().disable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiDisable>().or_default().get_mut().disable=script_value_to_bool(val)?;
         }
 
         "hide" => {
-            world.entity_mut(entity).entry::<UiHide>().or_default().hide=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiHide>().or_default().get_mut().hide=script_value_to_bool(val)?;
         }
 
         "lock" => {
-            world.entity_mut(entity).entry::<UiLock>().or_default().lock=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiLock>().or_default().get_mut().lock=script_value_to_bool(val)?;
         }
 
         "span" => {
-            world.entity_mut(entity).entry::<UiSpan>().or_default().span=script_value_to_uint(val)?;
+            world.entity_mut(entity).entry::<UiSpan>().or_default().get_mut().span=script_value_to_uint(val)?;
         }
 
         "halign" => {
-            world.entity_mut(entity).entry::<UiAlign>().or_default().halign=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiAlign>().or_default().get_mut().halign=script_value_to_uival(val)?;
         },
         "valign" => {
-            world.entity_mut(entity).entry::<UiAlign>().or_default().valign=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiAlign>().or_default().get_mut().valign=script_value_to_uival(val)?;
         },
 
         "width" => {
-            world.entity_mut(entity).entry::<UiSize>().or_default().width=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiSize>().or_default().get_mut().width=script_value_to_uival(val)?;
         },
         "height" => {
-            world.entity_mut(entity).entry::<UiSize>().or_default().height=script_value_to_uival(val)?;
+            world.entity_mut(entity).entry::<UiSize>().or_default().get_mut().height=script_value_to_uival(val)?;
         },
 
         "hoverable" => {
-            world.entity_mut(entity).entry::<UiHoverable>().or_default().enable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiHoverable>().or_default().get_mut().enable=script_value_to_bool(val)?;
         }
 
         "pressable" => {
-            world.entity_mut(entity).entry::<UiPressable>().or_default().enable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().enable=script_value_to_bool(val)?;
         }
         "press_always" => {
-            world.entity_mut(entity).entry::<UiPressable>().or_default().always=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().always=script_value_to_bool(val)?;
         }
         "press_physical" => {
-            world.entity_mut(entity).entry::<UiPressable>().or_default().physical=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().physical=script_value_to_bool(val)?;
         }
 
         "draggable" => {
-            world.entity_mut(entity).entry::<UiDraggable>().or_default().enable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiDraggable>().or_default().get_mut().enable=script_value_to_bool(val)?;
         }
 
         "selectable" => {
-            world.entity_mut(entity).entry::<UiSelectable>().or_default().enable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().enable=script_value_to_bool(val)?;
         }
         "selected" => {
-            world.entity_mut(entity).entry::<UiSelectable>().or_default().selected=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().selected=script_value_to_bool(val)?;
         }
         "select_group" => {
-            world.entity_mut(entity).entry::<UiSelectable>().or_default().group=script_value_to_string(val)?;
+            world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().group=script_value_to_string(val)?;
         }
 
         "focusable" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().enable=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().enable=script_value_to_bool(val)?;
         }
         "focused" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().focused=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().focused=script_value_to_bool(val)?;
         }
         "focus_group" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().group=script_value_to_int(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().group=script_value_to_int(val)?;
         }
         "focus_tab_exit" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().tab_exit=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().tab_exit=script_value_to_bool(val)?;
         }
         "focus_hdir_exit" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().hdir_exit=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_exit=script_value_to_bool(val)?;
         }
         "focus_vdir_exit" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().vdir_exit=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_exit=script_value_to_bool(val)?;
         }
         "focus_hdir_wrap" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().hdir_wrap=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_wrap=script_value_to_bool(val)?;
         }
         "focus_vdir_wrap" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().vdir_wrap=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_wrap=script_value_to_bool(val)?;
         }
         "focus_hdir_press" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().hdir_press=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_press=script_value_to_bool(val)?;
         }
         "focus_vdir_press" => {
-            world.entity_mut(entity).entry::<UiFocusable>().or_default().vdir_press=script_value_to_bool(val)?;
+            world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_press=script_value_to_bool(val)?;
         }
 
         "color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().back_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().back_color.entry(None).or_default()=script_value_to_col(val)?;
         }
         "padding_color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().padding_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().padding_color.entry(None).or_default()=script_value_to_col(val)?;
         }
         "border_color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().border_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().border_color.entry(None).or_default()=script_value_to_col(val)?;
         }
         "margin_color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().margin_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().margin_color.entry(None).or_default()=script_value_to_col(val)?;
         }
         "cell_color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().cell_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().cell_color.entry(None).or_default()=script_value_to_col(val)?;
         }
         "text_color" => {
-            *world.entity_mut(entity).entry::<UiAffect>().or_default().text_color.entry(None).or_default()=script_value_to_col(val)?;
+            *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().text_color.entry(None).or_default()=script_value_to_col(val)?;
         }
 
         "image" => {
             let handle=asset_server.load(PathBuf::from(script_value_to_string(val)?));
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiImage>().or_default();
-            c.handle=handle;
+            c.get_mut().handle=handle;
             e.entry::<UiInnerSize>().or_default();
         }
         "image_color" => {
-            world.entity_mut(entity).entry::<UiImage>().or_default().color=script_value_to_col(val)?;
+            world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().color=script_value_to_col(val)?;
         }
         "image_width" => {
-            world.entity_mut(entity).entry::<UiImage>().or_default().width_scale=script_value_to_float(val)?;
+            world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().width_scale=script_value_to_float(val)?;
         },
         "image_height" => {
-            world.entity_mut(entity).entry::<UiImage>().or_default().height_scale=script_value_to_float(val)?;
+            world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().height_scale=script_value_to_float(val)?;
         },
 
         "text" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.value=script_value_to_string(val)?;
-            c.update=true;
+            c.get_mut().value=script_value_to_string(val)?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
@@ -435,48 +435,48 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
 
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.font=handle;
-            c.update=true;
+            c.get_mut().font=handle;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "font_size" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.font_size=script_value_to_float(val)?;
-            c.update=true;
+            c.get_mut().font_size=script_value_to_float(val)?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_hlen" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.hlen=script_value_to_uint(val)?;
-            c.update=true;
+            c.get_mut().hlen=script_value_to_uint(val)?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_vlen" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.vlen=script_value_to_uint(val)?;
-            c.update=true;
+            c.get_mut().vlen=script_value_to_uint(val)?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_halign" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.halign=val.get_parse().ok_or_else(||MachineError::method("expected halign"))?;
-            c.update=true;
+            c.get_mut().halign=val.get_parse().ok_or_else(||MachineError::method("expected halign"))?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_valign" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.valign=val.get_parse().ok_or_else(||MachineError::method("expected valign"))?;
-            c.update=true;
+            c.get_mut().valign=val.get_parse().ok_or_else(||MachineError::method("expected valign"))?;
+            c.get_mut().update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
@@ -571,7 +571,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
             let mut env=e.entry::<UixEnv>().or_default();
 
             for n in names.iter() {
-                env.env.entry(n.clone()).or_default().push(parent_entity);
+                env.get_mut().env.entry(n.clone()).or_default().push(parent_entity);
             }
         }
 
@@ -611,7 +611,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let world=context.core_mut();
 
         //
-        if let Some(parent_entity)=world.entity(entity).get::<Parent>().map(|c|c.get()) {
+        if let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|c|c.parent()) {
             if let Some(names)=world.get::<UixName>(entity).map(|c|c.names.clone()) {
                 if let Some(mut c)=world.get_mut::<UixEnv>(entity) {
                     for n in names {
@@ -636,8 +636,10 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let mut commands=world.commands();
         let mut e=commands.entity(entity);
 
-        e.remove_parent();
-        e.despawn_recursive();
+        // e.remove_parent();
+        e.remove::<ChildOf>();
+        // e.despawn_recursive();
+        e.remove::<Children>();
 
         Ok(Value::Void)
     }).custom_ref::<Entity>().end();
@@ -646,8 +648,8 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     lib_scope.method("parent",|context|{
         let world=context.core();
         let entity:Entity = context.param(0).as_custom().data_copy()?;
-        let Some(parent)=world.entity(entity).get::<Parent>() else { return Ok(Value::Nil); };
-        Ok(Value::custom_unmanaged(parent.get()))
+        let Some(parent)=world.entity(entity).get::<ChildOf>() else { return Ok(Value::Nil); };
+        Ok(Value::custom_unmanaged(parent.parent()))
     }).custom_ref::<Entity>().end();
 
     //string(entity)
@@ -687,7 +689,8 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
                 //
                 let &parent_entity=element_entity_map.get(&parent_element_ind).unwrap();
-                e.set_parent(parent_entity);
+                // e.set_parent(parent_entity);
+                e.insert(ChildOf(parent_entity));
 
                 //
                 let entity=e.id();
@@ -709,7 +712,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
                 let mut env=pe.entry::<UixEnv>().or_default();
 
                 for n in names.iter() {
-                    env.env.entry(n.clone()).or_default().push(parent_entity);
+                    env.get_mut().env.entry(n.clone()).or_default().push(parent_entity);
                 }
             }
 
@@ -737,7 +740,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let world=context.core_mut();
 
         let mut e=world.entity_mut(entity);
-        e.entry::<UixEventListener>().or_default()
+        e.entry::<UixEventListener>().or_default().get_mut()
             .event_listeners.entry(event).or_default()
             .push(listener.clone_root());
 
