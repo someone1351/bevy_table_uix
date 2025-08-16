@@ -9,13 +9,14 @@
 // #![allow(unused_mut)]
 // #![allow(unused_variables)]
 #![allow(dead_code)]
+use std::collections::{BTreeMap, BTreeSet};
 // #![allow(unused_imports)]
 // #![allow(unused_assignments)]
 // #[allow(unused_parens)]
 use std::fmt::Debug;
 use core::panic;
 use std::cmp::Ordering;
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+// use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Display;
 // use std::fmt::format;
 use std::ops::Range;
@@ -25,6 +26,7 @@ use std::sync::Arc;
 use bevy::color::Color;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
+use bevy::platform::collections::{HashMap, HashSet};
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
 // use ron::de;
@@ -1281,7 +1283,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
 
                 let node_attribs=node_stk_attribs.last_mut().unwrap();
 
-                let prev=node_attribs.get(&(name,on_state));
+                let prev=node_attribs.get(&(*name,on_state.clone()));
                 let prev_element_ind=prev.map(|x|x.4);
                 let (prev_in_template,prev_in_apply,prev_in_node, )=prev.map(|x|(x.0,x.1,x.2,)).unwrap_or_default();
 

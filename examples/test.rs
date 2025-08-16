@@ -7,7 +7,7 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiColor, UiInteractInputEvent, UiLayoutComputed, UiSize, UiVal};
+use bevy_table_ui::{self as table_ui, CameraUi, UiColor, UiInteractInputEvent, UiLayoutComputed, UiRoot, UiSize, UiVal};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystem}, prelude::* };
 use bevy_table_uix::UixFromAsset;
@@ -54,6 +54,7 @@ fn main() {
             setup_ui,
         ))
         .add_systems(Update, (
+            update_ui_roots,
             show_fps.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
         ))
         .add_systems(PreUpdate,(
@@ -129,6 +130,21 @@ fn show_fps(
 
 
 
+pub fn update_ui_roots(
+    windows: Query<&Window>,
+    mut root_query: Query<&mut UiRoot,>,
+    mut key_events: EventReader<bevy::input::keyboard::KeyboardInput>,
+) {
+
+    let window_size=windows.single()
+        .and_then(|window|Ok((window.width(),window.height())))
+        .unwrap_or_default();
+
+    for mut x in root_query.iter_mut() {
+        x.width=window_size.0;
+        x.height=window_size.1;
+    }
+}
 pub fn setup_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,

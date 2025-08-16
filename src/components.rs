@@ -1,9 +1,10 @@
 
-use std::collections::HashSet;
+// use std::collections::HashSet;
 
+use bevy::platform::collections::HashSet;
 use bevy::{ecs::prelude::*, platform::collections::HashMap};
 use bevy::asset::prelude::*;
-use bevy_table_ui::UiLayoutComputed;
+use bevy_table_ui::{UiLayoutComputed, UiRoot, };
 
 // use std::collections::{BTreeSet, HashMap};
 
@@ -19,22 +20,25 @@ use super::{
 // use script_lang as script;
 
 #[derive(Component,Default)]
+#[require(UiLayoutComputed)]
 pub struct UixEventListener {
     pub event_listeners : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
 }
 
 #[derive(Component,Default)]
+#[require(UiLayoutComputed)]
 pub struct UixName {
     pub names : HashSet<script_lang::StringT>,
 }
 
 #[derive(Component,Default)]
+#[require(UiLayoutComputed)]
 pub struct UixEnv {
     pub env : HashMap<script_lang::StringT,Vec<Entity>>,
 }
 
 #[derive(Component)]
-#[require(UiLayoutComputed)]
+#[require(UiLayoutComputed,UiRoot)]
 pub struct UixFromAsset {
     pub handle : Handle<UiAsset>,
     pub all_dep_ids : HashSet<AssetId<UiAsset>>,

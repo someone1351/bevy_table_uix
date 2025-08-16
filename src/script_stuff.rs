@@ -4,9 +4,9 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
+use std::{ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, prelude::{ ChildOf, Children, Entity, Resource, World}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, platform::collections::{HashMap, HashSet}, prelude::{ ChildOf, Children, Entity, Resource, World}};
 use bevy_table_ui::*;
 use script_lang::*;
 
