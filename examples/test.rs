@@ -150,9 +150,7 @@ pub fn setup_ui(
     asset_server: Res<AssetServer>,
 ) {
     let root=commands.spawn((
-        UiLayoutComputed::default(),
         UixFromAsset::new(asset_server.load("test.ui_conf")),
-
         UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),..Default::default()},
         UiSize{width:UiVal::Px(500.0),height:UiVal::Px(500.0)},
     )).id();
