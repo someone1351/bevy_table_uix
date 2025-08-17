@@ -207,6 +207,9 @@ fn node_get_field(context:FuncContext<World>) -> Result<Value,MachineError> {
             let name=context.param(1).get_string().unwrap();
             Value::custom_unmanaged(EnvEntry{ entity, name })
         },
+        "scaling" => {
+            world.entity(entity).get::<UiRoot>().map(|c|Value::float(c.scaling.min(0.0))).unwrap_or_default()
+        }
         _ => Value::Nil,
     })
 }
@@ -409,7 +412,8 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
             let handle=asset_server.load(PathBuf::from(script_value_to_string(val)?));
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiImage>().or_default();
-            c.get_mut().handle=handle;
+            let mut c=c.get_mut();
+            c.handle=handle;
             e.entry::<UiInnerSize>().or_default();
         }
         "image_color" => {
@@ -425,8 +429,9 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
         "text" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().value=script_value_to_string(val)?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.value=script_value_to_string(val)?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
@@ -435,48 +440,54 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
 
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().font=handle;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.font=handle;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "font_size" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().font_size=script_value_to_float(val)?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.font_size=script_value_to_float(val)?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_hlen" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().hlen=script_value_to_uint(val)?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.hlen=script_value_to_uint(val)?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_vlen" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().vlen=script_value_to_uint(val)?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.vlen=script_value_to_uint(val)?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_halign" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().halign=val.get_parse().ok_or_else(||MachineError::method("expected halign"))?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.halign=val.get_parse().ok_or_else(||MachineError::method("expected halign"))?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
         "text_valign" => {
             let mut e=world.entity_mut(entity);
             let mut c=e.entry::<UiText>().or_default();
-            c.get_mut().valign=val.get_parse().ok_or_else(||MachineError::method("expected valign"))?;
-            c.get_mut().update=true;
+            let mut c=c.get_mut();
+            c.valign=val.get_parse().ok_or_else(||MachineError::method("expected valign"))?;
+            c.update=true;
             e.entry::<UiTextComputed>().or_default();
             e.entry::<UiInnerSize>().or_default();
         }
@@ -489,6 +500,12 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
         }
         "env" => {
             //do nothing when tried to be set
+        }
+
+        "scaling" => {
+            if let Some(mut c)=world.entity_mut(entity).get_mut::<UiRoot>() {
+                c.scaling = script_value_to_float(val)?.min(0.0)
+            }
         }
         _ => {
             return Err(MachineError::method("invalid field"));
