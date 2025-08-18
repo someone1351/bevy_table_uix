@@ -7,7 +7,9 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiColor, UiInteractInputEvent, UiLayoutComputed, UiRoot, UiSize, UiVal};
+use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputEvent, UiLayoutComputed, UiRoot,
+    //UiColor, UiSize, UiVal
+};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystem}, prelude::* };
 use bevy_table_uix::UixFromAsset;
@@ -151,8 +153,8 @@ pub fn setup_ui(
 ) {
     let root=commands.spawn((
         UixFromAsset::new(asset_server.load("test.ui_conf")),
-        UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),..Default::default()},
-        UiSize{width:UiVal::Px(500.0),height:UiVal::Px(500.0)},
+        // UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),..Default::default()},
+        // UiSize{width:UiVal::Px(500.0),height:UiVal::Px(500.0)},
     )).id();
 
 

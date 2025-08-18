@@ -21,7 +21,8 @@ serde = { version = "1.0", features = ["derive"] }
 bevy = { version = "0.16", default-features = false, features = [
     "bevy_window","x11",
     "multi_threaded",
-    "file_watcher","dynamic_linking",
+    "file_watcher",
+    #"dynamic_linking",
 ] }
 
 [[example]]
