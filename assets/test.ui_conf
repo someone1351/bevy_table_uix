@@ -13,3 +13,16 @@ node
     node
         color blue
         size 50 50
+
+        pressable
+
+        script
+            println "hello0 {self}"
+            var a 0.0
+            add_event_listener self "click" [fn () {
+                println "hello {self} {}" (cos a)
+
+                set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
+                set a (+ a 0.1)
+            }]
+

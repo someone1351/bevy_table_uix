@@ -10,6 +10,8 @@ use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, platform::coll
 use bevy_table_ui::*;
 use script_lang::*;
 
+use crate::UixSelf;
+
 use super::{event::UixUserEvent, UixEnv, UixEventListener, UixName};
 
 /*
@@ -107,12 +109,13 @@ pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
     val.get_string().ok_or_else(||MachineError::method("expected string")).map(|x|x.to_string())
 }
 
-fn node_get_field(context:FuncContext<World>) -> Result<Value,MachineError> {
+fn node_get_field(mut context:FuncContext<World>) -> Result<Value,MachineError> {
     let entity:Entity = context.param(0).as_custom().data_copy()?;
     let field=context.param(1).as_string();
 
     // let world=context.core();
-    let world=context.core();
+    // let world=context.core();
+    let world=context.core_mut();
 
     Ok(match field.as_str() {
         "row_width_scale" => Value::float(world.entity(entity).get::<UiCongruent>().cloned().unwrap_or_default().row_width_scale),
@@ -200,12 +203,23 @@ fn node_get_field(context:FuncContext<World>) -> Result<Value,MachineError> {
         "text_halign" => Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().halign.to_string()),
         "text_valign" => Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().valign.to_string()),
 
-        "parent" => world.entity(entity).get::<ChildOf>().map(|parent|Value::custom_unmanaged(parent.parent())).unwrap_or(Value::Nil),
+        "parent" => {
+            // world.entity(entity).get::<ChildOf>().map(|parent|Value::custom_unmanaged(parent.parent())).unwrap_or(Value::Nil)
+
+            if let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) {
+                self_entity_from_world(world,parent_entity)
+            } else {
+                Value::Nil
+            }
+
+        },
         // "children"   => world.entity(entity).get::<Children>().map(|children|children.iter()),
 
         "env" => {
+            let entity_val = self_entity_from_world(world, entity);
             let name=context.param(1).get_string().unwrap();
-            Value::custom_unmanaged(EnvEntry{ entity, name })
+            // let name=name.clone();
+            Value::custom_unmanaged(EnvEntry{ entity:entity_val, name })
         },
         "scaling" => {
             world.entity(entity).get::<UiRoot>().map(|c|Value::float(c.scaling.min(0.0))).unwrap_or_default()
@@ -535,7 +549,8 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         if let Some(c)=world.entity(entity).get::<UixEnv>() {
             if let Some(v)=c.env.get(&name) { //.and_then(|v|v.get(field)).cloned()
                 if let Some(ind)=calc_ind(ind,v.len()) {
-                    return Ok(Value::custom_unmanaged(v[ind]));
+                    // return Ok(Value::custom_unmanaged(v[ind]));
+                    return Ok(v[ind].clone());
                 }
             }
         }
@@ -550,11 +565,13 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let ind=context.param(1).as_int();
 
         let world=context.core();
+        let entity:Entity=env_entry.entity.as_custom().data_copy()?;
 
-        if let Some(c)=world.entity(env_entry.entity).get::<UixEnv>() {
+        if let Some(c)=world.entity(entity).get::<UixEnv>() {
             if let Some(v)=c.env.get(&env_entry.name) {
                 if let Some(ind)=calc_ind(ind,v.len()) {
-                    return Ok(Value::custom_unmanaged(v[ind]));
+                    // return Ok(Value::custom_unmanaged(v[ind]));
+                    return Ok(v[ind].clone());
                 }
             }
         }
@@ -581,6 +598,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
                 e.insert((UixName{ names:names.clone() },));
             }
 
+            let parent_entity_val=self_entity_from_world(world, parent_entity);
             let mut e=world.entity_mut(parent_entity);
 
             e.add_child(child_entity);
@@ -588,23 +606,27 @@ pub fn register(lib_scope:&mut LibScope<World>) {
             let mut env=e.entry::<UixEnv>().or_default();
 
             for n in names.iter() {
-                env.get_mut().env.entry(n.clone()).or_default().push(parent_entity);
+                env.get_mut().env.entry(n.clone()).or_default().push(parent_entity_val.clone());
             }
         }
 
-        Ok(Value::custom_unmanaged(child_entity))
+        let child_entity_val=self_entity_from_world(world, child_entity);
+        Ok(child_entity_val)
+        // Ok(Value::custom_unmanaged(child_entity))
     }).custom_ref::<Entity>().optional().str().variadic_end();
 
     //child(entity,int)
-    lib_scope.method("child",|context|{
-        let world=context.core();
+    lib_scope.method("child",|mut context|{
         let entity:Entity = context.param(0).as_custom().data_copy()?;
         let child_ind=context.param(1).as_int();
+        let world=context.core_mut();
 
         if child_ind>=0 {
             if let Some(children)=world.entity(entity).get::<Children>() {
-                if let Some(&child)=children.get(child_ind as usize) {
-                    return Ok(Value::custom_unmanaged(child));
+                if let Some(&child_entity)=children.get(child_ind as usize) {
+                    let child_entity_val=self_entity_from_world(world, child_entity);
+                    return Ok(child_entity_val);
+                    // return Ok(Value::custom_unmanaged(child_entity));
                 }
             }
         }
@@ -625,6 +647,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //remove(entity)
     lib_scope.method("remove",|mut context|{
         let entity:Entity = context.param(0).as_custom().data_copy()?;
+        // let entity_val=context.param(0);
         let world=context.core_mut();
 
         //
@@ -635,7 +658,9 @@ pub fn register(lib_scope:&mut LibScope<World>) {
                         let mut b=false;
 
                         if let Some(v)=c.env.get_mut(&n) {
-                            if let Some(p)=v.iter().position(|&x|x==entity) {
+                            if let Some(p)=v.iter().position(|x|{
+                                x.as_custom().data_copy::<Entity>().map(|x|x==entity).unwrap_or_default()
+                            }) {
                                 v.remove(p);
                                 b=v.is_empty();
                             }
@@ -662,11 +687,15 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<Entity>().end();
 
     //parent(entity)
-    lib_scope.method("parent",|context|{
-        let world=context.core();
+    lib_scope.method("parent",|mut context|{
         let entity:Entity = context.param(0).as_custom().data_copy()?;
-        let Some(parent)=world.entity(entity).get::<ChildOf>() else { return Ok(Value::Nil); };
-        Ok(Value::custom_unmanaged(parent.parent()))
+
+        let world=context.core_mut();
+        let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) else { return Ok(Value::Nil); };
+        // let parent_entity=parent.parent();
+        let parent_entity_val=self_entity_from_world(world,parent_entity);
+        // Ok(Value::custom_unmanaged(parent.parent()))
+        Ok(parent_entity_val)
     }).custom_ref::<Entity>().end();
 
     //string(entity)
@@ -725,15 +754,23 @@ pub fn register(lib_scope:&mut LibScope<World>) {
                 }
 
                 //
+                let parent_entity_val=self_entity_from_world(world, parent_entity);
+
                 let mut pe=world.entity_mut(parent_entity);
                 let mut env=pe.entry::<UixEnv>().or_default();
 
                 for n in names.iter() {
-                    env.get_mut().env.entry(n.clone()).or_default().push(parent_entity);
+                    env.get_mut().env.entry(n.clone()).or_default().push(parent_entity_val.clone());
                 }
             }
 
-            Ok(Value::custom_unmanaged(StuffResult(element_entity_map)))
+            let element_entity_map2: HashMap<usize, Value>=element_entity_map.iter().map(|(&k,&v)|{
+                let vv=self_entity_from_world(world, v);
+                (k,vv)
+            }).collect();
+
+            Ok(Value::custom_unmanaged(StuffResult(element_entity_map2)))
+            // Ok(Value::custom_unmanaged(StuffResult(element_entity_map)))
         })
     }).custom_ref::<Stuff>().int().custom_ref::<Entity>().end();
 
@@ -742,8 +779,19 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let data=context.param(0).as_custom();
         let ind=context.param(1).as_int().abs() as usize;
 
+        let world=context.core_mut();
+
         data.with_data_ref(|data:&StuffResult|{
-            Ok(data.0.get(&ind).map(|&x|Value::custom_unmanaged(x)).unwrap_or(Value::Nil))
+            let Some(entity)=data.0.get(&ind).cloned() else {
+                return Ok(Value::Nil);
+            };
+
+            // let entity_val=self_entity_from_world(world, entity);
+            // Ok(entity_val)
+            Ok(entity)
+            // Ok(data.0.get(&ind).map(|&x|{
+            //     Value::custom_unmanaged(x)
+            // }).unwrap_or(Value::Nil))
         })
     }).custom_ref::<StuffResult>().int().end();
 
@@ -798,11 +846,11 @@ impl std::fmt::Debug for AttribFunc {
     pub all_names : Vec<script_lang::StringT>,
 }
 
-pub struct StuffResult(HashMap<usize,Entity>);
+pub struct StuffResult(HashMap<usize,Value>);
 
 #[derive(Clone)]
 struct EnvEntry {
-    entity:Entity,
+    entity:script_lang::Value,
     name:script_lang::StringT,
 }
 pub fn calc_ind(ind : IntT , len:usize) -> Option<usize> {
@@ -814,4 +862,11 @@ pub fn calc_ind(ind : IntT , len:usize) -> Option<usize> {
         let ind = if ind<0 {len+ind} else {ind};
         Some(ind.try_into().unwrap_or_default())
     }
+}
+
+    // pub fn new(entity:Entity) -> Self {
+    //     Self { entity: script_lang::Value::custom_rc(entity) }
+    // }
+pub fn self_entity_from_world(world : &mut World,entity:Entity) -> script_lang::Value {
+    world.entity_mut(entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(entity)).get().entity.clone_leaf()
 }

@@ -9,6 +9,8 @@ use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
 use table_ui::*;
+use crate::script_stuff::self_entity_from_world;
+
 use super::script_stuff::UixGcScope;
 
 use super::event::UixUserEvent;
@@ -191,13 +193,18 @@ pub fn on_asset_load<'a>(
             let build=compile_result.unwrap();
 
             commands.queue(move|world:&mut World|{
+                // let top_entity_val=world.entity_mut(top_entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(top_entity)).get_mut().entity.clone();
+                // let top_entity_val=UixSelf::new_from_world(world,top_entity);
+                let top_entity_val=self_entity_from_world(world,top_entity);
+
                 let lib_scope = world.resource::<UixLibScope>().0.clone();
                 let gc_scope = world.resource::<UixGcScope>().0.clone();
                 let mut gc_scope=gc_scope.try_lock().unwrap();
 
                 let mut var_scope = script_lang::VarScope::new();
                 var_scope.decl("_stubs",Some(stuff)).unwrap();
-                var_scope.decl("root",Some(script_lang::Value::custom_unmanaged(top_entity))).unwrap();
+                // var_scope.decl("root",Some(script_lang::Value::custom_unmanaged(top_entity))).unwrap();
+                var_scope.decl("root",Some(top_entity_val)).unwrap();
 
                 {
                     let mut machine = script_lang::Machine::new(&mut gc_scope, &lib_scope, &mut var_scope,  world);

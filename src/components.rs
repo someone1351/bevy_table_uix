@@ -34,7 +34,22 @@ pub struct UixName {
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]
 pub struct UixEnv {
-    pub env : HashMap<script_lang::StringT,Vec<Entity>>,
+    pub env : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
+}
+
+#[derive(Component,)]
+#[require(UiLayoutComputed)]
+pub struct UixSelf {
+    pub entity : script_lang::Value,
+}
+
+impl UixSelf {
+    pub fn new(entity:Entity) -> Self {
+        Self { entity: script_lang::Value::custom_rc(entity) }
+    }
+    // pub fn new_from_world(world : &mut World,entity:Entity) -> script_lang::Value {
+    //     world.entity_mut(entity).entry::<Self>().or_insert_with(||Self::new(entity)).get_mut().entity.clone()
+    // }
 }
 
 #[derive(Component)]
