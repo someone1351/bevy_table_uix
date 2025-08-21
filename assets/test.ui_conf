@@ -2,14 +2,22 @@ node
     padding 50
     color grey
     gap 50
-    node
+
+
+    script
+        println "hello0 {self}"
+    node x
         color red
         size 50 50
 
+        script
+            println "hello1 {self}"
     node
         color green
         size 50 50
 
+        script
+            println "hello2 {self}"
     node
         color blue
         size 50 50
@@ -17,12 +25,13 @@ node
         pressable
 
         script
-            println "hello0 {self}"
+            println "hello3 {self}"
             var a 0.0
             add_event_listener self "click" [fn () {
                 println "hello {self} {}" (cos a)
 
                 set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
                 set a (+ a 0.1)
+                println self.parent.env.x.0
             }]
 

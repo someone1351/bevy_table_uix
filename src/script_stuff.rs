@@ -110,7 +110,8 @@ pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
 }
 
 fn node_get_field(mut context:FuncContext<World>) -> Result<Value,MachineError> {
-    let entity:Entity = context.param(0).as_custom().data_copy()?;
+    let entity_val=context.param(0);
+    let entity:Entity = entity_val.as_custom().data_copy()?;
     let field=context.param(1).as_string();
 
     // let world=context.core();
@@ -216,10 +217,10 @@ fn node_get_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
         // "children"   => world.entity(entity).get::<Children>().map(|children|children.iter()),
 
         "env" => {
-            let entity_val = self_entity_from_world(world, entity);
-            let name=context.param(1).get_string().unwrap();
+            // let entity_val = self_entity_from_world(world, entity);
+            // let name=context.param(1).get_string().unwrap();
             // let name=name.clone();
-            Value::custom_unmanaged(EnvEntry{ entity:entity_val, name })
+            Value::custom_unmanaged(Env{ entity:entity_val,  })
         },
         "scaling" => {
             world.entity(entity).get::<UiRoot>().map(|c|Value::float(c.scaling.min(0.0))).unwrap_or_default()
@@ -514,6 +515,7 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
         }
         "env" => {
             //do nothing when tried to be set
+            //  could check if the Env's entity is same as this entity, and return an err if not
         }
 
         "scaling" => {
@@ -559,6 +561,15 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         Ok(Value::Nil)
     }).custom_ref::<Entity>().str().optional().int().end();
 
+    //get_field(env,str)
+    lib_scope.method("get_field",|context|{
+        let env:Env= context.param(0).as_custom().data_clone()?;
+        // let entity=env.entity.as_custom().data_copy::<Entity>()?;
+        let name=context.param(1).get_string().unwrap();
+
+        Ok(Value::custom_unmanaged(EnvEntry{ entity: env.entity, name }))
+    }).custom_ref::<Env>().str().end();
+
     //get_field(env_entry,int)
     lib_scope.method("get_field",|context|{
         let env_entry:EnvEntry= context.param(0).as_custom().data_clone()?;
@@ -566,16 +577,24 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
         let world=context.core();
         let entity:Entity=env_entry.entity.as_custom().data_copy()?;
-
+        // if let Some(v)=world.entity(entity).get::<UixEnv>().and_then(|c|c.env.get(&env_entry.name)) {
+        //     if let Some(ind)=calc_ind(ind,v.len()) {
+        //         return Ok(v[ind].clone());
+        //     }
+        // }
         if let Some(c)=world.entity(entity).get::<UixEnv>() {
+            println!("1");
             if let Some(v)=c.env.get(&env_entry.name) {
+            println!("2");
                 if let Some(ind)=calc_ind(ind,v.len()) {
+            println!("3");
                     // return Ok(Value::custom_unmanaged(v[ind]));
                     return Ok(v[ind].clone());
                 }
             }
         }
 
+            println!("4");
         Ok(Value::Nil)
     }).custom_ref::<EnvEntry>().int().end();
 
@@ -848,6 +867,10 @@ impl std::fmt::Debug for AttribFunc {
 
 pub struct StuffResult(HashMap<usize,Value>);
 
+#[derive(Clone)]
+struct Env {
+    entity:script_lang::Value,
+}
 #[derive(Clone)]
 struct EnvEntry {
     entity:script_lang::Value,
