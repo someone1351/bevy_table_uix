@@ -29,7 +29,7 @@ node
             var a 0.0
             add_event_listener self "click" [fn () {
                 println "hello {self} {}" (cos a)
-
+                println "col {}" self.color.rgb
                 set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
                 set a (+ a 0.1)
                 println self.parent.env.x.0
