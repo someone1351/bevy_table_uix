@@ -6,7 +6,7 @@
 
 use std::{ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::component::Component, platform::collections::{HashMap, HashSet}, prelude::{ ChildOf, Children, Entity, Resource, World}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity}, platform::collections::{HashMap, HashSet}, prelude::{ ChildOf, Children, Entity, Resource, World}};
 use bevy_table_ui::*;
 use script_lang::*;
 
@@ -135,19 +135,19 @@ fn entity_set_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,Va
     }).custom_ref::<Entity>().any().end();
 }
 
-fn entity_set_field_mut2<T:'static>(field:&str,lib_scope:&mut LibScope<World>,
-    fs:fn(Entity,T,&mut World,),
-    fv:fn(Value,)->Result<T,MachineError>,
-) {
-    lib_scope.field_named(field,move|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
-        let to_val=context.param(1);
-        let world=context.core_mut();
-        let v=fv(to_val)?;
-        fs(entity,v,world);
-        Ok(Value::Void)
-    }).custom_ref::<Entity>().any().end();
-}
+// fn entity_set_field_mut2<T:'static>(field:&str,lib_scope:&mut LibScope<World>,
+//     fs:fn(Entity,T,&mut World,),
+//     fv:fn(Value,)->Result<T,MachineError>,
+// ) {
+//     lib_scope.field_named(field,move|mut context|{
+//         let entity:Entity = context.param(0).as_custom().data_copy()?;
+//         let to_val=context.param(1);
+//         let world=context.core_mut();
+//         let v=fv(to_val)?;
+//         fs(entity,v,world);
+//         Ok(Value::Void)
+//     }).custom_ref::<Entity>().any().end();
+// }
 
 pub fn register(lib_scope:&mut LibScope<World>) {
     entity_get_field("row_width_scale",lib_scope,|entity,world|{
@@ -629,35 +629,99 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         Ok(())
     });
 
+    //get node.parent
     entity_get_field_mut("parent",lib_scope,|entity,world|{
-        world.entity(entity).get::<ChildOf>()
-            .map(|parent|parent.parent())
-            .map(|parent_entity|self_entity_from_world(world,parent_entity))
-            .unwrap_or(Value::Nil)
+        if world.entity(entity).contains::<UiRoot>() {return Value::Nil;}
+
+        let parent_entity=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent());
+        let parent_entity_val=parent_entity.map(|parent_entity|self_entity_from_world(world,parent_entity));
+        parent_entity_val.unwrap_or(Value::Nil)
     });
 
-    entity_set_field_mut("parent",lib_scope,|entity,val,world|{
+    //set node.parent=parent
+    // entity_set_field_mut("parent",lib_scope,|entity,val,world|{
 
-        //let parent=val.as_custom().data_copy()?;
-        // let mut e=world.entity_mut(entity);
-        // e.set_parent(parent);
+    lib_scope.field_named("parent",|mut context|{
+        //only necessary for the "set chain", doesn't actually set the parent
 
-        //do nothing
-        //  could check if parent == entity.parent and return err if not
-        //  or allow changing parent ..
+        let entity=context.param(0).as_custom().data_clone::<Entity>()?;
+        let in_parent_val=context.param(1);
 
-        Ok(())
-    });
+        let world=context.core_mut();
 
+        if world.entity(entity).contains::<UiRoot>() {
+            return Err(MachineError::method("Can't set parent"));
+        }
+
+        let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) else {
+            return Err(MachineError::method("Can't set parent"));
+        };
+
+        let in_parent_entity:Entity=in_parent_val.as_custom().data_clone()?;
+
+        if parent_entity!=in_parent_entity {
+            return Err(MachineError::method("Can't set parent"));
+        }
+
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<Entity>().end();
+
+    #[derive(Clone)]
+    struct NodeChildren { entity:Value, }
+    #[derive(Clone)]
+    struct NodeNamedChildren { entity:Value, name:StringT, }
+
+    //get node.children
+    lib_scope.field_named("children",|mut context|{
+        let entity_val=context.param(0);
+        Ok(Value::custom_unmanaged(NodeChildren{entity:entity_val.clone()}))
+    }).custom_ref::<Entity>().end();
+
+    //set node.children=children
+    lib_scope.field_named("children",|mut context|{
+        //only necessary for the "set chain", doesn't actually set the children
+
+        let entity_val=context.param(0);
+        let children_val=context.param(1);
+
+        let entity=entity_val.as_custom().data_clone::<Entity>()?;
+        let entity2=children_val.as_custom().data_clone::<Entity>()?;
+
+        if entity!=entity2 {
+            return Err(MachineError::method("Can't set children"));
+        }
+
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<NodeChildren>().end();
+
+    //get node.children(int)
+    lib_scope.field(|mut context|{
+        let children_val=context.param(0);
+        let node_children:NodeChildren=children_val.as_custom().data_clone()?;
+        let entity:Entity=node_children.entity.as_custom().data_clone()?;
+
+        let world=context.core();
+
+        let Some(children)= world.entity(entity).get::<Children>() else {return Ok(Value::Nil);};
+        let Some(index)=context.param(1).as_index(children.len()) else {return Ok(Value::Nil);};
+        let child_entity=children.get(index).cloned().unwrap();
+
+        let world=context.core_mut();
+        let child_entity_val=self_entity_from_world(world, child_entity);
+
+        Ok(child_entity_val)
+    }).custom_ref::<NodeChildren>().int().end();
+
+    //get scaling
     entity_get_field("scaling",lib_scope,|entity,world|{
         world.entity(entity).get::<UiRoot>().map(|c|Value::float(c.scaling.min(0.0))).unwrap_or_default()
     });
 
 
-    // lib_scope.field(true,node_get_field)
+    // lib_scope.field_no_symbols(node_get_field)
     //     .custom_ref::<Entity>().any().end();
 
-    // lib_scope.field(true,node_set_field)
+    // lib_scope.field_no_symbols(node_set_field)
     //     .custom_ref::<Entity>().any().any().end();
 
 
@@ -683,7 +747,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<Entity>().str().optional().int().end();
 
     //get_field(env,str)
-    lib_scope.field(true,|context|{
+    lib_scope.field_no_symbols(|context|{
         let env:Env= context.param(0).as_custom().data_clone()?;
         // let entity=env.entity.as_custom().data_copy::<Entity>()?;
         let name=context.param(1).get_string().unwrap();
@@ -692,7 +756,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<Env>().str().end();
 
     //get_field(env_entry,int)
-    lib_scope.field(true,|context|{
+    lib_scope.field_no_symbols(|context|{
         let env_entry:EnvEntry= context.param(0).as_custom().data_clone()?;
         let ind=context.param(1).as_int();
 
@@ -720,7 +784,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<EnvEntry>().int().end();
 
     //
-    lib_scope.field(true,|context|{
+    lib_scope.field_no_symbols(|context|{
         //do nothing
         Ok(Value::Void)
     }).custom_ref::<EnvEntry>().int().any().end();
@@ -915,7 +979,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<Stuff>().int().custom_ref::<Entity>().end();
 
     //
-    lib_scope.field(true,|mut context|{
+    lib_scope.field_no_symbols(|mut context|{
         let data=context.param(0).as_custom();
         let ind=context.param(1).as_int().abs() as usize;
 
