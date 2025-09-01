@@ -45,7 +45,7 @@ pub struct UixSelf {
 
 impl UixSelf {
     pub fn new(entity:Entity) -> Self {
-        Self { entity: script_lang::Value::custom_rc(entity) }
+        Self { entity: script_lang::Value::custom_unmanaged(entity) }
     }
     // pub fn new_from_world(world : &mut World,entity:Entity) -> script_lang::Value {
     //     world.entity_mut(entity).entry::<Self>().or_insert_with(||Self::new(entity)).get_mut().entity.clone()

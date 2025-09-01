@@ -1076,5 +1076,5 @@ pub fn calc_ind(ind : IntT , len:usize) -> Option<usize> {
     //     Self { entity: script_lang::Value::custom_rc(entity) }
     // }
 pub fn self_entity_from_world(world : &mut World,entity:Entity) -> script_lang::Value {
-    world.entity_mut(entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(entity)).get().entity.clone_leaf()
+    world.entity_mut(entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(entity)).get().entity.to_weak().unwrap()
 }
