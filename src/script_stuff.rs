@@ -6,7 +6,7 @@
 
 use std::{ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity}, platform::collections::{HashMap, HashSet}, prelude::{ ChildOf, Children, Entity, Resource, World}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef}, platform::collections::{HashMap, HashSet}, prelude::{ ChildOf, Children, Entity, Resource, World}};
 use bevy_table_ui::*;
 use script_lang::*;
 
@@ -66,21 +66,19 @@ pub fn script_value_to_uival(v:Value) -> Result<UiVal,MachineError> {
     Err(script_lang::MachineError::method("Expected float, int, percent or nil"))
 }
 
-
 pub fn col_to_script_value(col:Color) -> Value {
-    Value::custom_unmanaged_mut(script_lang::Vec4(col.to_srgba().to_f32_array().map(|x|x.into())))
+    Value::custom_unmanaged_mut(col.to_srgba().to_f32_array().map(|x|x as FloatT))
 }
 pub fn script_value_to_col(val:Value) -> Result<Color,MachineError> {
     let v=val.as_custom();
 
-    if v.is_type::<script_lang::Vec4>() {
-        let v=v.data_clone::<Vec4>()?.0.map(|x|x.clamp(0.0,1.0) as f32);
+    if let Some(v)=v.get_data_clone::<[FloatT;4]>()? {
+        let v=v.map(|x|x.clamp(0.0,1.0) as f32);
         Ok(Color::srgba(v[0],v[1],v[2],v[3]))
-    } else if v.is_type::<script_lang::IVec4>() {
-        let v=v.data_clone::<IVec4>()?.0.map(|x|x.clamp(0,255) as u8);
+    } else if let Some(v)=v.get_data_clone::<[IntT;4]>()? {
+        let v=v.map(|x|x.clamp(0,255) as u8);
         Ok(Color::srgba_u8(v[0],v[1],v[2],v[3]))
-
-    } else {
+     } else {
         Err(MachineError::method("Expected vec4 or ivec4"))
     }
 }
@@ -88,6 +86,7 @@ pub fn script_value_to_col(val:Value) -> Result<Color,MachineError> {
 pub fn script_value_to_bool(val:Value) -> Result<bool,MachineError> {
     val.get_bool().ok_or_else(||MachineError::method("expected bool"))
 }
+
 pub fn script_value_to_float(val:Value) -> Result<f32,MachineError> {
     if let Some(x)=val.get_float() {
         Ok(x as f32)
@@ -111,15 +110,33 @@ pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
 
 fn entity_get_field(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,&World)->Value) {
     lib_scope.field_named(field,move|context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let world=context.core();
         Ok(f(entity,world))
     }).custom_ref::<Entity>().end();
 }
 
+fn entity_get_field2(field:&str,lib_scope:&mut LibScope<World>,f:fn(EntityRef)->Value) {
+    lib_scope.field_named(field,move|context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let world=context.core();
+        let entity_ref=world.entity(entity);
+        Ok(f(entity_ref))
+    }).custom_ref::<Entity>().end();
+}
+fn entity_get_field3<T:Component+Default+Clone>(field:&str,lib_scope:&mut LibScope<World>,f:fn(&T)->Value) {
+    lib_scope.field_named(field,move|context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let world=context.core();
+        let e=world.entity(entity);
+        let c=e.get::<T>().cloned().unwrap_or_default();
+        Ok(f(&c))
+    }).custom_ref::<Entity>().end();
+}
+
 fn entity_get_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,&mut World)->Value) {
     lib_scope.field_named(field,move|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let world=context.core_mut();
         Ok(f(entity,world))
     }).custom_ref::<Entity>().end();
@@ -127,7 +144,7 @@ fn entity_get_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,&m
 
 fn entity_set_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,Value,&mut World,)->Result<(),MachineError>) {
     lib_scope.field_named(field,move|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let to_val=context.param(1);
         let world=context.core_mut();
         f(entity,to_val,world)?;
@@ -135,12 +152,26 @@ fn entity_set_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,Va
     }).custom_ref::<Entity>().any().end();
 }
 
+fn entity_set_field_mut3<T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(field:&str,lib_scope:&mut LibScope<World>,f:fn(&mut T,Value)->Result<(),MachineError>) {
+    lib_scope.field_named(field,move|mut context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let to_val=context.param(1);
+        let world=context.core_mut();
+        let mut e=world.entity_mut(entity);
+        let mut c= e.entry::<T>().or_default();
+        let mut c=c.get_mut(); //.get_mut();
+
+
+        f(&mut c,to_val)?;
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().any().end();
+}
 // fn entity_set_field_mut2<T:'static>(field:&str,lib_scope:&mut LibScope<World>,
 //     fs:fn(Entity,T,&mut World,),
 //     fv:fn(Value,)->Result<T,MachineError>,
 // ) {
 //     lib_scope.field_named(field,move|mut context|{
-//         let entity:Entity = context.param(0).as_custom().data_copy()?;
+//         let entity:Entity = context.param(0).as_custom().data_clone()?;
 //         let to_val=context.param(1);
 //         let world=context.core_mut();
 //         let v=fv(to_val)?;
@@ -150,484 +181,508 @@ fn entity_set_field_mut(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,Va
 // }
 
 pub fn register(lib_scope:&mut LibScope<World>) {
-    entity_get_field("row_width_scale",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiCongruent>().cloned().unwrap_or_default().row_width_scale)
+    //
+    entity_get_field3::<UiCongruent>("row_width_scale",lib_scope,|c|{
+        Value::float(c.row_width_scale)
     });
-    entity_get_field("col_height_scale",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiCongruent>().cloned().unwrap_or_default().col_height_scale)
-    });
-
-    // entity_set_field_mut2("row_width_scale",lib_scope,|entity,val,world|{
-    //     world.entity_mut(entity).entry::<UiCongruent>().or_default().get_mut().row_width_scale=val;
-    // },|val|script_value_to_float(val));
-
-    entity_set_field_mut("row_width_scale",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiCongruent>().or_default().get_mut().row_width_scale=script_value_to_float(val)?; Ok(())
-    });
-    entity_set_field_mut("col_height_scale",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiCongruent>().or_default().get_mut().col_height_scale=script_value_to_float(val)?; Ok(())
+    entity_set_field_mut3::<UiCongruent>("row_width_scale",lib_scope,|c,v|{
+        c.row_width_scale=script_value_to_float(v)?; Ok(())
     });
 
-    entity_get_field("padding_left",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().padding.left)
+    entity_get_field3::<UiCongruent>("col_height_scale",lib_scope,|c|{
+        Value::float(c.col_height_scale)
     });
-    entity_get_field("padding_right",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().padding.right)
-    });
-    entity_get_field("padding_top",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().padding.top)
-    });
-    entity_get_field("padding_bottom",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().padding.bottom)
+    entity_set_field_mut3::<UiCongruent>("col_height_scale",lib_scope,|c,v|{
+        c.col_height_scale=script_value_to_float(v)?; Ok(())
     });
 
-    entity_set_field_mut("padding_left",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.left=script_value_to_uival(val)?; Ok(())
+    //
+    entity_get_field3::<UiEdge>("padding_left",lib_scope,|c|{
+        uival_to_script_value(c.padding.left)
     });
-    entity_set_field_mut("padding_right",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.right=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("padding_top",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.top=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("padding_bottom",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().padding.bottom=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("padding_left",lib_scope,|c,v|{
+        c.padding.left=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("margin_left",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().margin.left)
+    entity_get_field3::<UiEdge>("padding_right",lib_scope,|c|{
+        uival_to_script_value(c.padding.right)
     });
-    entity_get_field("margin_right",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().margin.right)
-    });
-    entity_get_field("margin_top",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().margin.top)
-    });
-    entity_get_field("margin_bottom",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().margin.bottom)
+    entity_set_field_mut3::<UiEdge>("padding_right",lib_scope,|c,v|{
+        c.padding.right=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("margin_left",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.left=script_value_to_uival(val)?; Ok(())
+    entity_get_field3::<UiEdge>("padding_top",lib_scope,|c|{
+        uival_to_script_value(c.padding.top)
     });
-    entity_set_field_mut("margin_right",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.right=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("margin_top",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.top=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("margin_bottom",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().margin.bottom=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("padding_top",lib_scope,|c,v|{
+        c.padding.top=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("border_left",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().border.left)
+    entity_get_field3::<UiEdge>("padding_bottom",lib_scope,|c|{
+        uival_to_script_value(c.padding.bottom)
     });
-    entity_get_field("border_right",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().border.right)
-    });
-    entity_get_field("border_top",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().border.top)
-    });
-    entity_get_field("border_bottom",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiEdge>().cloned().unwrap_or_default().border.bottom)
+    entity_set_field_mut3::<UiEdge>("padding_bottom",lib_scope,|c,v|{
+        c.padding.bottom=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("border_left",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.left=script_value_to_uival(val)?; Ok(())
+    //
+    entity_get_field3::<UiEdge>("margin_left",lib_scope,|c|{
+        uival_to_script_value(c.margin.left)
     });
-    entity_set_field_mut("border_right",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.right=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("border_top",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.top=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("border_bottom",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiEdge>().or_default().get_mut().border.bottom=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("margin_left",lib_scope,|c,v|{
+        c.margin.left=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("hgap",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiGap>().cloned().unwrap_or_default().hgap)
+    entity_get_field3::<UiEdge>("margin_right",lib_scope,|c|{
+        uival_to_script_value(c.margin.right)
     });
-    entity_get_field("vgap",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiGap>().cloned().unwrap_or_default().vgap)
-    });
-
-    entity_set_field_mut("hgap",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiGap>().or_default().get_mut().hgap=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("vgap",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiGap>().or_default().get_mut().vgap=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("margin_right",lib_scope,|c,v|{
+        c.margin.right=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("hexpand",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiExpand>().cloned().unwrap_or_default().hexpand)
+    entity_get_field3::<UiEdge>("margin_top",lib_scope,|c|{
+        uival_to_script_value(c.margin.top)
     });
-    entity_get_field("vexpand",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiExpand>().cloned().unwrap_or_default().vexpand)
-    });
-
-    entity_set_field_mut("hexpand",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiExpand>().or_default().get_mut().hexpand=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("vexpand",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiExpand>().or_default().get_mut().vexpand=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("margin_top",lib_scope,|c,v|{
+        c.margin.top=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("hfill",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiFill>().cloned().unwrap_or_default().hfill)
+    entity_get_field3::<UiEdge>("margin_bottom",lib_scope,|c|{
+        uival_to_script_value(c.margin.bottom)
     });
-    entity_get_field("vfill",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiFill>().cloned().unwrap_or_default().vfill)
-    });
-
-    entity_set_field_mut("hfill",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFill>().or_default().get_mut().hfill=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("vfill",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFill>().or_default().get_mut().vfill=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("margin_bottom",lib_scope,|c,v|{
+        c.margin.bottom=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("hscroll",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiScroll>().cloned().unwrap_or_default().hscroll)
+    //
+    entity_get_field3::<UiEdge>("border_left",lib_scope,|c|{
+        uival_to_script_value(c.border.left)
     });
-    entity_get_field("vscroll",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiScroll>().cloned().unwrap_or_default().vscroll)
-    });
-
-    entity_set_field_mut("hscroll",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiScroll>().or_default().get_mut().hscroll=script_value_to_uival(val)?; Ok(())
-    });
-    entity_set_field_mut("vscroll",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiScroll>().or_default().get_mut().vscroll=script_value_to_uival(val)?; Ok(())
+    entity_set_field_mut3::<UiEdge>("border_left",lib_scope,|c,v|{
+        c.border.left=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("float",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiFloat>().cloned().unwrap_or_default().float)
+    entity_get_field3::<UiEdge>("border_right",lib_scope,|c|{
+        uival_to_script_value(c.border.right)
+    });
+    entity_set_field_mut3::<UiEdge>("border_right",lib_scope,|c,v|{
+        c.border.right=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("float",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFloat>().or_default().get_mut().float=script_value_to_bool(val)?; Ok(())
+    entity_get_field3::<UiEdge>("border_top",lib_scope,|c|{
+        uival_to_script_value(c.border.top)
+    });
+    entity_set_field_mut3::<UiEdge>("border_top",lib_scope,|c,v|{
+        c.border.top=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("disable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiDisable>().cloned().unwrap_or_default().disable)
+    entity_get_field3::<UiEdge>("border_bottom",lib_scope,|c|{
+        uival_to_script_value(c.border.bottom)
+    });
+    entity_set_field_mut3::<UiEdge>("border_bottom",lib_scope,|c,v|{
+        c.border.bottom=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("disable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiDisable>().or_default().get_mut().disable=script_value_to_bool(val)?; Ok(())
+    //
+    entity_get_field3::<UiGap>("hgap",lib_scope,|c|{
+        uival_to_script_value(c.hgap)
+    });
+    entity_set_field_mut3::<UiGap>("hgap",lib_scope,|c,v|{
+        c.hgap=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("hide",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiHide>().cloned().unwrap_or_default().hide)
+    entity_get_field3::<UiGap>("vgap",lib_scope,|c|{
+        uival_to_script_value(c.vgap)
     });
-    entity_set_field_mut("hide",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiHide>().or_default().get_mut().hide=script_value_to_bool(val)?; Ok(())
-    });
-
-    entity_get_field("lock",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiLock>().cloned().unwrap_or_default().lock)
-    });
-    entity_set_field_mut("lock",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiLock>().or_default().get_mut().lock=script_value_to_bool(val)?; Ok(())
+    entity_set_field_mut3::<UiGap>("vgap",lib_scope,|c,v|{
+        c.vgap=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("span",lib_scope,|entity,world|{
-        Value::int(world.entity(entity).get::<UiSpan>().cloned().unwrap_or_default().span)
+    //
+    entity_get_field3::<UiExpand>("hexpand",lib_scope,|c|{
+        uival_to_script_value(c.hexpand)
     });
-    entity_set_field_mut("span",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSpan>().or_default().get_mut().span=script_value_to_uint(val)?; Ok(())
-    });
-
-    entity_get_field("halign",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiAlign>().cloned().unwrap_or_default().halign)
-    });
-    entity_get_field("valign",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiAlign>().cloned().unwrap_or_default().valign)
+    entity_set_field_mut3::<UiExpand>("hexpand",lib_scope,|c,v|{
+        c.hexpand=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("halign",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiAlign>().or_default().get_mut().halign=script_value_to_uival(val)?; Ok(())
+    entity_get_field3::<UiExpand>("vexpand",lib_scope,|c|{
+        uival_to_script_value(c.vexpand)
     });
-    entity_set_field_mut("valign",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiAlign>().or_default().get_mut().valign=script_value_to_uival(val)?; Ok(())
-    });
-
-    entity_get_field("width",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiSize>().cloned().unwrap_or_default().width)
-    });
-    entity_get_field("height",lib_scope,|entity,world|{
-        uival_to_script_value(world.entity(entity).get::<UiSize>().cloned().unwrap_or_default().height)
+    entity_set_field_mut3::<UiExpand>("vexpand",lib_scope,|c,v|{
+        c.vexpand=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("width",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSize>().or_default().get_mut().width=script_value_to_uival(val)?; Ok(())
+    //
+    entity_get_field3::<UiFill>("hfill",lib_scope,|c|{
+        uival_to_script_value(c.hfill)
     });
-    entity_set_field_mut("height",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSize>().or_default().get_mut().height=script_value_to_uival(val)?; Ok(())
-    });
-
-    entity_get_field("hoverable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiHoverable>().cloned().unwrap_or_default().enable)
+    entity_set_field_mut3::<UiFill>("hfill",lib_scope,|c,v|{
+        c.hfill=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("hoverable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiHoverable>().or_default().get_mut().enable=script_value_to_bool(val)?; Ok(())
+    entity_get_field3::<UiFill>("vfill",lib_scope,|c|{
+        uival_to_script_value(c.vfill)
+    });
+    entity_set_field_mut3::<UiFill>("vfill",lib_scope,|c,v|{
+        c.vfill=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("pressable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiPressable>().cloned().unwrap_or_default().enable)
+    //
+    entity_get_field3::<UiScroll>("hscroll",lib_scope,|c|{
+        uival_to_script_value(c.hscroll)
     });
-    entity_get_field("press_always",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiPressable>().cloned().unwrap_or_default().always)
-    });
-    entity_get_field("press_physical",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiPressable>().cloned().unwrap_or_default().physical)
+    entity_set_field_mut3::<UiScroll>("hscroll",lib_scope,|c,v|{
+        c.hscroll=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_set_field_mut("pressable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().enable=script_value_to_bool(val)?; Ok(())
+    entity_get_field3::<UiScroll>("vscroll",lib_scope,|c|{
+        uival_to_script_value(c.vscroll)
     });
-    entity_set_field_mut("press_always",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().always=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("press_physical",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiPressable>().or_default().get_mut().physical=script_value_to_bool(val)?; Ok(())
+    entity_set_field_mut3::<UiScroll>("vscroll",lib_scope,|c,v|{
+        c.vscroll=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("draggable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiDraggable>().cloned().unwrap_or_default().enable)
+    //
+    entity_get_field3::<UiFloat>("float",lib_scope,|c|{
+        Value::bool(c.float)
+    });
+    entity_set_field_mut3::<UiFloat>("float",lib_scope,|c,v|{
+        c.float=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_set_field_mut("draggable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiDraggable>().or_default().get_mut().enable=script_value_to_bool(val)?; Ok(())
+    //
+    entity_get_field3::<UiDisable>("disable",lib_scope,|c|{
+        Value::bool(c.disable)
+    });
+    entity_set_field_mut3::<UiDisable>("disable",lib_scope,|c,v|{
+        c.disable=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field("selectable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiSelectable>().cloned().unwrap_or_default().enable)
+    //
+    entity_get_field3::<UiDisable>("disable",lib_scope,|c|{
+        Value::bool(c.disable)
     });
-    entity_get_field("selected",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiSelectable>().cloned().unwrap_or_default().selected)
-    });
-    entity_get_field("select_group",lib_scope,|entity,world|{
-        Value::string(world.entity(entity).get::<UiSelectable>().cloned().unwrap_or_default().group)
+    entity_set_field_mut3::<UiDisable>("disable",lib_scope,|c,v|{
+        c.disable=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_set_field_mut("selectable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().enable=script_value_to_bool(val)?; Ok(())
+    //
+    entity_get_field3::<UiHide>("hide",lib_scope,|c|{
+        Value::bool(c.hide)
     });
-    entity_set_field_mut("selected",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().selected=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("select_group",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiSelectable>().or_default().get_mut().group=script_value_to_string(val)?; Ok(())
+    entity_set_field_mut3::<UiHide>("hide",lib_scope,|c,v|{
+        c.hide=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field("focusable",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().enable)
+    //
+    entity_get_field3::<UiLock>("lock",lib_scope,|c|{
+        Value::bool(c.lock)
     });
-    entity_get_field("focused",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().focused)
-    });
-    entity_get_field("focus_group",lib_scope,|entity,world|{
-        Value::int(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().group)
-    });
-    entity_get_field("focus_tab_exit",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().tab_exit)
-    });
-    entity_get_field("focus_hdir_exit",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().hdir_exit)
-    });
-    entity_get_field("focus_vdir_exit",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().vdir_exit)
-    });
-    entity_get_field("focus_hdir_wrap",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().hdir_wrap)
-    });
-    entity_get_field("focus_vdir_wrap",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().vdir_wrap)
-    });
-    entity_get_field("focus_hdir_press",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().hdir_press)
-    });
-    entity_get_field("focus_vdir_press",lib_scope,|entity,world|{
-        Value::bool(world.entity(entity).get::<UiFocusable>().cloned().unwrap_or_default().vdir_press)
+    entity_set_field_mut3::<UiLock>("lock",lib_scope,|c,v|{
+        c.lock=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_set_field_mut("focusable",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().enable=script_value_to_bool(val)?; Ok(())
+    //
+    entity_get_field3::<UiSpan>("span",lib_scope,|c|{
+        Value::int(c.span)
     });
-    entity_set_field_mut("focused",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().focused=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_group",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().group=script_value_to_int(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_tab_exit",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().tab_exit=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_hdir_exit",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_exit=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_vdir_exit",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_exit=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_hdir_wrap",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_wrap=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_vdir_wrap",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_wrap=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_hdir_press",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().hdir_press=script_value_to_bool(val)?; Ok(())
-    });
-    entity_set_field_mut("focus_vdir_press",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiFocusable>().or_default().get_mut().vdir_press=script_value_to_bool(val)?; Ok(())
+    entity_set_field_mut3::<UiSpan>("span",lib_scope,|c,v|{
+        c.span=script_value_to_uint(v)?; Ok(())
     });
 
-    entity_get_field("color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.back_color.get(&None)).cloned().unwrap_or(Color::NONE))
+    //
+    entity_get_field3::<UiAlign>("halign",lib_scope,|c|{
+        uival_to_script_value(c.halign)
     });
-    entity_set_field_mut("color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().back_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
+    entity_set_field_mut3::<UiAlign>("halign",lib_scope,|c,v|{
+        c.halign=script_value_to_uival(v)?; Ok(())
     });
 
-    entity_get_field("padding_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.padding_color.get(&None)).cloned().unwrap_or(Color::NONE))
+    entity_get_field3::<UiAlign>("valign",lib_scope,|c|{
+        uival_to_script_value(c.valign)
     });
-    entity_get_field("border_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.border_color.get(&None)).cloned().unwrap_or(Color::NONE))
+    entity_set_field_mut3::<UiAlign>("valign",lib_scope,|c,v|{
+        c.valign=script_value_to_uival(v)?; Ok(())
     });
-    entity_get_field("margin_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.margin_color.get(&None)).cloned().unwrap_or(Color::NONE))
+
+    //
+    entity_get_field3::<UiSize>("width",lib_scope,|c|{
+        uival_to_script_value(c.width)
     });
-    entity_get_field("cell_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.cell_color.get(&None)).cloned().unwrap_or(Color::NONE))
+    entity_set_field_mut3::<UiSize>("width",lib_scope,|c,v|{
+        c.width=script_value_to_uival(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiSize>("height",lib_scope,|c|{
+        uival_to_script_value(c.height)
+    });
+    entity_set_field_mut3::<UiSize>("height",lib_scope,|c,v|{
+        c.height=script_value_to_uival(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiHoverable>("hoverable",lib_scope,|c|{
+        Value::bool(c.enable)
+    });
+    entity_set_field_mut3::<UiHoverable>("hoverable",lib_scope,|c,v|{
+        c.enable=script_value_to_bool(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiPressable>("pressable",lib_scope,|c|{
+        Value::bool(c.enable)
+    });
+    entity_set_field_mut3::<UiPressable>("pressable",lib_scope,|c,v|{
+        c.enable=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiPressable>("press_always",lib_scope,|c|{
+        Value::bool(c.always)
+    });
+    entity_set_field_mut3::<UiPressable>("press_always",lib_scope,|c,v|{
+        c.always=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiPressable>("press_physical",lib_scope,|c|{
+        Value::bool(c.physical)
+    });
+    entity_set_field_mut3::<UiPressable>("press_physical",lib_scope,|c,v|{
+        c.physical=script_value_to_bool(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiDraggable>("draggable",lib_scope,|c|{
+        Value::bool(c.enable)
+    });
+    entity_set_field_mut3::<UiDraggable>("draggable",lib_scope,|c,v|{
+        c.enable=script_value_to_bool(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiSelectable>("selectable",lib_scope,|c|{
+        Value::bool(c.enable)
+    });
+    entity_set_field_mut3::<UiSelectable>("selectable",lib_scope,|c,v|{
+        c.enable=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiSelectable>("selected",lib_scope,|c|{
+        Value::bool(c.selected)
+    });
+    entity_set_field_mut3::<UiSelectable>("selected",lib_scope,|c,v|{
+        c.selected=script_value_to_bool(v)?; Ok(())
     });
 
 
-    entity_set_field_mut("padding_color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().padding_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
+    entity_get_field3::<UiSelectable>("select_group",lib_scope,|c|{
+        Value::string(&c.group)
     });
-    entity_set_field_mut("border_color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().border_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
-    });
-    entity_set_field_mut("margin_color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().margin_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
-    });
-    entity_set_field_mut("cell_color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().cell_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
+    entity_set_field_mut3::<UiSelectable>("select_group",lib_scope,|c,v|{
+        c.group=script_value_to_string(v)?; Ok(())
     });
 
-    entity_get_field("text_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiAffect>().and_then(|x|x.text_color.get(&None)).cloned().unwrap_or(Color::NONE))
+    //
+    entity_get_field3::<UiFocusable>("focusable",lib_scope,|c|{
+        Value::bool(c.enable)
     });
-    entity_set_field_mut("text_color",lib_scope,|entity,val,world|{
-        *world.entity_mut(entity).entry::<UiAffect>().or_default().get_mut().text_color.entry(None).or_default()=script_value_to_col(val)?; Ok(())
-    });
-
-
-    entity_get_field("image_color",lib_scope,|entity,world|{
-        col_to_script_value(world.entity(entity).get::<UiImage>().cloned().unwrap_or_default().color)
-    });
-    entity_get_field("image_width",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiImage>().cloned().unwrap_or_default().width_scale)
-    });
-    entity_get_field("image_height",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiImage>().cloned().unwrap_or_default().height_scale)
+    entity_set_field_mut3::<UiFocusable>("focusable",lib_scope,|c,v|{
+        c.enable=script_value_to_bool(v)?; Ok(())
     });
 
+    entity_get_field3::<UiFocusable>("focused",lib_scope,|c|{
+        Value::bool(c.focused)
+    });
+    entity_set_field_mut3::<UiFocusable>("focused",lib_scope,|c,v|{
+        c.focused=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_group",lib_scope,|c|{
+        Value::int(c.group)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_group",lib_scope,|c,v|{
+        c.group=script_value_to_int(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_tab_exit",lib_scope,|c|{
+        Value::bool(c.tab_exit)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_tab_exit",lib_scope,|c,v|{
+        c.tab_exit=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_hdir_exit",lib_scope,|c|{
+        Value::bool(c.hdir_exit)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_hdir_exit",lib_scope,|c,v|{
+        c.hdir_exit=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_vdir_exit",lib_scope,|c|{
+        Value::bool(c.vdir_exit)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_vdir_exit",lib_scope,|c,v|{
+        c.vdir_exit=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_hdir_wrap",lib_scope,|c|{
+        Value::bool(c.hdir_wrap)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_hdir_wrap",lib_scope,|c,v|{
+        c.hdir_wrap=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_vdir_wrap",lib_scope,|c|{
+        Value::bool(c.vdir_wrap)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_vdir_wrap",lib_scope,|c,v|{
+        c.vdir_wrap=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_hdir_press",lib_scope,|c|{
+        Value::bool(c.hdir_press)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_hdir_press",lib_scope,|c,v|{
+        c.hdir_press=script_value_to_bool(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiFocusable>("focus_vdir_press",lib_scope,|c|{
+        Value::bool(c.vdir_press)
+    });
+    entity_set_field_mut3::<UiFocusable>("focus_vdir_press",lib_scope,|c,v|{
+        c.vdir_press=script_value_to_bool(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiAffect>("color",lib_scope,|c|{
+        col_to_script_value(c.back_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("color",lib_scope,|c,v|{
+        *c.back_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiAffect>("padding_color",lib_scope,|c|{
+        col_to_script_value(c.padding_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("padding_color",lib_scope,|c,v|{
+        *c.padding_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiAffect>("margin_color",lib_scope,|c|{
+        col_to_script_value(c.margin_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("margin_color",lib_scope,|c,v|{
+        *c.margin_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiAffect>("border_color",lib_scope,|c|{
+        col_to_script_value(c.border_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("border_color",lib_scope,|c,v|{
+        *c.border_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiAffect>("cell_color",lib_scope,|c|{
+        col_to_script_value(c.cell_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("cell_color",lib_scope,|c,v|{
+        *c.cell_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiAffect>("text_color",lib_scope,|c|{
+        col_to_script_value(c.text_color.get(&None).cloned().unwrap_or(Color::NONE))
+    });
+    entity_set_field_mut3::<UiAffect>("text_color",lib_scope,|c,v|{
+        *c.text_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiImage>("image_color",lib_scope,|c|{
+        col_to_script_value(c.color)
+    });
+    entity_set_field_mut3::<UiImage>("image_color",lib_scope,|c,v|{
+        c.color=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiImage>("image_width",lib_scope,|c|{
+        Value::float(c.width_scale)
+    });
+    entity_set_field_mut3::<UiImage>("image_width",lib_scope,|c,v|{
+        c.width_scale=script_value_to_float(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiImage>("image_height",lib_scope,|c|{
+        Value::float(c.height_scale)
+    });
+    entity_set_field_mut3::<UiImage>("image_height",lib_scope,|c,v|{
+        c.height_scale=script_value_to_float(v)?; Ok(())
+    });
+
+    //
+    entity_get_field3::<UiText>("text",lib_scope,|c|{
+        Value::string(&c.value)
+    });
+    entity_set_field_mut3::<UiText>("text",lib_scope,|c,v|{
+        c.value=script_value_to_string(v)?; c.update=true; Ok(())
+    });
+
+    entity_get_field3::<UiText>("font_size",lib_scope,|c|{
+        Value::float(c.font_size)
+    });
+    entity_set_field_mut3::<UiText>("font_size",lib_scope,|c,v|{
+        c.font_size=script_value_to_float(v)?; c.update=true; Ok(())
+    });
+
+    entity_get_field3::<UiText>("text_hlen",lib_scope,|c|{
+        Value::int(c.hlen)
+    });
+    entity_set_field_mut3::<UiText>("text_hlen",lib_scope,|c,v|{
+        c.hlen=script_value_to_uint(v)?; c.update=true; Ok(())
+    });
+
+    entity_get_field3::<UiText>("text_vlen",lib_scope,|c|{
+        Value::int(c.vlen)
+    });
+    entity_set_field_mut3::<UiText>("text_vlen",lib_scope,|c,v|{
+        c.vlen=script_value_to_uint(v)?; c.update=true; Ok(())
+    });
+
+    entity_get_field3::<UiText>("text_halign",lib_scope,|c|{
+        Value::string(c.halign.as_str())
+    });
+    entity_set_field_mut3::<UiText>("text_halign",lib_scope,|c,v|{
+        let v=v.get_string().and_then(|v|v.as_str().parse().ok()).ok_or_else(||MachineError::method("expected halign"))?;
+        c.halign=v; c.update=true; Ok(())
+    });
+
+    entity_get_field3::<UiText>("text_valign",lib_scope,|c|{
+        Value::string(c.valign.as_str())
+    });
+    entity_set_field_mut3::<UiText>("text_valign",lib_scope,|c,v|{
+        let v=v.get_string().and_then(|v|v.as_str().parse().ok()).ok_or_else(||MachineError::method("expected valign"))?;
+        c.valign=v; c.update=true; Ok(())
+    });
+
+    //
     entity_set_field_mut("image",lib_scope,|entity,val,world|{
         let handle=world.resource::<AssetServer>().load(PathBuf::from(script_value_to_string(val)?));
-        world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().handle=handle;
-        Ok(())
-    });
-    entity_set_field_mut("image_color",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().color=script_value_to_col(val)?; Ok(())
-    });
-    entity_set_field_mut("image_width",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().width_scale=script_value_to_float(val)?; Ok(())
-    });
-    entity_set_field_mut("image_height",lib_scope,|entity,val,world|{
-        world.entity_mut(entity).entry::<UiImage>().or_default().get_mut().height_scale=script_value_to_float(val)?; Ok(())
-    });
-
-    entity_get_field("text",lib_scope,|entity,world|{
-        Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().value)
-    });
-    entity_get_field("font_size",lib_scope,|entity,world|{
-        Value::float(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().font_size)
-    });
-    entity_get_field("text_hlen",lib_scope,|entity,world|{
-        Value::int(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().hlen)
-    });
-    entity_get_field("text_vlen",lib_scope,|entity,world|{
-        Value::int(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().vlen)
-    });
-    entity_get_field("text_halign",lib_scope,|entity,world|{
-        Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().halign.to_string())
-    });
-    entity_get_field("text_valign",lib_scope,|entity,world|{
-        Value::string(world.entity(entity).get::<UiText>().cloned().unwrap_or_default().valign.to_string())
-    });
-
-    entity_set_field_mut("text",lib_scope,|entity,val,world|{
         let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
+        let mut c=e.entry::<UiImage>().or_default();
         let mut c=c.get_mut();
-        c.value=script_value_to_string(val)?;
-        c.update=true;
-        Ok(())
+
+        c.handle=handle; Ok(())
     });
+
     entity_set_field_mut("font",lib_scope,|entity,val,world|{
         let handle=world.resource::<AssetServer>().load(PathBuf::from(script_value_to_string(val)?));
         let mut e=world.entity_mut(entity);
         let mut c=e.entry::<UiText>().or_default();
         let mut c=c.get_mut();
-        c.font=handle;
-        c.update=true;
-        Ok(())
+
+        c.font=handle; c.update=true; Ok(())
     });
-    entity_set_field_mut("font_size",lib_scope,|entity,val,world|{
-        let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
-        let mut c=c.get_mut();
-        c.font_size=script_value_to_float(val)?;
-        c.update=true;
-        Ok(())
-    });
-    entity_set_field_mut("text_hlen",lib_scope,|entity,val,world|{
-        let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
-        let mut c=c.get_mut();
-        c.hlen=script_value_to_uint(val)?;
-        c.update=true;
-        Ok(())
-    });
-    entity_set_field_mut("text_vlen",lib_scope,|entity,val,world|{
-        let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
-        let mut c=c.get_mut();
-        c.vlen=script_value_to_uint(val)?;
-        c.update=true;
-        Ok(())
-    });
-    entity_set_field_mut("text_halign",lib_scope,|entity,val,world|{
-        let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
-        let mut c=c.get_mut();
-        c.halign=val.get_parse().ok_or_else(||MachineError::method("expected halign"))?;
-        c.update=true;
-        Ok(())
-    });
-    entity_set_field_mut("text_valign",lib_scope,|entity,val,world|{
-        let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
-        let mut c=c.get_mut();
-        c.valign=val.get_parse().ok_or_else(||MachineError::method("expected valign"))?;
-        c.update=true;
-        Ok(())
-    });
+
+    //
 
     //get node.parent
     entity_get_field_mut("parent",lib_scope,|entity,world|{
@@ -727,7 +782,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
     //env(entity,str,int?)
     lib_scope.method("env",|context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let name=context.param(1).get_string().unwrap();
         let ind=context.param(1).as_int();
 
@@ -749,7 +804,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //get_field(env,str)
     lib_scope.field_no_symbols(|context|{
         let env:Env= context.param(0).as_custom().data_clone()?;
-        // let entity=env.entity.as_custom().data_copy::<Entity>()?;
+        // let entity=env.entity.as_custom().data_clone::<Entity>()?;
         let name=context.param(1).get_string().unwrap();
 
         Ok(Value::custom_unmanaged(EnvEntry{ entity: env.entity, name }))
@@ -761,7 +816,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let ind=context.param(1).as_int();
 
         let world=context.core();
-        let entity:Entity=env_entry.entity.as_custom().data_copy()?;
+        let entity:Entity=env_entry.entity.as_custom().data_clone()?;
         // if let Some(v)=world.entity(entity).get::<UixEnv>().and_then(|c|c.env.get(&env_entry.name)) {
         //     if let Some(ind)=calc_ind(ind,v.len()) {
         //         return Ok(v[ind].clone());
@@ -791,7 +846,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
     //add_child(entity)
     lib_scope.method("add_child",|mut context|{
-        let parent_entity:Entity = context.param(0).as_custom().data_copy()?;
+        let parent_entity:Entity = context.param(0).as_custom().data_clone()?;
         let names = HashSet::<StringT>::from_iter((1..context.params_num()).map(|i|context.param(i).get_string().unwrap()));
         let world=context.core_mut();
         let child_entity=world.spawn(( UiLayoutComputed::default(), )).id();
@@ -821,7 +876,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
     //child(entity,int)
     lib_scope.method("child",|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let child_ind=context.param(1).as_int();
         let world=context.core_mut();
 
@@ -841,7 +896,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //children_num(entity)
     lib_scope.method("children_num",|context|{
         let world=context.core();
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
 
         let n=world.entity(entity).get::<Children>().map(|children|children.len()).unwrap_or_default();
 
@@ -850,7 +905,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
     //remove(entity)
     lib_scope.method("remove",|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         // let entity_val=context.param(0);
         let world=context.core_mut();
 
@@ -863,7 +918,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
                         if let Some(v)=c.env.get_mut(&n) {
                             if let Some(p)=v.iter().position(|x|{
-                                x.as_custom().data_copy::<Entity>().map(|x|x==entity).unwrap_or_default()
+                                x.as_custom().data_clone::<Entity>().map(|x|x==entity).unwrap_or_default()
                             }) {
                                 v.remove(p);
                                 b=v.is_empty();
@@ -892,7 +947,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
 
     //parent(entity)
     lib_scope.method("parent",|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
 
         let world=context.core_mut();
         let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) else { return Ok(Value::Nil); };
@@ -905,13 +960,13 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //string(entity)
     lib_scope.method("string",|mut context|{
         let world=context.core_mut();
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         Ok(Value::string(format!("{entity}")))
     }).custom_ref::<Entity>().end();
 
     //send(entity,str,any ...)
     lib_scope.method("send",|mut context|{
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let event = context.param(1).get_string().unwrap();
         let params=(2..context.params_num()).map(|i|context.param(i).clone_root()).collect();
         let world=context.core_mut();
@@ -922,7 +977,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //call(stuff,ind,entity)
     lib_scope.method("call",|mut context|{
         let stuff=context.param(0).as_custom();
-        let top_entity:Entity = context.param(2).as_custom().data_copy()?;
+        let top_entity:Entity = context.param(2).as_custom().data_clone()?;
         let stub_ind=context.param(1).as_int().abs() as usize;
 
         let world=context.core_mut();
@@ -1002,7 +1057,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //
     lib_scope.method("add_event_listener",|mut context|{
 
-        let entity:Entity = context.param(0).as_custom().data_copy()?;
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
         let event=context.param(1).get_string().unwrap();
         let listener=context.param(2);
 
