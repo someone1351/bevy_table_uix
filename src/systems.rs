@@ -9,18 +9,19 @@ use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
 use table_ui::*;
-use crate::script_stuff::self_entity_from_world;
+use crate::resources::UixGcScope;
+use crate::resources::UixLibScope;
+// use crate::script_stuff::self_entity_from_world;
 
-use super::script_stuff::UixGcScope;
 
-use super::event::UixUserEvent;
-use super::resources::UiModifiedAssets;
-use super::script_stuff::UixLibScope;
+use super::events::*;
+use super::resources::*;
+use super::utils::*;
 
 use super::assets::*;
 use super::components::*;
 // use super::resources::*;
-use super::utils::*;
+use super::loading::*;
 
 
 pub fn on_asset_modified_event(
@@ -107,7 +108,7 @@ pub fn on_asset_load<'a>(
             // .despawn_descendants()
             .despawn_related::<Children>()
 
-            .remove::<UixEnv>()
+            // .remove::<UixEnv>()
             ;
 
         if let Ok(mut x)=event_listeners_query.get_mut(top_entity) {

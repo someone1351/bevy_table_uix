@@ -1026,3 +1026,184 @@ fn node_set_field(mut context:FuncContext<World>) -> Result<Value,MachineError> 
         let world=context.core();
         Ok(uival_to_script_value(world.entity(entity).get::<UiGap>().cloned().unwrap_or_default().hgap))
     }).custom_ref::<Entity>().end();
+	
+	
+	
+
+    // lib_scope.field_no_symbols(node_get_field)
+    //     .custom_ref::<Entity>().any().end();
+
+    // lib_scope.field_no_symbols(node_set_field)
+    //     .custom_ref::<Entity>().any().any().end();
+
+
+    //env(entity,str,int?)
+    lib_scope.method("env",|context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let name=context.param(1).get_string().unwrap();
+        let ind=context.param(1).as_int();
+
+        let world=context.core();
+
+        if let Some(c)=world.entity(entity).get::<UixEnv>() {
+            if let Some(v)=c.env.get(&name) { //.and_then(|v|v.get(field)).cloned()
+                if let Some(ind)=calc_ind(ind,v.len()) {
+                    // return Ok(Value::custom_unmanaged(v[ind]));
+                    return Ok(v[ind].clone());
+                }
+            }
+        }
+
+
+        Ok(Value::Nil)
+    }).custom_ref::<Entity>().str().optional().int().end();
+
+    //get_field(env,str)
+    lib_scope.field_no_symbols(|context|{
+        let env:Env= context.param(0).as_custom().data_clone()?;
+        // let entity=env.entity.as_custom().data_clone::<Entity>()?;
+        let name=context.param(1).get_string().unwrap();
+
+        Ok(Value::custom_unmanaged(EnvEntry{ entity: env.entity, name }))
+    }).custom_ref::<Env>().str().end();
+
+    //get_field(env_entry,int)
+    lib_scope.field_no_symbols(|context|{
+        let env_entry:EnvEntry= context.param(0).as_custom().data_clone()?;
+        let ind=context.param(1).as_int();
+
+        let world=context.core();
+        let entity:Entity=env_entry.entity.as_custom().data_clone()?;
+        // if let Some(v)=world.entity(entity).get::<UixEnv>().and_then(|c|c.env.get(&env_entry.name)) {
+        //     if let Some(ind)=calc_ind(ind,v.len()) {
+        //         return Ok(v[ind].clone());
+        //     }
+        // }
+        if let Some(c)=world.entity(entity).get::<UixEnv>() {
+            println!("1");
+            if let Some(v)=c.env.get(&env_entry.name) {
+            println!("2");
+                if let Some(ind)=calc_ind(ind,v.len()) {
+            println!("3");
+                    // return Ok(Value::custom_unmanaged(v[ind]));
+                    return Ok(v[ind].clone());
+                }
+            }
+        }
+
+            println!("4");
+        Ok(Value::Nil)
+    }).custom_ref::<EnvEntry>().int().end();
+
+    //
+    lib_scope.field_no_symbols(|context|{
+        //do nothing
+        Ok(Value::Void)
+    }).custom_ref::<EnvEntry>().int().any().end();
+
+    //add_child(entity)
+    lib_scope.method("add_child",|mut context|{
+        let parent_entity:Entity = context.param(0).as_custom().data_clone()?;
+        let names = HashSet::<StringT>::from_iter((1..context.params_num()).map(|i|context.param(i).get_string().unwrap()));
+        let world=context.core_mut();
+        let child_entity=world.spawn(( UiLayoutComputed::default(), )).id();
+
+        {
+            if !names.is_empty() {
+                let mut e=world.entity_mut(child_entity);
+                e.insert((UixName{ names:names.clone() },));
+            }
+
+            let parent_entity_val=self_entity_from_world(world, parent_entity);
+            let mut e=world.entity_mut(parent_entity);
+
+            e.add_child(child_entity);
+
+            let mut env=e.entry::<UixEnv>().or_default();
+
+            for n in names.iter() {
+                env.get_mut().env.entry(n.clone()).or_default().push(parent_entity_val.clone());
+            }
+        }
+
+        let child_entity_val=self_entity_from_world(world, child_entity);
+        Ok(child_entity_val)
+        // Ok(Value::custom_unmanaged(child_entity))
+    }).custom_ref::<Entity>().optional().str().variadic_end();
+
+    //child(entity,int)
+    lib_scope.method("child",|mut context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let child_ind=context.param(1).as_int();
+        let world=context.core_mut();
+
+        if child_ind>=0 {
+            if let Some(children)=world.entity(entity).get::<Children>() {
+                if let Some(&child_entity)=children.get(child_ind as usize) {
+                    let child_entity_val=self_entity_from_world(world, child_entity);
+                    return Ok(child_entity_val);
+                    // return Ok(Value::custom_unmanaged(child_entity));
+                }
+            }
+        }
+
+        Ok(Value::Nil)
+    }).custom_ref::<Entity>().int().end();
+
+    //children_num(entity)
+    lib_scope.method("children_num",|context|{
+        let world=context.core();
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+
+        let n=world.entity(entity).get::<Children>().map(|children|children.len()).unwrap_or_default();
+
+        Ok(Value::int(n))
+    }).custom_ref::<Entity>().end();
+	
+
+        if let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|c|c.parent()) {
+            if let Some(names)=world.get::<UixName>(entity).map(|c|c.names.clone()) {
+                if let Some(mut c)=world.get_mut::<UixEnv>(entity) {
+                    for n in names {
+                        let mut b=false;
+
+                        if let Some(v)=c.env.get_mut(&n) {
+                            if let Some(p)=v.iter().position(|x|{
+                                x.as_custom().data_clone::<Entity>().map(|x|x==entity).unwrap_or_default()
+                            }) {
+                                v.remove(p);
+                                b=v.is_empty();
+                            }
+                        }
+
+                        if b {
+                            c.env.remove(&n);
+                        }
+                    }
+                }
+            }
+        }
+		
+// #[derive(Clone)]
+// struct Env {
+//     entity:script_lang::Value,
+// }
+// #[derive(Clone)]
+// struct EnvEntry {
+//     entity:script_lang::Value,
+//     name:script_lang::StringT,
+// }
+// pub fn calc_ind(ind : IntT , len:usize) -> Option<usize> {
+//     let len : IntT = len.try_into().unwrap_or_default();
+
+//     if ind >= len || (ind < 0 && ind.abs() > len) {
+//         None
+//     } else {
+//         let ind = if ind<0 {len+ind} else {ind};
+//         Some(ind.try_into().unwrap_or_default())
+//     }
+// }
+
+    // pub fn new(entity:Entity) -> Self {
+    //     Self { entity: script_lang::Value::custom_rc(entity) }
+    // }

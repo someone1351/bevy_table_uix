@@ -31,11 +31,11 @@ pub struct UixName {
     pub names : HashSet<script_lang::StringT>,
 }
 
-#[derive(Component,Default)]
-#[require(UiLayoutComputed)]
-pub struct UixEnv {
-    pub env : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
-}
+// #[derive(Component,Default)]
+// #[require(UiLayoutComputed)]
+// pub struct UixEnv {
+//     pub env : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
+// }
 
 #[derive(Component,)]
 #[require(UiLayoutComputed)]

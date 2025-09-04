@@ -2,7 +2,7 @@
 use bevy::prelude::*;
 
 use super::{
-    assets::*, event::UixUserEvent, resources::*, script_stuff::{UixGcScope, UixLibScope}, systems::*
+    assets::*, events::UixUserEvent, resources::*,  systems::*
 };
 
 
