@@ -696,30 +696,30 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //set node.parent=parent
     // entity_set_field_mut("parent",lib_scope,|entity,val,world|{
 
-    lib_scope.field_named("parent",|mut context|{
-        //only necessary for the "set chain", doesn't actually set the parent
+    // lib_scope.field_named("parent",|mut context|{
+    //     //only necessary for the "set chain", doesn't actually set the parent
 
-        let entity=context.param(0).as_custom().data_clone::<Entity>()?;
-        let in_parent_val=context.param(1);
+    //     let entity=context.param(0).as_custom().data_clone::<Entity>()?;
+    //     let in_parent_val=context.param(1);
 
-        let world=context.core_mut();
+    //     let world=context.core_mut();
 
-        if world.entity(entity).contains::<UiRoot>() {
-            return Err(MachineError::method("Can't set parent"));
-        }
+    //     if world.entity(entity).contains::<UiRoot>() {
+    //         return Err(MachineError::method("Can't set parent"));
+    //     }
 
-        let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) else {
-            return Err(MachineError::method("Can't set parent"));
-        };
+    //     let Some(parent_entity)=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent()) else {
+    //         return Err(MachineError::method("Can't set parent"));
+    //     };
 
-        let in_parent_entity:Entity=in_parent_val.as_custom().data_clone()?;
+    //     let in_parent_entity:Entity=in_parent_val.as_custom().data_clone()?;
 
-        if parent_entity!=in_parent_entity {
-            return Err(MachineError::method("Can't set parent"));
-        }
+    //     if parent_entity!=in_parent_entity {
+    //         return Err(MachineError::method("Can't set parent"));
+    //     }
 
-        Ok(Value::Void)
-    }).custom_ref::<Entity>().custom_ref::<Entity>().end();
+    //     Ok(Value::Void)
+    // }).custom_ref::<Entity>().custom_ref::<Entity>().end();
 
     #[derive(Clone)]
     struct NodeChildren { entity:Value, }
@@ -732,22 +732,22 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         Ok(Value::custom_unmanaged(NodeChildren{entity:entity_val.clone()}))
     }).custom_ref::<Entity>().end();
 
-    //set node.children=children
-    lib_scope.field_named("children",|mut context|{
-        //only necessary for the "set chain", doesn't actually set the children
+    // //set node.children=children
+    // lib_scope.field_named("children",|mut context|{
+    //     //only necessary for the "set chain", doesn't actually set the children
 
-        let entity_val=context.param(0);
-        let children_val=context.param(1);
+    //     let entity_val=context.param(0);
+    //     let children_val=context.param(1);
 
-        let entity=entity_val.as_custom().data_clone::<Entity>()?;
-        let entity2=children_val.as_custom().data_clone::<Entity>()?;
+    //     let entity=entity_val.as_custom().data_clone::<Entity>()?;
+    //     let entity2=children_val.as_custom().data_clone::<Entity>()?;
 
-        if entity!=entity2 {
-            return Err(MachineError::method("Can't set children"));
-        }
+    //     if entity!=entity2 {
+    //         return Err(MachineError::method("Can't set children"));
+    //     }
 
-        Ok(Value::Void)
-    }).custom_ref::<Entity>().custom_ref::<NodeChildren>().end();
+    //     Ok(Value::Void)
+    // }).custom_ref::<Entity>().custom_ref::<NodeChildren>().end();
 
     //get node.children(int)
     lib_scope.field(|mut context|{

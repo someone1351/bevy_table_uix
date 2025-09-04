@@ -32,6 +32,8 @@ node
                 println "col {}" self.color.rgb
                 set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
                 set a (+ a 0.1)
-                println self.parent.children.x.0
+                #println self.parent.children.x.0
+                println self.parent.children.0
+                set self.parent.children.0.hide true
             }]
 
