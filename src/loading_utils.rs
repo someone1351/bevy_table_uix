@@ -13,11 +13,9 @@ use std::collections::{BTreeMap, BTreeSet};
 // #![allow(unused_imports)]
 // #![allow(unused_assignments)]
 // #[allow(unused_parens)]
-use std::fmt::Debug;
 use core::panic;
 use std::cmp::Ordering;
 // use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-use std::fmt::Display;
 // use std::fmt::format;
 use std::ops::Range;
 use std::path::PathBuf;
@@ -32,78 +30,12 @@ use bevy_table_ui as table_ui;
 // use ron::de;
 use table_ui::*;
 // use super::script_stuff::{AttribFunc, Stuff};
-use super::values::*;
+use super::script_vals::*;
 
 use super::assets::*;
 
+use super::loading_vals::*;
 
-//
-#[derive(Debug,Clone,Default)]
-pub struct ElementAttribCalc {
-    in_template : Option<usize>, //template_use_id
-    in_apply : Option<usize>, //apply_decl_id
-    used:bool,
-    ok:bool,
-}
-
-#[derive(Debug,Clone)]
-pub enum ElementType<'a> {
-    // Root,
-    Node {
-        names : HashSet<&'a str>,
-        ignore_applies : HashSet<usize>, //apply_decl_id
-    },
-    Attrib {
-        name : &'a str,
-        on_state: Option<UiAffectState>,
-        in_template: Option<usize>,
-        func : AttribFunc,
-        in_node : bool,
-        calcd:ElementAttribCalc,
-    },
-    Script {
-        record : RecordContainer<'a>,
-    },
-    Apply {
-        name : &'a str, //text_ind
-        owner_apply_decl_id : Option<usize>, //element_ind
-        used:bool,
-    },
-    ApplyUse {
-        apply_decl_element_ind:usize,
-    },
-    TemplateDecl {
-        name : &'a str, //text_ind
-        used:bool,
-    },
-    TemplateUse {
-        template_decl_element_ind:usize,
-    },
-    Stub {
-        name : &'a str,
-    },
-    // From {
-    //     element_ind:usize,
-    // }
-    // CalcApplyUse {
-    //     apply_element_ind:usize,
-    // }
-    //CalcNode? what to do with its applies?
-}
-
-#[derive(Debug,Clone)]
-pub struct Element<'a> {
-    element_type:ElementType<'a>,
-    children : Vec<usize>,
-    applies : Vec<usize>, //element_ind
-    apply_after : usize, //parent_apply_ind
-    calcd_from_element_ind : Option<usize>, //element_ind
-    calcd_node_params:BTreeSet<usize>, //element_ind
-    calcd_created_from : usize,
-    calcd_original : Option<usize>,
-    has_script:bool,
-    has_apply_script:bool,
-}
 
 fn make_attrib_func<T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(func : impl Fn(&mut T)+Send+Sync+'static) -> Arc<dyn Fn(Entity,&mut World)+Send+Sync > {
     Arc::new(move |entity:Entity,world: &mut World| {
@@ -1057,16 +989,17 @@ fn do_attribs<'a>(
     }
 
 }
+
+
 pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently used?
 
-    struct Work{element_ind:usize,depth:usize,}
-    let mut work_stk=vec![Work{ element_ind: 0, depth:0 }];
+    let mut work_stk=vec![CalcNodeApplyIgnoresWork{ element_ind: 0, depth:0 }];
 
     let mut ancestor_stk: Vec<usize> = Vec::new(); //element_ind
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
-        work_stk.extend(cur_element.children.iter().rev().map(|&c|Work { element_ind: c,depth:cur_work.depth+1 }));
+        work_stk.extend(cur_element.children.iter().rev().map(|&c|CalcNodeApplyIgnoresWork { element_ind: c,depth:cur_work.depth+1 }));
         ancestor_stk.truncate(cur_work.depth);
 
         /*
@@ -1170,31 +1103,7 @@ pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently use
 
 pub fn calc_applies(elements:&mut Vec<Element>) {
 
-    struct Thing { //
-        applies : Vec<(
-            usize, //apply_element_ind
-            usize, //from_element_ind
-        )>, //apply_element_ind, from_apply_use_element_ind
-        apply_after:usize,
-        element_ind:usize,
-    }
-
-    #[derive(Clone)]
-    struct Work {
-        element_ind:usize,
-        from_applies:HashSet<usize>, //apply_element_ind
-        in_template:Option<usize>, //template_use_id
-        in_apply:Option<usize>, //apply_decl_id
-        new_from_parent:Option<usize>, //element_ind
-        thing_apply_after_offset:usize, //Option<usize>,
-
-        node_depth:usize,
-        thing_depth:usize,
-
-        created_from:usize,
-    }
-
-    let mut work_stk=vec![Work{
+    let mut work_stk=vec![CalcAppliesWork{
         element_ind:0,
         in_template:None,
         in_apply:None,
@@ -1208,7 +1117,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         created_from:0,
     }];
 
-    let mut things: Vec<Thing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
+    let mut things: Vec<CalcAppliesThing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
     let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
     while let Some(cur_work)=work_stk.pop() {
@@ -1483,7 +1392,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 cur_work.in_template //why this?
                             };
 
-                            Work{
+                            CalcAppliesWork{
                                 element_ind: child_element_ind,
                                 in_template,
                                 in_apply,
@@ -1537,7 +1446,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                         if let ElementType::ApplyUse { .. } =&child_element.element_type {
                             None
                         } else {
-                            let w=Work{
+                            let w=CalcAppliesWork{
                                 element_ind: child_element_ind,
                                 from_applies:cur_work.from_applies.clone(),
                                 in_apply:cur_work.in_apply,
@@ -1553,7 +1462,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::Stub { .. } => {
-                    work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
+                    work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|CalcAppliesWork{
                         element_ind: child_element_ind,
                         from_applies:cur_work.from_applies.clone(),
                         in_apply:cur_work.in_apply,
@@ -1577,7 +1486,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                             Some(cur_element_ind)
                         };
 
-                        Work{
+                        CalcAppliesWork{
                             element_ind: child_element_ind,
                             from_applies:cur_work.from_applies.clone(),
                             in_apply:cur_work.in_apply,
@@ -1605,14 +1514,14 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
             match &cur_element.element_type {
                 ElementType::Node {  ..  } => {
-                    things.push(Thing {
+                    things.push(CalcAppliesThing {
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
                         element_ind:cur_element_ind,
                     });
                 }
                 ElementType::Stub { .. } => {
-                    things.push(Thing {
+                    things.push(CalcAppliesThing {
                         // applies: Vec::new(), //new_applies, //doesn't use new applies? should be empty anyway
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
@@ -1620,7 +1529,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     });
                 }
                 ElementType::TemplateUse { .. } => {
-                    things.push(Thing {
+                    things.push(CalcAppliesThing {
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
                         element_ind:cur_element_ind,
@@ -1633,26 +1542,21 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
 }
 
 
-pub fn calc_node_params(elements:&mut Vec<Element>) {
-    #[derive(Clone)]
-    struct Work {
-        element_ind:usize,
-        exit:bool,
-        parent:Option<usize>,
-        in_decl:bool,
-    }
 
-    let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_decl:false, }];
+pub fn calc_node_params(elements:&mut Vec<Element>) {
+
+
+    let mut work_stk=vec![CalcNodeParamsWork { element_ind:0, exit:false, parent:None,in_decl:false, }];
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
         if !cur_work.exit {
-            work_stk.push(Work{exit:true, ..cur_work.clone()});
+            work_stk.push(CalcNodeParamsWork{exit:true, ..cur_work.clone()});
 
             let in_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {true} else {cur_work.in_decl};
 
-            work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
+            work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|CalcNodeParamsWork {
                 element_ind,
                 exit:false,
                 parent:Some(cur_work.element_ind),
@@ -1717,6 +1621,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
 }
 
 
+
 pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
     let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
@@ -1725,14 +1630,9 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
 
     //
-    #[derive(Clone)]
-    struct Work {
-        element_ind:usize,
-        parent:Option<usize>,
-        stub:Option<usize>,
-    }
 
-    let mut work_stk=vec![Work{ element_ind: 0, parent:None,stub:None,}];
+
+    let mut work_stk=vec![GenStubsWork{ element_ind: 0, parent:None,stub:None,}];
     let mut creates:BTreeMap<usize,BTreeMap<usize,usize>>= BTreeMap::new(); //[root/stub][node]=parent
     let mut attribs:HashMap<usize,Vec<AttribFunc>> = HashMap::new(); //[element_ind]=attribs
     let mut element_ind_inds: HashMap<usize,usize>=HashMap::new(); //[element_ind]=ind;
@@ -1776,7 +1676,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
                 cur_work.parent
             };
 
-            work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
+            work_stk.extend(cur_element.children.iter().rev().map(|&child|GenStubsWork {
                 element_ind: child, parent, stub,
             }));
         }
@@ -1992,195 +1892,14 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
 
 
 
-#[derive(Debug)]
-pub enum ScriptSyntaxTemplateUseOrApplyDecl {
-    ApplyDecl(usize),
-    TemplateUse(usize),
-}
-
-
-
-#[derive(Debug)]
-pub enum ScriptSyntaxNodeOrApplyUse {
-    Node(usize),
-    ApplyUse(usize),
-}
-// pub enum ScriptSyntaxDecl {
-//     Node,
-//     Apply,
-//     Template,
-// }
-
-#[derive(Debug)]
-pub enum ScriptSyntaxNodeOrApplyOrTemplate {
-    Node(usize),
-    Apply(usize),
-    Template(usize),
-}
-
-
-pub struct ScriptSyntaxNode(usize);
-
-impl Debug for ScriptSyntaxNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Node").field(&self.0).finish()
-    }
-}
-pub struct ScriptSyntaxTemplateUse(usize);
-
-impl Debug for ScriptSyntaxTemplateUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TemplateUse").field(&self.0).finish()
-    }
-}
-pub struct ScriptSyntaxTemplateDecl(usize);
-
-impl Debug for ScriptSyntaxTemplateDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TemplateDecl").field(&self.0).finish()
-    }
-}
-pub struct ScriptSyntaxApplyDecl(usize);
-
-impl Debug for ScriptSyntaxApplyDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ApplyDecl").field(&self.0).finish()
-    }
-}
-pub struct ScriptSyntaxApplyUse(usize);
-
-
-impl Debug for ScriptSyntaxApplyUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ApplyUse").field(&self.0).finish()
-    }
-}
-impl Display for ScriptSyntaxNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-
-impl Display for ScriptSyntaxTemplateUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-impl Display for ScriptSyntaxTemplateDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-
-impl Display for ScriptSyntaxApplyDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-impl Display for ScriptSyntaxApplyUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-pub enum ScriptSyntax {
-    Root {
-        children:Vec<usize>,
-    },
-    // InitStub {
-    //     name:String,
-    //     children:Vec<usize>,
-    // },
-    // InitVar {name:String,},
-
-    Insert {
-        path:Option<PathBuf>,
-        loc :conf_lang::Loc,
-        insert : String,
-    },
-
-
-
-    Decl {
-        // decl : ScriptSyntaxDecl,
-        name : ScriptSyntaxNodeOrApplyOrTemplate, //element_ind
-        params : Vec<ScriptSyntaxNode>, //node element_inds
-        children:Vec<usize>, //syntax_inds
-        returns : Vec<(
-            Option<ScriptSyntaxNode>, //node_element_ind
-            ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
-        )>,
-    },
-
-    Stub {
-        name : String,
-        children:Vec<usize>, //syntax_inds
-    },
-
-    CallStub {
-        is_root:bool,
-        stub : usize,//element_ind
-
-    },
-    CallTemplate {
-        ret : Option<ScriptSyntaxTemplateUse>, //template_use_element_ind
-        func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
-    },
-    CallApply {
-        ret : Option<ScriptSyntaxApplyUse>, //apply_use_element_ind
-        func_froms : Option<(
-            ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
-            Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
-        )>,
-        func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
-    },
-    CallNode {
-        ret:bool,
-        in_func:bool, //inside template_decl, apply_decl or node
-        func : ScriptSyntaxNode, //node_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
-    },
-}
-
-impl ScriptSyntax {
-    pub fn get_children(&self) -> Option<&Vec<usize>> {
-        match self {
-            ScriptSyntax::Root{children}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
-            _ =>None,
-        }
-    }
-    pub fn get_children_mut(&mut self) -> Option<&mut Vec<usize>> {
-        match self {
-            ScriptSyntax::Root{children}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
-            _ =>None,
-        }
-    }
-}
-
 pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new() }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
-    #[derive(Clone)]
-    struct Work {
-        element_ind:usize,
-        depth:usize,
-        exit:bool,
-        parent:Option<usize>,
-        in_a_use:bool,
-        inside:Option<usize>,
-    }
 
-    let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];
+    let mut work_stk=vec![GenScriptSyntaxTreeWork{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];
 
-    struct ApplyCallStkItem {
-        inside_element_ind:Option<usize>,
-        parent_element_ind:usize,
-        apply_use_element_ind:usize,
-    }
-
-    let mut apply_calls_stk: Vec<Vec<ApplyCallStkItem>> = Vec::new();
+    let mut apply_calls_stk: Vec<Vec<GenScriptSyntaxTreeApplyCallStkItem>> = Vec::new();
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
@@ -2206,8 +1925,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     cur_work.inside
                 };
 
-                work_stk.push(Work{exit:true, ..cur_work.clone()});
-                work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
+                work_stk.push(GenScriptSyntaxTreeWork{exit:true, ..cur_work.clone()});
+                work_stk.extend(cur_element.children.iter().rev().map(|&child|GenScriptSyntaxTreeWork {
                     element_ind: child, depth: cur_work.depth+1, exit:false,
                     parent:Some(cur_work.element_ind),
                     in_a_use: in_use,
@@ -2344,7 +2063,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     continue;
                 }
 
-                apply_calls_stk.last_mut().unwrap().push(ApplyCallStkItem {
+                apply_calls_stk.last_mut().unwrap().push(GenScriptSyntaxTreeApplyCallStkItem {
                     inside_element_ind:cur_work.inside,
                     parent_element_ind:cur_work.parent.unwrap(),
                     apply_use_element_ind:cur_work.element_ind,
@@ -2883,7 +2602,7 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
 
 pub fn debug_print_elements(elements:&Vec<Element>) {
     println!("=====");
-
+    //DebugPrintElements
     struct Work { element_ind:usize, depth:usize, }
 
     let mut work_stk=vec![Work{ element_ind: 0, depth: 0 }];

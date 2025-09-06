@@ -3,12 +3,13 @@ mod components;
 mod plugin;
 mod systems;
 mod resources;
-mod script_stuff;
+mod script_libs;
 mod events;
-mod loading;
-mod values;
+mod loading_utils;
+mod loading_vals;
+mod script_vals;
 
-mod utils;
+mod script_utils;
 
 pub use plugin::*;
 pub use assets::*;

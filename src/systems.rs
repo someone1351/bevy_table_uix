@@ -16,12 +16,12 @@ use crate::resources::UixLibScope;
 
 use super::events::*;
 use super::resources::*;
-use super::utils::*;
+use super::script_utils::*;
 
 use super::assets::*;
 use super::components::*;
 // use super::resources::*;
-use super::loading::*;
+use super::loading_utils::*;
 
 
 pub fn on_asset_modified_event(

@@ -5,7 +5,7 @@ use bevy::asset::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::platform::collections::HashSet;
 use script_lang::{GcScope, LibScope};
-use crate::script_stuff;
+use crate::script_libs;
 
 use super::assets::*;
 
@@ -22,7 +22,13 @@ impl Default for UixLibScope {
     fn default() -> Self {
         let mut lib_scope=LibScope::new_full();
 
-        script_stuff::register(&mut lib_scope);
+        script_libs::register_attribs(&mut lib_scope);
+        script_libs::register_stuff(&mut lib_scope);
+        script_libs::register_misc(&mut lib_scope);
+        script_libs::register_events(&mut lib_scope);
+
+
+        script_libs::register(&mut lib_scope);
 
         Self(Arc::new(lib_scope))
     }
