@@ -694,20 +694,67 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         parent_entity_val.unwrap_or(Value::Nil)
     });
 
-    //get node.child
-    entity_get_field_mut("child",lib_scope,|entity,world|{
-        if world.entity(entity).contains::<UiRoot>() {return Value::Nil;}
-
-        let parent_entity=world.entity(entity).get::<ChildOf>().map(|parent|parent.parent());
-        let parent_entity_val=parent_entity.map(|parent_entity|self_entity_from_world(world,parent_entity));
-        parent_entity_val.unwrap_or(Value::Nil)
-    });
 
     #[derive(Clone)]
     struct NodeChildren { entity:Value, }
+    // #[derive(Clone)]
+    // struct NodeNamedChildren { entity:Value, name:StringT, }
     #[derive(Clone)]
-    struct NodeNamedChildren { entity:Value, name:StringT, }
+    struct NodeAncestors { entity:Value, }
+    // #[derive(Clone)]
+    // struct NodeNamedAncestors { entity:Value, name:StringT, }
 
+    //get node.children
+    lib_scope.field_named("ancestors",|mut context|{
+        let entity_val=context.param(0);
+        Ok(Value::custom_unmanaged(NodeAncestors{entity:entity_val.clone()}))
+    }).custom_ref::<Entity>().end();
+
+    //get node_ancestors.int
+    lib_scope.field(|mut context|{
+        let ancestors_val=context.param(0);
+        let node_ancestors:NodeAncestors=ancestors_val.as_custom().data_clone()?;
+        let entity:Entity=node_ancestors.entity.as_custom().data_clone()?;
+        let world=context.core();
+        let ancestors=get_ancestors(world,entity);
+
+        let Some(index)=context.param(1).as_index(ancestors.len()) else {
+            return Ok(Value::Nil);
+        };
+
+        let world=context.core_mut();
+        let ancestor_entity=ancestors.get(index).cloned().unwrap();
+        let ancestor_val=self_entity_from_world(world, ancestor_entity);
+
+        return Ok(ancestor_val)
+
+    }).custom_ref::<NodeAncestors>().int().end();
+
+    //get node_ancestors.str
+    lib_scope.field(|mut context|{
+        let ancestors_val=context.param(0);
+        let name=context.param(1).get_string().unwrap();
+        let node_ancestors:NodeAncestors=ancestors_val.as_custom().data_clone()?;
+        let entity:Entity=node_ancestors.entity.as_custom().data_clone()?;
+
+        let world=context.core();
+        let ancestors=get_ancestors(world,entity);
+
+        let world=context.core_mut();
+        let ancestors= ancestors.into_iter().filter_map(|ancestor_entity|{
+            let is_name = world.entity(ancestor_entity).get::<UixName>().map(|c|c.names.contains(&name)).unwrap_or_default();
+            is_name.then(||self_entity_from_world(world, ancestor_entity))
+            // if is_name {
+            //     Some(self_entity_from_world(world, ancestor_entity))
+            // } else {
+            //     None
+            // }
+        }).collect::<Vec<_>>();
+
+        Ok(Value::custom_unmanaged(ancestors))
+
+        // return Ok(Value::custom_unmanaged(NodeNamedAncestors{ entity: node_ancestors.entity.clone(), name }))
+    }).custom_ref::<NodeAncestors>().str().end();
 
     //get node.children
     lib_scope.field_named("children",|mut context|{
@@ -744,13 +791,13 @@ pub fn register(lib_scope:&mut LibScope<World>) {
         let children=world.entity(entity).get::<Children>().map(|children|children.iter().map(|x|*x).collect::<Vec<_>>()).unwrap_or_default();
         let children= children.into_iter().filter_map(|child_entity|{
             let is_name = world.entity(child_entity).get::<UixName>().map(|c|c.names.contains(&name)).unwrap_or_default();
-
-            if is_name {
-                let child_entity_val=self_entity_from_world(world, child_entity);
-                Some(child_entity_val)
-            } else {
-                None
-            }
+            is_name.then(||self_entity_from_world(world, child_entity))
+            // if is_name {
+            //     let child_entity_val=self_entity_from_world(world, child_entity);
+            //     Some(child_entity_val)
+            // } else {
+            //     None
+            // }
         }).collect::<Vec<_>>();
 
         Ok(Value::custom_unmanaged(children))

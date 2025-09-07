@@ -1,5 +1,5 @@
-use bevy::{color::Color, ecs::{component::Component, entity::Entity, world::World}};
-use bevy_table_ui::UiVal;
+use bevy::{color::Color, ecs::{component::Component, entity::Entity, hierarchy::ChildOf, world::World}};
+use bevy_table_ui::{UiRoot, UiVal};
 use script_lang::{FloatT, IntT, LibScope, MachineError, Value};
 
 use super::components::*;
@@ -166,3 +166,19 @@ pub fn entity_set_field_mut3<T:Component<Mutability = bevy::ecs::component::Muta
 //         Ok(Value::Void)
 //     }).custom_ref::<Entity>().any().end();
 // }
+
+pub fn get_ancestors(world:&World,entity:Entity) -> Vec<Entity> {
+    let mut output=Vec::new();
+    let mut x=world.entity(entity).get::<ChildOf>().map(|c|c.parent());
+
+    while let Some(x2)=x {
+        if world.entity(entity).get::<UiRoot>().is_some() {
+            break;
+        }
+
+        output.push(x2);
+        x=world.entity(x2).get::<ChildOf>().map(|c|c.parent());
+    }
+
+    output
+}
