@@ -2449,13 +2449,13 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 src+=&format!("{indent}{insert}\n");
             }
             ScriptSyntax::Stub { name, .. } if !exit => {
-                src+=&format!("{indent}fn stub_{name} (parent) {{\n");
+                src+=&format!("{indent}fn stub_{name} (self) {{\n");
             }
             ScriptSyntax::Stub { .. } => {
                 src+=&format!("{indent}}}\n");
             }
             ScriptSyntax::CallStub { is_root, stub } => {
-                let parent = if *is_root{"root"}else{"parent"};
+                let parent = if *is_root{"root"}else{"self"}; //what?
                 src+=&format!("{indent}var _ns [call _stubs {stub} {parent}]\n");
             }
             ScriptSyntax::CallTemplate { ret, func, params } => {
