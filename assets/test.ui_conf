@@ -1,10 +1,15 @@
 stub test
     script
-        var node_x self.children.x.0
+        #var node_x self.children.x.0
+        var node_x env.x.0
 
     node x
         color red
         size 50 50
+        apply y
+            script
+                var hello 5;
+        node y
 
         script
             println "hello1 {self}"

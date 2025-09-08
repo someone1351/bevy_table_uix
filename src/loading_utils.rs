@@ -2450,6 +2450,11 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             }
             ScriptSyntax::Stub { name, .. } if !exit => {
                 src+=&format!("{indent}fn stub_{name} (self) {{\n");
+                // let xx=children.iter().map(|&child_ind|{
+                //     let y=syntax_tree.get(child_ind).unwrap();
+
+                // });
+                // src+=&format!("{indent}    var env [dict {xx}]\n");
             }
             ScriptSyntax::Stub { .. } => {
                 src+=&format!("{indent}}}\n");
@@ -2529,7 +2534,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                         (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _rn{k}.t{v}"),
                         (None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _a{v}"),
                         (None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _rt{v}"),
-                    }).collect::<Vec<_>>().join(" ");
+                    }).map(|x|format!("({x})")).collect::<Vec<_>>().join(" ");
 
                     src+=&format!("{indent}    return [dict {returns}]\n");
                 }
