@@ -3,6 +3,9 @@
 // #![allow(unused_variables)]
 #![allow(dead_code)]
 use std::collections::BTreeSet;
+use std::collections::HashMap;
+use std::collections::HashSet;
+// use bevy::platform::collections
 // #![allow(unused_imports)]
 // #![allow(unused_assignments)]
 // #[allow(unused_parens)]
@@ -10,7 +13,7 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::path::PathBuf;
 
-use bevy::platform::collections::HashSet;
+// use bevy::platform::collections::HashSet;
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
 // use ron::de;
@@ -75,6 +78,12 @@ pub enum ElementType<'a> {
     //CalcNode? what to do with its applies?
 }
 
+// #[derive(Debug,Clone,Hash,PartialEq, Eq)]
+// pub enum EnvIndex {
+//     Index(usize),
+//     Name(String),
+// }
+
 #[derive(Debug,Clone)]
 pub struct Element<'a> {
     pub element_type:ElementType<'a>,
@@ -87,14 +96,11 @@ pub struct Element<'a> {
     pub calcd_original : Option<usize>,
     pub has_script:bool,
     pub has_apply_script:bool,
+    pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 }
 
 
 //////
-
-
-
-
 
 #[derive(Debug)]
 pub enum ScriptSyntaxTemplateUseOrApplyDecl {
@@ -122,70 +128,13 @@ pub enum ScriptSyntaxNodeOrApplyOrTemplate {
     Template(usize),
 }
 
-
 pub struct ScriptSyntaxNode(pub usize);
-
-impl Debug for ScriptSyntaxNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Node").field(&self.0).finish()
-    }
-}
 pub struct ScriptSyntaxTemplateUse(pub usize);
-
-impl Debug for ScriptSyntaxTemplateUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TemplateUse").field(&self.0).finish()
-    }
-}
 pub struct ScriptSyntaxTemplateDecl(pub usize);
-
-impl Debug for ScriptSyntaxTemplateDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("TemplateDecl").field(&self.0).finish()
-    }
-}
 pub struct ScriptSyntaxApplyDecl(pub usize);
-
-impl Debug for ScriptSyntaxApplyDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ApplyDecl").field(&self.0).finish()
-    }
-}
 pub struct ScriptSyntaxApplyUse(pub usize);
 
 
-impl Debug for ScriptSyntaxApplyUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("ApplyUse").field(&self.0).finish()
-    }
-}
-impl Display for ScriptSyntaxNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-
-impl Display for ScriptSyntaxTemplateUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-impl Display for ScriptSyntaxTemplateDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-
-impl Display for ScriptSyntaxApplyDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
-impl Display for ScriptSyntaxApplyUse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}",self.0)
-    }
-}
 pub enum ScriptSyntax {
     Root {
         children:Vec<usize>,
@@ -325,4 +274,59 @@ pub struct GenScriptSyntaxTreeApplyCallStkItem {
 pub struct CalcNodeApplyIgnoresWork{
     pub element_ind:usize,
     pub depth:usize,
+}
+
+
+
+impl Debug for ScriptSyntaxNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Node").field(&self.0).finish()
+    }
+}
+impl Debug for ScriptSyntaxTemplateUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TemplateUse").field(&self.0).finish()
+    }
+}
+impl Debug for ScriptSyntaxTemplateDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("TemplateDecl").field(&self.0).finish()
+    }
+}
+impl Debug for ScriptSyntaxApplyDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ApplyDecl").field(&self.0).finish()
+    }
+}
+impl Debug for ScriptSyntaxApplyUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("ApplyUse").field(&self.0).finish()
+    }
+}
+impl Display for ScriptSyntaxNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+
+impl Display for ScriptSyntaxTemplateUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+impl Display for ScriptSyntaxTemplateDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+
+impl Display for ScriptSyntaxApplyDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
+}
+impl Display for ScriptSyntaxApplyUse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.0)
+    }
 }

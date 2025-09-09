@@ -151,6 +151,7 @@ pub fn on_asset_load<'a>(
 
         mark_used(&mut elements);
         mark_has_script(&mut elements);
+        calc_envs(&mut elements);
 
         //debug
         debug_print_elements(&elements);

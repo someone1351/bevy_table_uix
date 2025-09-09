@@ -1,6 +1,6 @@
-use std::{ ops::Range, sync::Arc};
+use std::{ collections::HashMap, ops::Range, sync::Arc};
 
-use bevy::{ecs::{entity::Entity, world::World}, platform::collections::HashMap};
+use bevy::{ecs::{entity::Entity, world::World},  };
 use script_lang::Value;
 
 
@@ -17,7 +17,7 @@ impl std::fmt::Debug for AttribFunc {
  pub struct Stuff {
     // pub root_entity:Entity,
     pub all_stubs: HashMap<usize, Range<usize>> , //[root/stub_element_ind]=(nodes_start,nodes_end)
-    pub all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>,//(element_ind,parent_element_ind,(attribs_start,attribs_end),names_range)
+    pub all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>,//(element_ind,parent_element_ind,attribs_start_end,names_range)
     pub all_attribs:Vec<AttribFunc>, //[]=func
     pub all_names : Vec<script_lang::StringT>,
 }

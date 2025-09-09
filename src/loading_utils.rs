@@ -9,7 +9,8 @@
 // #![allow(unused_mut)]
 // #![allow(unused_variables)]
 #![allow(dead_code)]
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, };
 // #![allow(unused_imports)]
 // #![allow(unused_assignments)]
 // #[allow(unused_parens)]
@@ -24,7 +25,7 @@ use std::sync::Arc;
 use bevy::color::Color;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
-use bevy::platform::collections::{HashMap, HashSet};
+// use bevy::platform::collections::{HashMap, HashSet};
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
 // use ron::de;
@@ -53,21 +54,7 @@ pub fn load_elements<'a>(
     asset:&'a UiAsset,
     // get_asset:impl FnMut(&str) ->&UiAsset,
 ) -> Option<Vec<Element<'a>>>{
-    let mut elements: Vec<Element> = vec![Element{
-        element_type: ElementType::Node {
-            names:HashSet::new(),
-            ignore_applies:HashSet::new(),
-        },
-        children: Vec::new(),
-        applies:Vec::new(),
-        apply_after:0,
-        calcd_from_element_ind : None,
-        calcd_node_params:BTreeSet::new(),
-        calcd_created_from:0,
-        has_script:false,
-        has_apply_script:false,
-        calcd_original:None,
-    }];
+    let mut elements: Vec<Element> = vec![Element{element_type:ElementType::Node{names:HashSet::new(),ignore_applies:HashSet::new(),},children:Vec::new(),applies:Vec::new(),apply_after:0,calcd_from_element_ind:None,calcd_node_params:BTreeSet::new(),calcd_created_from:0,has_script:false,has_apply_script:false,calcd_original:None, env: HashMap::new(), }];
 
     //elements
 
@@ -126,6 +113,7 @@ pub fn load_elements<'a>(
                         has_script:false,
                         has_apply_script:false,
                         calcd_original:None,
+                        env: HashMap::new(),
                     });
 
                     //
@@ -163,6 +151,7 @@ pub fn load_elements<'a>(
                         has_script:false,
                         has_apply_script:false,
                         calcd_original:None,
+                        env: HashMap::new(),
                     });
 
                     //
@@ -210,6 +199,7 @@ pub fn load_elements<'a>(
                             has_script:false,
                             has_apply_script:false,
                             calcd_original:None,
+                            env: HashMap::new(),
                         });
 
                         //
@@ -252,6 +242,7 @@ pub fn load_elements<'a>(
                         has_script:false,
                         has_apply_script:false,
                         calcd_original:None,
+                        env: HashMap::new(),
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -281,6 +272,7 @@ pub fn load_elements<'a>(
                         has_script:false,
                         has_apply_script:false,
                         calcd_original:None,
+                        env: HashMap::new(),
                     });
                 }
 
@@ -312,6 +304,7 @@ pub fn load_elements<'a>(
                         has_script:false,
                         has_apply_script:false,
                         calcd_original:None,
+                        env: HashMap::new(),
                     });
 
                     // cur_element_ind=new_element_ind;
@@ -355,6 +348,7 @@ pub fn load_elements<'a>(
                             has_script:false,
                             has_apply_script:false,
                             calcd_original:None,
+                            env: HashMap::new(),
                         });
                     }
                 }
@@ -1347,6 +1341,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 has_script:false,
                                 has_apply_script:false,
                                 calcd_original:None,
+                                env: HashMap::new(),
                             });
                         }
                     }
@@ -1784,6 +1779,42 @@ pub fn mark_used(elements:&mut Vec<Element>) {
             }
         }
     }
+}
+
+pub fn calc_envs(elements:&mut Vec<Element>) {
+    let mut work_stk=vec![0];
+
+    while let Some(cur_element_ind)=work_stk.pop() {
+        let cur_element=elements.get(cur_element_ind).unwrap();
+
+        //
+        match &cur_element.element_type {
+            ElementType::Node {..}|ElementType::Apply {..}|ElementType::TemplateDecl {..}|ElementType::Stub {..}  => {
+            }
+            _ => {
+                continue;
+            }
+        }
+
+        //
+        let mut env: HashMap<String, Vec<usize>>= HashMap::new();
+
+        //
+        for &child_element_ind in  cur_element.children.iter() {
+            let child_element=elements.get(child_element_ind).unwrap();
+
+            if let ElementType::Node { names, .. }=&child_element.element_type {
+                for &name in names {
+                    env.entry(name.to_string()).or_default().push(child_element_ind);
+                }
+            }
+        }
+
+        //
+        let cur_element=elements.get_mut(cur_element_ind).unwrap();
+        cur_element.env=env;
+    }
+
 }
 
 pub fn mark_has_script(elements:&mut Vec<Element>) {

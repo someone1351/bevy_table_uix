@@ -1,9 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::{collections::HashSet, sync::{Arc, Mutex}};
 
 // use std::collections::HashSet;
 use bevy::asset::prelude::*;
 use bevy::ecs::prelude::*;
-use bevy::platform::collections::HashSet;
+// use bevy::platform::collections::HashSet;
 use script_lang::{GcScope, LibScope};
 use crate::script_libs;
 
