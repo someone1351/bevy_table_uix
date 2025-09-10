@@ -1,0 +1,39 @@
+stub test
+    script
+        a5
+
+    node x
+        color red
+        size 50 50
+        apply y
+            script
+                a4
+        node y
+
+        script
+            a3
+    node
+        color green
+        size 50 50
+
+        script
+            a2
+    node
+        color blue
+        size 50 50
+
+        pressable
+
+        script
+            a1
+
+
+node
+    padding 50
+    color grey
+    gap 50
+    span 3
+
+
+    script
+        a0

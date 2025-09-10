@@ -1,7 +1,7 @@
 use std::{ collections::HashMap, ops::Range, sync::Arc};
 
 use bevy::{ecs::{entity::Entity, world::World},  };
-use script_lang::Value;
+use script_lang::{StringT, Value};
 
 
 
@@ -13,13 +13,24 @@ impl std::fmt::Debug for AttribFunc {
         f.debug_tuple("ElementAttribFunc").finish()
     }
 }
+
+pub struct StuffEnv {
+    pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+    pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+}
+
+pub struct StuffEnvResult {
+    pub by_ind : Vec<Value>, //[local_node_ind]=node
+    pub by_name : HashMap<StringT,Vec<Value>> //[node_name]=nodes
+}
  //
  pub struct Stuff {
     // pub root_entity:Entity,
     pub all_stubs: HashMap<usize, Range<usize>> , //[root/stub_element_ind]=(nodes_start,nodes_end)
     pub all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>,//(element_ind,parent_element_ind,attribs_start_end,names_range)
     pub all_attribs:Vec<AttribFunc>, //[]=func
-    pub all_names : Vec<script_lang::StringT>,
+    pub all_names : Vec<StringT>,
+    pub all_envs : Vec<StuffEnv>,
 }
 
-pub struct StuffResult(pub HashMap<usize,Value>);
+pub struct StuffResult(pub HashMap<usize,Value>); //[node_element_ind]=entity_val

@@ -28,6 +28,7 @@ use bevy::asset::prelude::*;
 // use bevy::platform::collections::{HashMap, HashSet};
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
+use script_lang::StringT;
 // use ron::de;
 use table_ui::*;
 // use super::script_stuff::{AttribFunc, Stuff};
@@ -1623,7 +1624,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_attribs: Vec<AttribFunc>=Vec::new(); //[]=func
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
-
+    let mut all_envs = Vec::new();
     //
 
 
@@ -1635,6 +1636,30 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
+        //env
+        match &cur_element.element_type { ElementType::Node {..}|ElementType::Apply {..}|ElementType::TemplateDecl {..}|ElementType::Stub {..}  => {
+            if cur_element.has_script {
+                let mut cur_env_nameds:HashMap<StringT,Vec<usize>>=HashMap::new();
+                let mut cur_env_inds: Vec<usize> = Vec::new();
+
+                for &child_element_ind in cur_element.children.iter() {
+                    let child_element=elements.get(child_element_ind).unwrap();
+                    let ElementType::Node { names, ..}=&child_element.element_type else {continue;};
+
+                    cur_env_inds.push(child_element_ind);
+
+                    for &name in names {
+                        cur_env_nameds.entry(name.into()).or_default().push(child_element_ind); //todo use string map/cache for name
+                    }
+                }
+
+                //envs
+                all_envs.push(StuffEnv{ by_ind: cur_env_inds, by_name: cur_env_nameds });
+            }
+        } _ => { continue; } }
+
+
+        //
         match &cur_element.element_type {
             ElementType::Node{..}=> {
                 if let Some(parent)=cur_work.parent {
@@ -1725,7 +1750,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
     }
 
-    Stuff{  all_stubs, all_nodes, all_attribs, all_names }
+    Stuff{  all_stubs, all_nodes, all_attribs, all_names, all_envs }
 }
 
 /*
@@ -2446,7 +2471,7 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
                 println!("{indent}call_template {func:?}({params:?}) => {ret:?}");
             }
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
-                println!("{indent}call_apply {func_froms:?}{func_apply:?}({params:?}) => {ret:?}");
+                println!("{indent}call_apply {func_froms:?} {func_apply:?}({params:?}) => {ret:?}");
             }
             ScriptSyntax::CallNode { in_func, func, params, ret  } => {
                 println!("{indent}call_node {func:?}({params:?}), in_func={in_func}, ret={ret}");

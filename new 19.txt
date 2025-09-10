@@ -1,0 +1,73 @@
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T15:07:34.166050Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T15:07:34.426967Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T15:07:34.439771Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+var _ns [call _stubs 0 root]
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T15:08:17.416561Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T15:08:17.677750Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T15:08:17.687199Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====

@@ -1,0 +1,977 @@
+        decl Node(16)([]), => []
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+            script
+        call_node Node(16)([Node(16)]), in_func=false, ret=false
+        call_apply Some((Node(3), []))ApplyDecl(7)([Node(9)]) => None
+    decl Node(22)([]), => []
+        script
+        script
+        script
+        script
+        script
+    call_node Node(22)([Node(22)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn stub_test (self) {
+    var _ns [call _stubs 1 self]
+    #var node_x self.children.x.0
+    var node_x env.x.0
+    fn _n3 (self) {
+        fn _a7 (self) {
+            var hello 5;
+        }
+        println "hello1 {self}"
+        return [dict ("a7" _a7)]
+    }
+    var _rn3 [call _n3 _ns.3]
+    fn _n11 (self) {
+        println "hello2 {self}"
+    }
+    call _n11 _ns.11
+    fn _n16 (self) {
+        println "hello3 {self}"
+        var a 0.0
+        add_event_listener self "click" [fn () {
+            println "hello {self} {}" (cos a)
+            println "col {}" self.color.rgb
+            set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
+            set a (+ a 0.1)
+            #println "is {}" self.parent.children.x
+            #println self.parent.children.0
+            #set self.parent.children.0.hide true
+            #set self.parent.children.x.0.hide true
+            set node_x.hide true
+        }]
+    }
+    call _n16 _ns.16
+    call _rn3.a7 _ns.9
+}
+fn _n22 (self) {
+    println "hello0 {self}"
+    call stub_test self
+    call stub_test self
+    call stub_test self
+    call stub_test self
+}
+call _n22 _ns.22
+
+====
+hello0 7v1
+Error GlobalOrConstNotFound("env") in "test.ui_conf", at line 7, column 16, position 156:
+`    var node_x env.x.0`
+                ^
+exit!
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=61178'
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.39s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T10:45:08.508401Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T10:45:08.763440Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T10:45:08.774429Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Stub { name: "test" }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 3..4, children_text: true, conf_values: 2..3, param_groups: 1..1, node_label: None, branch_name: Some(4), tag: true } }, applies=[], after=0
+        Node { names: {"x"}, ignore_applies: {} }, applies=[4], after=0
+            Apply { name: "y", owner_apply_decl_id: None, used: true }, applies=[], after=0
+                Script { record: Record { parent: Some(10), children: 9..10, children_text: true, conf_values: 8..9, param_groups: 3..3, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+            Node { names: {"y"}, ignore_applies: {} }, applies=[], after=1
+            Script { record: Record { parent: Some(5), children: 13..14, children_text: true, conf_values: 12..13, param_groups: 4..4, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=1
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(6), children: 16..17, children_text: true, conf_values: 15..16, param_groups: 5..5, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(7), children: 19..20, children_text: true, conf_values: 18..19, param_groups: 6..6, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 22..23, children_text: true, conf_values: 21..22, param_groups: 7..7, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={12}, scr=true, ascr=true, orig=_
+    stub "test", e=1, from=0, params={3, 6, 8, 10}, scr=true, ascr=true, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+        node {"x"}, e=3, ignaps={}, from=1, params={6}, scr=true, ascr=true, orig=_
+            apply, e=4 : "y", from=3, params={}, used=true, scr=true, ascr=false
+                script, e=5, from=4, params={}, scr=true, ascr=false
+            node {"y"}, e=6, ignaps={}, from=3, params={}, scr=false, ascr=false, orig=_
+                apply use, e=14 : e2=4, from=3, params={}, scr=false, ascr=false
+            script, e=7, from=3, params={}, scr=true, ascr=false
+        node {}, e=8, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=9, from=8, params={}, scr=true, ascr=false
+        node {}, e=10, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=11, from=10, params={}, scr=true, ascr=false
+    node {}, e=12, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=13, from=12, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    stub "test"
+        call_stub 1, is_root=false
+        script
+        decl Node(3)([]), => [(None, ApplyDecl(4))]
+            decl Apply(4)([]), => []
+                script
+            script
+        call_node Node(3)([Node(3)]), in_func=false, ret=true
+        decl Node(8)([]), => []
+            script
+        call_node Node(8)([Node(8)]), in_func=false, ret=false
+        decl Node(10)([]), => []
+            script
+        call_node Node(10)([Node(10)]), in_func=false, ret=false
+        call_apply Some((Node(3), []))ApplyDecl(4)([Node(6)]) => None
+    decl Node(12)([]), => []
+        script
+    call_node Node(12)([Node(12)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn stub_test (self) {
+    var _ns [call _stubs 1 self]
+    a5
+    fn _n3 (self) {
+        fn _a4 (self) {
+            a4
+        }
+        a3
+        return [dict ("a4" _a4)]
+    }
+    var _rn3 [call _n3 _ns.3]
+    fn _n8 (self) {
+        a2
+    }
+    call _n8 _ns.8
+    fn _n10 (self) {
+        a1
+    }
+    call _n10 _ns.10
+    call _rn3.a4 _ns.6
+}
+fn _n12 (self) {
+    a0
+}
+call _n12 _ns.12
+
+====
+Error MethodOrGlobalVarNotFound("a0") in "test.ui_conf", at line 26, column 5, position 424:
+`    a0`
+     ^
+2025-09-10T10:45:10.566515Z  INFO system{name="bevy_window::system::exit_on_all_closed"}: bevy_window::system: No windows are open, exiting
+2025-09-10T10:45:10.567482Z  INFO system{name="bevy_winit::system::despawn_windows"}: bevy_winit::system: Closing window 0v1
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> 
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=61182' 
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T10:45:57.139469Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T10:45:57.441093Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T10:45:57.450432Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Stub { name: "test" }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 3..4, children_text: true, conf_values: 2..3, param_groups: 1..1, node_label: None, branch_name: Some(4), tag: true } }, applies=[], after=0
+        Node { names: {"x"}, ignore_applies: {} }, applies=[4], after=0
+            Apply { name: "y", owner_apply_decl_id: None, used: true }, applies=[], after=0
+                Node { names: {}, ignore_applies: {} }, applies=[], after=0
+                    Script { record: Record { parent: Some(13), children: 10..11, children_text: true, conf_values: 9..10, param_groups: 4..4, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+            Node { names: {"y"}, ignore_applies: {} }, applies=[], after=1
+            Script { record: Record { parent: Some(5), children: 14..15, children_text: true, conf_values: 13..14, param_groups: 5..5, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=1
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(6), children: 17..18, children_text: true, conf_values: 16..17, param_groups: 6..6, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(7), children: 20..21, children_text: true, conf_values: 19..20, param_groups: 7..7, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 23..24, children_text: true, conf_values: 22..23, param_groups: 8..8, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={13}, scr=true, ascr=true, orig=_
+    stub "test", e=1, from=0, params={3, 7, 9, 11}, scr=true, ascr=true, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+        node {"x"}, e=3, ignaps={}, from=1, params={7}, scr=true, ascr=true, orig=_
+            apply, e=4 : "y", from=3, params={5}, used=true, scr=true, ascr=false
+                node {}, e=5, ignaps={}, from=4, params={}, scr=true, ascr=false, orig=_
+                    script, e=6, from=5, params={}, scr=true, ascr=false
+            node {"y"}, e=7, ignaps={}, from=3, params={}, scr=false, ascr=false, orig=_
+                apply use, e=15 : e2=4, from=3, params={16}, scr=false, ascr=false
+                    node {}, e=16, ignaps={}, from=15, params={}, scr=false, ascr=false, orig=5
+            script, e=8, from=3, params={}, scr=true, ascr=false
+        node {}, e=9, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=10, from=9, params={}, scr=true, ascr=false
+        node {}, e=11, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=12, from=11, params={}, scr=true, ascr=false
+    node {}, e=13, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=14, from=13, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    stub "test"
+        call_stub 1, is_root=false
+        script
+        decl Node(3)([]), => [(None, ApplyDecl(4))]
+            decl Apply(4)([Node(5)]), => []
+                decl Node(5)([]), => []
+                    script
+                call_node Node(5)([Node(5)]), in_func=true, ret=false
+            script
+        call_node Node(3)([Node(3)]), in_func=false, ret=true
+        decl Node(9)([]), => []
+            script
+        call_node Node(9)([Node(9)]), in_func=false, ret=false
+        decl Node(11)([]), => []
+            script
+        call_node Node(11)([Node(11)]), in_func=false, ret=false
+        call_apply Some((Node(3), []))ApplyDecl(4)([Node(7), Node(16)]) => None
+    decl Node(13)([]), => []
+        script
+    call_node Node(13)([Node(13)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn stub_test (self) {
+    var _ns [call _stubs 1 self]
+    a5
+    fn _n3 (self) {
+        fn _a4 (self _p5) {
+            fn _n5 (self) {
+                a4
+            }
+            call _n5 _p5
+        }
+        a3
+        return [dict ("a4" _a4)]
+    }
+    var _rn3 [call _n3 _ns.3]
+    fn _n9 (self) {
+        a2
+    }
+    call _n9 _ns.9
+    fn _n11 (self) {
+        a1
+    }
+    call _n11 _ns.11
+    call _rn3.a4 _ns.7 _ns.16
+}
+fn _n13 (self) {
+    a0
+}
+call _n13 _ns.13
+
+====
+Error MethodOrGlobalVarNotFound("a0") in "test.ui_conf", at line 29, column 5, position 506:
+`    a0`
+     ^
+exit!
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=59505'
+    Blocking waiting for file lock on build directory
+   Compiling bevy_table_uix v0.1.0 (C:\Users\someone\Desktop\code2\ok3\bevy_table_uix)
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.93s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T11:00:00.191079Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T11:00:00.449742Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T11:00:00.460306Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Stub { name: "test" }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 3..4, children_text: true, conf_values: 2..3, param_groups: 1..1, node_label: None, branch_name: Some(4), tag: true } }, applies=[], after=0
+        Node { names: {"x"}, ignore_applies: {} }, applies=[4], after=0
+            Apply { name: "y", owner_apply_decl_id: None, used: true }, applies=[], after=0
+                Node { names: {}, ignore_applies: {} }, applies=[], after=0
+                    Script { record: Record { parent: Some(13), children: 10..11, children_text: true, conf_values: 9..10, param_groups: 4..4, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+            Node { names: {"y"}, ignore_applies: {} }, applies=[], after=1
+            Script { record: Record { parent: Some(5), children: 14..15, children_text: true, conf_values: 13..14, param_groups: 5..5, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=1
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(6), children: 17..18, children_text: true, conf_values: 16..17, param_groups: 6..6, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(7), children: 20..21, children_text: true, conf_values: 19..20, param_groups: 7..7, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 23..24, children_text: true, conf_values: 22..23, param_groups: 8..8, node_label: None, branch_name: Some(10), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={13}, scr=true, ascr=true, orig=_
+    stub "test", e=1, from=0, params={3, 7, 9, 11}, scr=true, ascr=true, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+        node {"x"}, e=3, ignaps={}, from=1, params={7}, scr=true, ascr=true, orig=_
+            apply, e=4 : "y", from=3, params={5}, used=true, scr=true, ascr=false
+                node {}, e=5, ignaps={}, from=4, params={}, scr=true, ascr=false, orig=_
+                    script, e=6, from=5, params={}, scr=true, ascr=false
+            node {"y"}, e=7, ignaps={}, from=3, params={}, scr=false, ascr=false, orig=_
+                apply use, e=15 : e2=4, from=3, params={16}, scr=false, ascr=false
+                    node {}, e=16, ignaps={}, from=15, params={}, scr=false, ascr=false, orig=5
+            script, e=8, from=3, params={}, scr=true, ascr=false
+        node {}, e=9, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=10, from=9, params={}, scr=true, ascr=false
+        node {}, e=11, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=12, from=11, params={}, scr=true, ascr=false
+    node {}, e=13, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=14, from=13, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    stub "test"
+        call_stub 1, is_root=false
+        script
+        decl Node(3)([]), => [(None, ApplyDecl(4))]
+            decl Apply(4)([Node(5)]), => []
+                decl Node(5)([]), => []
+                    script
+                call_node Node(5)([Node(5)]), in_func=true, ret=false
+            script
+        call_node Node(3)([Node(3)]), in_func=false, ret=true
+        decl Node(9)([]), => []
+            script
+        call_node Node(9)([Node(9)]), in_func=false, ret=false
+        decl Node(11)([]), => []
+            script
+        call_node Node(11)([Node(11)]), in_func=false, ret=false
+        call_apply Some((Node(3), [])) ApplyDecl(4)([Node(7), Node(16)]) => None
+    decl Node(13)([]), => []
+        script
+    call_node Node(13)([Node(13)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn stub_test (self) {
+    var _ns [call _stubs 1 self]
+    a5
+    fn _n3 (self) {
+        fn _a4 (self _p5) {
+            fn _n5 (self) {
+                a4
+            }
+            call _n5 _p5
+        }
+        a3
+        return [dict ("a4" _a4)]
+    }
+    var _rn3 [call _n3 _ns.3]
+    fn _n9 (self) {
+    }
+    var _rn3 [call _n3 _ns.3]
+    fn _n9 (self) {
+        a2
+        a2
+    }
+    call _n9 _ns.9
+    }
+    call _n9 _ns.9
+    fn _n11 (self) {
+        a1
+    fn _n11 (self) {
+        a1
+    }
+    call _n11 _ns.11
+    call _rn3.a4 _ns.7 _ns.16
+    call _n11 _ns.11
+    call _rn3.a4 _ns.7 _ns.16
+}
+}
+fn _n13 (self) {
+fn _n13 (self) {
+    a0
+    a0
+}
+}
+call _n13 _ns.13
+
+====
+Error MethodOrGlobalVarNotFound("a0") in "test.ui_conf", at line 29, column 5, position 506:
+`    a0`
+     ^
+exit!
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> 
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=49948'
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.46s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T15:07:34.166050Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T15:07:34.426967Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T15:07:34.439771Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+var _ns [call _stubs 0 root]
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:07:36.318912Z  INFO system{name="bevy_window::system::exit_on_all_closed"}: bevy_window::system: No windows are open, exiting
+2025-09-10T15:07:36.319913Z  INFO system{name="bevy_winit::system::despawn_windows"}: bevy_winit::system: Closing window 0v1
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> 
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=49960' 
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.37s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T15:08:17.416561Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T15:08:17.677750Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T15:08:17.687199Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:08:19.167173Z  INFO system{name="bevy_window::system::exit_on_all_closed"}: bevy_window::system: No windows are open, exiting    
+2025-09-10T15:08:19.168460Z  INFO system{name="bevy_winit::system::despawn_windows"}: bevy_winit::system: Closing window 0v1
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=60725'
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffEnvResult` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffEnvResult {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.37s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-10T15:10:38.256393Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-10T15:10:38.514539Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-10T15:10:38.524042Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:34.466359Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:39.587524Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:41.157997Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:42.895411Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:44.399729Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+2025-09-10T15:11:45.987148Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:47.642331Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:56.515149Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
+2025-09-10T15:11:59.606309Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        Script { record: Record { parent: Some(1), children: 2..3, children_text: true, conf_values: 1..2, param_groups: 1..1, node_label: None, branch_name: Some(3), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={1}, scr=true, ascr=false, orig=_
+    node {}, e=1, ignaps={}, from=0, params={}, scr=true, ascr=false, orig=_
+        script, e=2, from=1, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(1)([]), => []
+        script
+    call_node Node(1)([Node(1)]), in_func=false, ret=false
+===
+
+var root;
+var _stubs;
+var _ns [call _stubs 0 root]
+fn _n1 (self) {
+    var a0
+}
+call _n1 _ns.1
+
+====
