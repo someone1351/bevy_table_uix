@@ -598,31 +598,62 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 (k,vv)
             }).collect();
 
-            Ok(Value::custom_unmanaged(StuffResult(element_entity_map2)))
+            Ok(Value::custom_unmanaged(StuffResult{ nodes: element_entity_map2, envs: Default::default() }))
             // Ok(Value::custom_unmanaged(StuffResult(element_entity_map)))
         })
     }).custom_ref::<Stuff>().int().custom_ref::<Entity>().end();
 
     //
-    lib_scope.field_no_symbols(|mut context|{
+    lib_scope.field(|mut context|{ //field_no_symbols
         let data=context.param(0).as_custom();
-        let ind=context.param(1).as_int().abs() as usize;
+
+        //
+        let ind =context.param(1).get_string().unwrap();
+
+        let is_node = ind.starts_with('n');
+        let is_env = ind.starts_with('e');
+
+        if !is_node && !is_env {
+            return Ok(Value::Nil);
+        }
+
+        let ind:Option<usize> = ind.get(1..).and_then(|ind|ind.parse().ok());
+
+        let Some(ind)=ind else {
+            return Ok(Value::Nil);
+        };
+
+        // let ind=context.param(1).as_int().abs() as usize;
 
         let world=context.core_mut();
 
         data.with_data_ref(|data:&StuffResult|{
-            let Some(entity)=data.0.get(&ind).cloned() else {
-                return Ok(Value::Nil);
-            };
+            // let Some(entity)=data.nodes.get(&ind).cloned() else {
+            //     return Ok(Value::Nil);
+            // };
+            // Ok(entity)
+            if is_node {
+                let Some(entity)=data.nodes.get(&ind).cloned() else {
+                    return Ok(Value::Nil);
+                };
+                Ok(entity)
+            } else { //env
+                let Some(env)=data.envs.get(ind).cloned() else {
+                    return Ok(Value::Nil);
+                };
+                Ok(env)
+            }
 
             // let entity_val=self_entity_from_world(world, entity);
             // Ok(entity_val)
-            Ok(entity)
             // Ok(data.0.get(&ind).map(|&x|{
             //     Value::custom_unmanaged(x)
             // }).unwrap_or(Value::Nil))
         })
-    }).custom_ref::<StuffResult>().int().end();
+    }).custom_ref::<StuffResult>()
+        // .int()
+        .str()
+        .end();
 
 
 }

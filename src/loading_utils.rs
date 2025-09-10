@@ -1656,7 +1656,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
                 //envs
                 all_envs.push(StuffEnv{ by_ind: cur_env_inds, by_name: cur_env_nameds });
             }
-        } _ => { continue; } }
+        } _ => {  } }
 
 
         //
@@ -2533,7 +2533,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             }
             ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
                 let mut params2=Vec::new();
-                params2.extend(params.iter().map(|x|format!("_ns.{x}")));
+                params2.extend(params.iter().map(|x|format!("_ns.n{x}")));
                 let params2=params2.join(" ");
                 let mut func = Vec::new();
 
@@ -2560,7 +2560,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             }
             ScriptSyntax::CallNode { in_func, func, params, ret  } => {
 
-                let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns."})).collect::<Vec<_>>().join(" ");
+                let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})).collect::<Vec<_>>().join(" ");
 
                 let c=format!("call _n{func} {params}");
                 let x=if *ret {
