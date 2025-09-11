@@ -19,7 +19,7 @@ use bevy_table_ui as table_ui;
 // use ron::de;
 use table_ui::*;
 // use super::script_stuff::{AttribFunc, Stuff};
-use super::script_vals::*;
+use super::super::script_vals::*;
 
 // use super::assets::*;
 
@@ -93,7 +93,7 @@ pub struct Element<'a> {
     pub calcd_from_element_ind : Option<usize>, //element_ind
     pub calcd_node_params:BTreeSet<usize>, //element_ind
     pub calcd_created_from : usize,
-    pub calcd_original : Option<usize>,
+    pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
     pub has_own_script:bool,
     pub has_template_use_script:bool,
     pub has_script:bool,

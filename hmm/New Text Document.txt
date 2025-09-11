@@ -1,0 +1,899 @@
+        script, e=9, from=4, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Node(4)([Node(10)]), => []
+        call_template TemplateDecl(1)([Node(10)]) => None
+        script
+        script
+        script
+    call_node Node(4)([Node(4), Node(10)]), in_func=false, ret=false
+===
+
+    call_node Node(4)([Node(4), Node(10)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _n4 (self _p10) {
+    call _t1 self _p10
+    var a0
+    println self
+}
+call _n4 _ns.n4 _ns.n10
+
+====
+7v1
+2025-09-11T08:52:17.502529Z  INFO system{name="bevy_window::system::exit_on_all_closed"}: bevy_window::system: No windows are open, exiting    
+2025-09-11T08:52:17.503599Z  INFO system{name="bevy_winit::system::despawn_windows"}: bevy_winit::system: Closing window 0v1
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=62127'
+   Compiling bevy_table_uix v0.1.0 (C:\Users\someone\Desktop\code2\ok3\bevy_table_uix)
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffResultEnv` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffResultEnv {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 8.94s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-11T09:00:07.301225Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-11T09:00:07.564418Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-11T09:00:07.575122Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(8), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=0
+        TemplateUse { template_decl_element_ind: 1 }, applies=[], after=0
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 16..18, children_text: true, conf_values: 15..16, param_groups: 7..7, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={4, 10}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=true, scr=true, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=true, ascr=false
+    node {}, e=4, ignaps={}, from=0, params={10}, scr=true, ascr=false, orig=_
+        template use, e=5 : "t", e2=1, from=4, params={10}, scr=true, ascr=false, orig=_
+            node {}, e=10, ignaps={}, from=5, params={}, scr=false, ascr=false, orig=2
+        attrib "width", e=6, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=4, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=7, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=4, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=8, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=4, params={}, scr=false, ascr=false, orig=_
+        script, e=9, from=4, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Node(4)([Node(10)]), => []
+        call_template TemplateDecl(1)([Node(10)]) => None
+        script
+        script
+    call_node Node(4)([Node(4), Node(10)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _n4 (self _p10) {
+    call _t1 self _p10
+    var a0
+    println self
+}
+call _n4 _ns.n4 _ns.n10
+
+====
+7v1
+2025-09-11T09:22:24.831334Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        TemplateUse { template_decl_element_ind: 1 }, applies=[], after=0
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 19..21, children_text: true, conf_values: 18..19, param_groups: 8..8, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={6, 12}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=true, scr=true, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=true, ascr=false
+    apply, e=4 : "a", from=0, params={}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+    node {}, e=6, ignaps={}, from=0, params={12}, scr=true, ascr=false, orig=_
+        template use, e=7 : "t", e2=1, from=6, params={12}, scr=true, ascr=false, orig=_
+            node {}, e=12, ignaps={}, from=7, params={}, scr=false, ascr=false, orig=2
+        attrib "width", e=8, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        script, e=11, from=6, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Node(6)([Node(12)]), => []
+        call_template TemplateDecl(1)([Node(12)]) => None
+        script
+        script
+    call_node Node(6)([Node(6), Node(12)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _n6 (self _p12) {
+    call _t1 self _p12
+    var a0
+    println self
+}
+call _n6 _ns.n6 _ns.n12
+
+====
+8v2
+2025-09-11T09:22:37.854746Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(11), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        TemplateUse { template_decl_element_ind: 1 }, applies=[], after=0
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 19..21, children_text: true, conf_values: 18..19, param_groups: 8..8, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"a"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={6, 12, 13}, scr=true, ascr=true, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=true, scr=true, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=true, ascr=false
+    apply, e=4 : "a", from=0, params={}, used=true, scr=true, ascr=false
+        script, e=5, from=4, params={}, scr=true, ascr=false
+    node {}, e=6, ignaps={}, from=0, params={12, 13}, scr=true, ascr=false, orig=_
+        template use, e=7 : "t", e2=1, from=6, params={13}, scr=true, ascr=false, orig=_
+            node {}, e=13, ignaps={}, from=7, params={}, scr=false, ascr=false, orig=2
+        attrib "width", e=8, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=6, params={}, scr=false, ascr=false, orig=_
+        script, e=11, from=6, params={}, scr=true, ascr=false
+        node {"a"}, e=12, ignaps={}, from=6, params={}, scr=false, ascr=false, orig=_
+            apply use, e=14 : e2=4, from=0, params={}, scr=false, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Apply(4)([]), => []
+    decl Node(6)([Node(13)]), => []
+        call_template TemplateDecl(1)([Node(13)]) => None
+        script
+        script
+    call_node Node(6)([Node(6), Node(13)]), in_func=false, ret=false
+    call_apply None ApplyDecl(4)([Node(12)]) => None
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _a4 (self) {
+}
+fn _n6 (self _p13) {
+    call _t1 self _p13
+    var a0
+    println self
+}
+call _n6 _ns.n6 _ns.n13
+call _a4 _ns.n12
+
+====
+7v3
+2025-09-11T09:22:57.721638Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 7..8, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        TemplateUse { template_decl_element_ind: 1 }, applies=[], after=0
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 20..22, children_text: true, conf_values: 19..20, param_groups: 9..9, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"a"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={7, 13, 14}, scr=true, ascr=true, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=true, scr=true, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=true, ascr=false
+    apply, e=4 : "a", from=0, params={5}, used=true, scr=true, ascr=false
+        node {}, e=5, ignaps={}, from=4, params={}, scr=true, ascr=false, orig=_
+            script, e=6, from=5, params={}, scr=true, ascr=false
+    node {}, e=7, ignaps={}, from=0, params={13, 14}, scr=true, ascr=false, orig=_
+        template use, e=8 : "t", e2=1, from=7, params={14}, scr=true, ascr=false, orig=_
+            node {}, e=14, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=2
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=7, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=7, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=7, params={}, scr=false, ascr=false, orig=_
+        script, e=12, from=7, params={}, scr=true, ascr=false
+        node {"a"}, e=13, ignaps={}, from=7, params={}, scr=false, ascr=false, orig=_
+            apply use, e=15 : e2=4, from=0, params={16}, scr=false, ascr=false
+                node {}, e=16, ignaps={}, from=15, params={}, scr=false, ascr=false, orig=5
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Apply(4)([Node(5)]), => []
+        decl Node(5)([]), => []
+        call_node Node(5)([Node(5)]), in_func=true, ret=false
+    decl Node(7)([Node(14)]), => []
+        call_template TemplateDecl(1)([Node(14)]) => None
+        script
+        script
+    call_node Node(7)([Node(7), Node(14)]), in_func=false, ret=false
+    call_apply None ApplyDecl(4)([Node(13), Node(16)]) => None
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _a4 (self _p5) {
+    fn _n5 (self) {
+    }
+    call _n5 _p5
+}
+fn _n7 (self _p14) {
+    call _t1 self _p14
+    var a0
+    println self
+}
+call _n7 _ns.n7 _ns.n14
+call _a4 _ns.n13 _ns.n16
+
+====
+9v2
+2025-09-11T09:23:50.404315Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(13), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(11), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        TemplateUse { template_decl_element_ind: 1 }, applies=[], after=0
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 21..23, children_text: true, conf_values: 20..21, param_groups: 9..9, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"a"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 14, 15}, scr=true, ascr=true, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=true, scr=true, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=true, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=true, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=true, scr=true, ascr=false
+        script, e=5, from=4, params={}, scr=true, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=true, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=true, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={14, 15}, scr=true, ascr=false, orig=_
+        template use, e=9 : "t", e2=1, from=8, params={15}, scr=true, ascr=false, orig=_
+            node {}, e=15, ignaps={}, from=9, params={}, scr=false, ascr=false, orig=2
+        attrib "width", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=12, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        script, e=13, from=8, params={}, scr=true, ascr=false
+        node {"a"}, e=14, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=_
+            apply use, e=16 : e2=4, from=0, params={17}, scr=false, ascr=false
+                node {}, e=17, ignaps={}, from=16, params={}, scr=false, ascr=false, orig=6
+root
+    call_stub 0, is_root=true
+    decl Template(1)([Node(2)]), => []
+        decl Node(2)([]), => []
+        call_node Node(2)([Node(2)]), in_func=true, ret=false
+    decl Apply(4)([Node(6)]), => []
+        decl Node(6)([]), => []
+        call_node Node(6)([Node(6)]), in_func=true, ret=false
+    decl Node(8)([Node(15)]), => []
+        call_template TemplateDecl(1)([Node(15)]) => None
+        script
+        script
+    call_node Node(8)([Node(8), Node(15)]), in_func=false, ret=false
+    call_apply None ApplyDecl(4)([Node(14), Node(17)]) => None
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _t1 (self _p2) {
+    fn _n2 (self) {
+    }
+    call _n2 _p2
+}
+fn _a4 (self _p6) {
+    fn _n6 (self) {
+    }
+    call _n6 _p6
+}
+fn _n8 (self _p15) {
+    call _t1 self _p15
+    var a0
+    println self
+}
+call _n8 _ns.n8 _ns.n15
+call _a4 _ns.n14 _ns.n17
+
+====
+7v5
+2025-09-11T18:25:01.495055Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 19..21, children_text: true, conf_values: 18..19, param_groups: 8..8, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 13}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={13}, scr=true, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        script, e=12, from=8, params={}, scr=true, ascr=false
+        node {"aa"}, e=13, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=_
+root
+    call_stub 0, is_root=true
+    decl Node(8)([]), => []
+        script
+        script
+    call_node Node(8)([Node(8)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _n8 (self) {
+    var a0
+    println self
+}
+call _n8 _ns.n8
+
+====
+8v6
+2025-09-11T18:25:17.286429Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 19..20, children_text: true, conf_values: 18..19, param_groups: 8..8, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 13}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={13}, scr=true, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        script, e=12, from=8, params={}, scr=true, ascr=false
+        node {"aa"}, e=13, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=_
+root
+    call_stub 0, is_root=true
+    decl Node(8)([]), => []
+        script
+    call_node Node(8)([Node(8)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _n8 (self) {
+    println self
+}
+call _n8 _ns.n8
+
+====
+9v5
+2025-09-11T18:25:21.572229Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Script { record: Record { parent: Some(3), children: 19..20, children_text: true, conf_values: 18..19, param_groups: 8..8, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 13}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={13}, scr=true, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        script, e=12, from=8, params={}, scr=true, ascr=false
+        node {"aa"}, e=13, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=_
+root
+    call_stub 0, is_root=true
+    decl Node(8)([]), => []
+        script
+    call_node Node(8)([Node(8)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _n8 (self) {
+    #println self
+}
+call _n8 _ns.n8
+
+====
+2025-09-11T18:25:34.815600Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(11), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(9), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 12}, scr=false, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={12}, scr=false, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        node {"aa"}, e=12, ignaps={}, from=8, params={}, scr=false, ascr=false, orig=_
+root
+    call_stub 0, is_root=true
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+
+====
+2025-09-11T18:25:42.490759Z  INFO system{name="bevy_asset::server::handle_internal_asset_events"}: bevy_asset::server: Reloading test.ui_conf because it has changed
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Modified { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(7), children: 0..0, children_text: false, conf_values: 20..21, param_groups: 9..9, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 12}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={12}, scr=true, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        node {"aa"}, e=12, ignaps={}, from=8, params={}, scr=true, ascr=false, orig=_
+            script, e=13, from=12, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+            script, e=13, from=12, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+root
+    call_stub 0, is_root=true
+    decl Node(8)([Node(12)]), => []
+    call_stub 0, is_root=true
+    decl Node(8)([Node(12)]), => []
+    decl Node(8)([Node(12)]), => []
+        decl Node(12)([]), => []
+        decl Node(12)([]), => []
+        call_node Node(12)([Node(12)]), in_func=true, ret=false
+        call_node Node(12)([Node(12)]), in_func=true, ret=false
+    call_node Node(8)([Node(8), Node(12)]), in_func=false, ret=false
+===
+
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var root, _stubs
+var _ns [call _stubs 0 root]
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _n8 (self _p12) {
+    fn _n12 (self) {
+    }
+    call _n12 _p12
+}
+call _n8 _ns.n8 _ns.n12
+
+====
+exit!
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=51535'
+   Compiling bevy_table_uix v0.1.0 (C:\Users\someone\Desktop\code2\ok3\bevy_table_uix)
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffResultEnv` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffResultEnv {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 22.00s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-11T19:35:06.970990Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-11T19:35:07.239430Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-11T19:35:07.254779Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(12), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Node { names: {"aa"}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(7), children: 0..0, children_text: false, conf_values: 20..21, param_groups: 9..9, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8, 12}, scr=true, ascr=false, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=false, scr=false, ascr=false
+        script, e=5, from=4, params={}, scr=false, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=false, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=false, ascr=false
+    node {}, e=8, ignaps={}, from=0, params={12}, scr=true, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        node {"aa"}, e=12, ignaps={}, from=8, params={}, scr=true, ascr=false, orig=_
+            script, e=13, from=12, params={}, scr=true, ascr=false
+root
+    call_stub 0, is_root=true
+    decl Node(8)([Node(12)]), => []
+        decl Node(12)([]), => []
+        call_node Node(12)([Node(12)]), in_func=true, ret=false
+    call_node Node(8)([Node(8), Node(12)]), in_func=false, ret=false
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _n8 (self _p12) {
+    fn _n12 (self) {
+    }
+    call _n12 _p12
+}
+call _n8 _ns.n8 _ns.n12
+
+====
+2025-09-11T19:35:23.666491Z  INFO system{name="bevy_window::system::exit_on_all_closed"}: bevy_window::system: No windows are open, exiting    
+2025-09-11T19:35:23.667510Z  INFO system{name="bevy_winit::system::despawn_windows"}: bevy_winit::system: Closing window 0v1
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix> ^C
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>  & 'c:\Users\someone\.vscode\extensions\vadimcn.vscode-lldb-1.11.5\adapter\codelldb.exe' 'terminal-agent' '--connect=61887'
+   Compiling bevy_table_uix v0.1.0 (C:\Users\someone\Desktop\code2\ok3\bevy_table_uix)
+warning: fields `by_ind` and `by_name` are never read
+  --> src\script_vals.rs:18:9
+   |
+17 | pub struct StuffEnv {
+   |            -------- fields in this struct
+18 |     pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+   |         ^^^^^^
+19 |     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
+   |         ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: struct `StuffResultEnv` is never constructed
+  --> src\script_vals.rs:22:12
+   |
+22 | pub struct StuffResultEnv {
+   |            ^^^^^^^^^^^^^^
+
+warning: field `all_envs` is never read
+  --> src\script_vals.rs:33:9
+   |
+27 |  pub struct Stuff {
+   |             ----- field in this struct
+...
+33 |     pub all_envs : Vec<StuffEnv>,
+   |         ^^^^^^^^
+
+warning: `bevy_table_uix` (lib) generated 3 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 9.46s
+     Running `target\debug\examples\test.exe`
+Hello, world!
+2025-09-11T20:13:59.603041Z  INFO bevy_render::renderer: AdapterInfo { name: "NVIDIA GeForce RTX 4060", vendor: 4318, device: 10370, device_type: DiscreteGpu, driver: "NVIDIA", driver_info: "580.88", backend: Vulkan }
+2025-09-11T20:13:59.881860Z  INFO bevy_app: bevy_render::batching::gpu_preprocessing: GPU preprocessing is fully supported on this device.
+2025-09-11T20:13:59.896828Z  INFO bevy_app: bevy_winit::system: Creating new window uix test (0v1)
+root is 6v1
+asset  LoadedWithDependencies { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+asset  Added { id: AssetId<bevy_table_uix::assets::UiAsset>{ index: 0, generation: 0} }
+
+
+Node { names: {}, ignore_applies: {} }, applies=[4], after=0
+    TemplateDecl { name: "t", used: true }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(10), children: 0..0, children_text: false, conf_values: 3..4, param_groups: 2..2, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Apply { name: "a", owner_apply_decl_id: None, used: true }, applies=[], after=0
+        Script { record: Record { parent: Some(2), children: 0..0, children_text: false, conf_values: 6..7, param_groups: 3..3, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+        Node { names: {}, ignore_applies: {} }, applies=[], after=0
+            Script { record: Record { parent: Some(8), children: 0..0, children_text: false, conf_values: 8..9, param_groups: 4..4, node_label: None, branch_name: Some(5), tag: true } }, applies=[], after=0
+    Node { names: {"a"}, ignore_applies: {} }, applies=[], after=1
+        Attrib { name: "width", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "height", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+        Attrib { name: "color", on_state: None, in_template: None, func: ElementAttribFunc, in_node: true, calcd: ElementAttribCalc { in_template: None, in_apply: None, used: false, ok: false } }, applies=[], after=0
+
+
+=====
+node {}, e=0, ignaps={}, from=0, params={8}, scr=true, ascr=true, orig=_
+    template decl, e=1 : "t", from=0, params={2}, used=false, scr=false, ascr=false
+        node {}, e=2, ignaps={}, from=1, params={}, scr=false, ascr=false, orig=_
+            script, e=3, from=2, params={}, scr=false, ascr=false
+    apply, e=4 : "a", from=0, params={6}, used=true, scr=true, ascr=false
+        script, e=5, from=4, params={}, scr=true, ascr=false
+        node {}, e=6, ignaps={}, from=4, params={}, scr=true, ascr=false, orig=_
+            script, e=7, from=6, params={}, scr=true, ascr=false
+    node {"a"}, e=8, ignaps={}, from=0, params={}, scr=false, ascr=false, orig=_
+        attrib "width", e=9, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "height", e=10, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        attrib "color", e=11, in_node=true, calcd=ElementAttribCalc { in_template: None, in_apply: None, used: true, ok: true }, from=8, params={}, scr=false, ascr=false, orig=_
+        apply use, e=12 : e2=4, from=0, params={13}, scr=false, ascr=false
+            node {}, e=13, ignaps={}, from=12, params={}, scr=false, ascr=false, orig=6
+root
+    call_stub 0, is_root=true
+    decl Apply(4)([Node(6)]), => []
+        decl Node(6)([]), => []
+        call_node Node(6)([Node(6)]), in_func=true, ret=false
+    call_apply None ApplyDecl(4)([Node(8), Node(13)]) => None
+===
+
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _a4 (self _p6) {
+    fn _n6 (self) {
+    fn _n6 (self) {
+    fn _n6 (self) {
+    fn _n6 (self) {
+    }
+    call _n6 _p6
+}
+call _a4 _ns.n8 _ns.n13
+
+====
+exit!
+PS C:\Users\someone\Desktop\code2\ok3\bevy_table_uix>
+
+
+
+
+
+
+
+
+

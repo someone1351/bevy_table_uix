@@ -5,8 +5,9 @@ mod systems;
 mod resources;
 mod script_libs;
 mod events;
-mod loading_utils;
-mod loading_vals;
+// mod loading_utils;
+// mod loading_vals;
+mod loading;
 mod script_vals;
 
 mod script_utils;

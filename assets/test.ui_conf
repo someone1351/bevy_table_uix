@@ -6,7 +6,7 @@ apply a
     node
         script
 node
-    #template t
+    template t
 
     width 150
     height 150
@@ -14,5 +14,5 @@ node
     #script
         #println self
 
-    node aa
-        script
+    #node aa
+    #    script

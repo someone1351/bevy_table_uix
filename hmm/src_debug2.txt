@@ -1,0 +1,9 @@
+var root, _stubs
+var _ns [call _stubs 0 root]
+var env _ns.e0
+fn _a4 (self _p6) {
+    fn _n6 (self) {
+    }
+    call _n6 _p6
+}
+call _a4 _ns.n8 _ns.n13

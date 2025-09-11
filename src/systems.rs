@@ -21,8 +21,9 @@ use super::script_utils::*;
 use super::assets::*;
 use super::components::*;
 // use super::resources::*;
-use super::loading_utils::*;
+// use super::loading_utils::*;
 
+use super::loading::*;
 
 pub fn on_asset_modified_event(
     mut asset_events: EventReader<AssetEvent<UiAsset>>,
