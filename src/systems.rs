@@ -175,6 +175,13 @@ pub fn on_asset_load<'a>(
             let stuff = script_lang::Value::custom_unmanaged(stuff);
             println!("===\n\n{src}\n====");
 
+            {
+
+                std::fs::write("src_debug.txt", &src).expect("Should be able to write to `/foo/tmp`");
+                let src2=gen_script_src(&syntax_tree);
+                std::fs::write("src_debug2.txt", &src2).expect("Should be able to write to `/foo/tmp`");
+            }
+
             // let compiler=script_lang::langs::cexpr_compiler::Compiler::new();
             // let build = compiler.compile(src.as_str(), 0, None, true, );
             // // script_lang::cexpr_compiler::

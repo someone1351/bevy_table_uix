@@ -1,0 +1,9 @@
+
+
+node
+    width 150
+    height 150
+    color 55 66 177
+    script
+        var a0
+        println self

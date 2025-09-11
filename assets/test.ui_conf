@@ -1,57 +1,18 @@
-stub test
+template t
+    node
+        script
+apply a
     script
-        #var node_x self.children.x.0
-        #var node_x env.x.0
-
-    node x
-        color red
-        size 50 50
-        apply y
-            script
-                var hello 5;
-        node y
-
-        script
-            println "hello1 {self}"
     node
-        color green
-        size 50 50
-
         script
-            println "hello2 {self}"
-    node
-        color blue
-        size 50 50
-
-        pressable
-
-        script
-            println "hello3 {self}"
-            var a 0.0
-            add_event_listener self "click" [fn () {
-                println "hello {self} {}" (cos a)
-                println "col {}" self.color.rgb
-                set self.color.rgb (vec3 (abs (* (cos a) (sin a))) 1.0 0.2)
-                set a (+ a 0.1)
-                #println "is {}" self.parent.children.x
-                #println self.parent.children.0
-                #set self.parent.children.0.hide true
-                #set self.parent.children.x.0.hide true
-                #set node_x.hide true
-            }]
-
-
 node
-    padding 50
-    color grey
-    gap 50
-    span 3
+    #template t
 
+    width 150
+    height 150
+    color 55 66 177
+    #script
+        #println self
 
-    script
-        println "hello0 {self}"
-        call stub_test self
-        call stub_test self
-        call stub_test self
-
-        call stub_test self
+    node aa
+        script

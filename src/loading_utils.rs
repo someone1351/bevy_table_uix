@@ -55,7 +55,16 @@ pub fn load_elements<'a>(
     asset:&'a UiAsset,
     // get_asset:impl FnMut(&str) ->&UiAsset,
 ) -> Option<Vec<Element<'a>>>{
-    let mut elements: Vec<Element> = vec![Element{element_type:ElementType::Node{names:HashSet::new(),ignore_applies:HashSet::new(),},children:Vec::new(),applies:Vec::new(),apply_after:0,calcd_from_element_ind:None,calcd_node_params:BTreeSet::new(),calcd_created_from:0,has_script:false,has_apply_script:false,calcd_original:None, env: HashMap::new(), }];
+    let mut elements: Vec<Element> = vec![Element{
+        element_type:ElementType::Node{names:HashSet::new(),ignore_applies:HashSet::new(),},
+        children:Vec::new(),applies:Vec::new(),
+        apply_after:0,calcd_from_element_ind:None,
+        calcd_node_params:BTreeSet::new(),
+        calcd_created_from:0,
+        has_script:false,has_apply_decl_script:false,has_own_script:false,has_template_use_script:false,
+        calcd_original:None,
+        env: HashMap::new(),
+    }];
 
     //elements
 
@@ -112,7 +121,9 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
-                        has_apply_script:false,
+                        has_apply_decl_script:false,
+                        has_own_script:false,
+                        has_template_use_script:false,
                         calcd_original:None,
                         env: HashMap::new(),
                     });
@@ -150,7 +161,9 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
-                        has_apply_script:false,
+                        has_apply_decl_script:false,
+                        has_own_script:false,
+                        has_template_use_script:false,
                         calcd_original:None,
                         env: HashMap::new(),
                     });
@@ -198,7 +211,9 @@ pub fn load_elements<'a>(
                             calcd_node_params:BTreeSet::new(),
                             calcd_created_from:cur_element_ind,
                             has_script:false,
-                            has_apply_script:false,
+                            has_apply_decl_script:false,
+                            has_own_script:false,
+                            has_template_use_script:false,
                             calcd_original:None,
                             env: HashMap::new(),
                         });
@@ -241,7 +256,9 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
-                        has_apply_script:false,
+                        has_apply_decl_script:false,
+                        has_own_script:false,
+                        has_template_use_script:false,
                         calcd_original:None,
                         env: HashMap::new(),
                     });
@@ -271,7 +288,9 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
-                        has_apply_script:false,
+                        has_apply_decl_script:false,
+                        has_own_script:false,
+                        has_template_use_script:false,
                         calcd_original:None,
                         env: HashMap::new(),
                     });
@@ -303,7 +322,9 @@ pub fn load_elements<'a>(
                         calcd_node_params:BTreeSet::new(),
                         calcd_created_from:cur_element_ind,
                         has_script:false,
-                        has_apply_script:false,
+                        has_apply_decl_script:false,
+                        has_own_script:false,
+                        has_template_use_script:false,
                         calcd_original:None,
                         env: HashMap::new(),
                     });
@@ -347,7 +368,9 @@ pub fn load_elements<'a>(
                             calcd_node_params:BTreeSet::new(),
                             calcd_created_from:cur_element_ind,
                             has_script:false,
-                            has_apply_script:false,
+                            has_apply_decl_script:false,
+                            has_own_script:false,
+                            has_template_use_script:false,
                             calcd_original:None,
                             env: HashMap::new(),
                         });
@@ -1340,7 +1363,9 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 calcd_node_params:BTreeSet::new(),
                                 calcd_created_from:from,
                                 has_script:false,
-                                has_apply_script:false,
+                                has_apply_decl_script:false,
+                                has_own_script:false,
+                                has_template_use_script:false,
                                 calcd_original:None,
                                 env: HashMap::new(),
                             });
@@ -1656,7 +1681,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
                 //envs
                 all_envs.push(StuffEnv{ by_ind: cur_env_inds, by_name: cur_env_nameds });
             }
-        } _ => {  } }
+        } _=>{}}
 
 
         //
@@ -1843,7 +1868,7 @@ pub fn calc_envs(elements:&mut Vec<Element>) {
 }
 
 pub fn mark_has_script(elements:&mut Vec<Element>) {
-    let mut parents: HashMap<usize, usize>=HashMap::new(); //[element]=parent
+    let mut element_parent_map: HashMap<usize, usize>=HashMap::new(); //[element]=parent
     let mut work_stk=vec![0];
 
     while let Some(cur_element_ind)=work_stk.pop() {
@@ -1859,59 +1884,56 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
             }
             _=>{
                 work_stk.extend(cur_element.children.iter().rev());
-                parents.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
+                element_parent_map.extend(cur_element.children.iter().map(|&child_element_ind|(child_element_ind, cur_element_ind)));
             }
         }
 
-        // //
-        // let (has_script,has_apply_script)=match cur_element.element_type {
-        //     ElementType::Script { .. } => (true,false),
-        //     ElementType::TemplateUse { template_decl_element_ind  } => {
-        //         let element=elements.get(template_decl_element_ind).unwrap();
-        //         let ElementType::TemplateDecl { name,used, .. }=&element.element_type else {panic!("");};
-        //         println!("---- {name:?} used={used}, script={}",element.has_script);
-        //         if !used {
-        //             (false,false)
-        //         } else {
-        //             (element.has_script,element.has_apply_script)
-        //         }
-        //         // *used && element.has_script
-        //     },
-        //     // ElementType::Apply { name, owner_apply_decl_id, used }
-        //     _ => (false,false),
-        // };
 
+
+        let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{false};
+        let has_template_use_script =if let ElementType::TemplateUse { .. }=&cur_element.element_type {true}else{false};
         //
-        let has_script=match cur_element.element_type {
+        let has_script=match &cur_element.element_type {
             ElementType::Script { .. } => true,
-            ElementType::TemplateUse { template_decl_element_ind  } => {
+            &ElementType::TemplateUse { template_decl_element_ind  } => {
                 let element=elements.get(template_decl_element_ind).unwrap();
-                let ElementType::TemplateDecl { name,used, .. }=&element.element_type else {panic!("");};
-                println!("---- {name:?} used={used}, script={}",element.has_script);
+                let &ElementType::TemplateDecl {
+                    // name,
+                    used,
+                    ..
+                }=&element.element_type else {panic!("");};
+                // println!("---- {name:?} used={used}, script={}",element.has_script);
 
-                *used && element.has_script
+                used && element.has_script
             },
             _ => false,
         };
 
-        //
-        let has_apply_script=match cur_element.element_type {
+        //for apply ret? in a template
+        let has_apply_decl_ret_script=match cur_element.element_type {
             ElementType::TemplateUse { template_decl_element_ind  } => {
                 let element=elements.get(template_decl_element_ind).unwrap();
                 let ElementType::TemplateDecl { .. }=&element.element_type else {panic!("");};
 
-                element.has_apply_script
+                element.has_apply_decl_script
             },
             _ => false,
         };
 
         //has_apply_script means it returns an apply decl func or a template decl that has a descendent that is an apply decl func with script
 
+        //
+        // if has_own_script
+        {
+            let cur_element=elements.get_mut(cur_element_ind).unwrap();
+            cur_element.has_own_script=has_own_script;
+            cur_element.has_template_use_script=has_template_use_script;
+        }
         // cur_element
 
         //set ancestors to has_script
         if has_script {
-            let mut has_apply_script=has_apply_script;
+            let mut has_apply_script=has_apply_decl_ret_script;
             let mut element_ind=Some(cur_element_ind);
 
             while let Some(element_ind2)=element_ind {
@@ -1924,12 +1946,12 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
                 //     }
                 //     _ => {
                 element.has_script=true;
-                element.has_apply_script=element.has_apply_script||has_apply_script;
-                element_ind=parents.get(&element_ind2).cloned();
+                element.has_apply_decl_script=element.has_apply_decl_script||has_apply_script;
+                element_ind=element_parent_map.get(&element_ind2).cloned();
                 //     }
                 // }
 
-                //
+                //for apply ret
                 if let ElementType::Apply{..} = &element.element_type {
                     has_apply_script=true;
                 }
@@ -1943,13 +1965,14 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
                 // }
             }
         }
+
     }
 }
 
 
 
 pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
-    let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new() }];
+    let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new(),  }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
 
@@ -2075,7 +2098,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 let ElementType::ApplyUse { apply_decl_element_ind }=&elements.get(apply_use_element_ind).unwrap().element_type else {panic!("");};
                 let apply_decl_element=elements.get(*apply_decl_element_ind).unwrap();
 
-                let ret=apply_decl_element.has_apply_script.then_some(ScriptSyntaxApplyUse(apply_use_element_ind));
+                let ret=apply_decl_element.has_apply_decl_script.then_some(ScriptSyntaxApplyUse(apply_use_element_ind));
 
                 let new_syntax_ind=syntax_tree.len();
                 syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
@@ -2165,7 +2188,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             }
                         }
                         ElementType::TemplateUse{..}=>{
-                            if tmp_element.has_apply_script
+                            if tmp_element.has_apply_decl_script
                             {
 
                                 if tmp_element_ind==child_element_ind {
@@ -2215,7 +2238,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     syntax_stk.push(new_syntax_ind);
-                    syntax_tree.push(ScriptSyntax::Stub { name: name.to_string(), children: Vec::new() });
+                    syntax_tree.push(ScriptSyntax::Stub { name: name.to_string(), children: Vec::new(), });
 
                     //call stub
                     // let new_syntax_ind=syntax_tree.len();
@@ -2318,7 +2341,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     }));
 
                     syntax_tree.push(ScriptSyntax::CallNode {
-                        ret:cur_element.has_apply_script,
+                        ret:cur_element.has_apply_decl_script,
                         in_func,
                         func: ScriptSyntaxNode(cur_work.element_ind),
                         params,
@@ -2379,7 +2402,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     //     param_element.has_script
                     // }).collect();
 
-                    let ret=cur_element.has_apply_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
+                    let ret=cur_element.has_apply_decl_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
 
                     // let params=cur_element.calcd_node_params.iter().enumerate().filter_map(|(param_ind,&param_element_ind)|{
                     //     // let param_element=elements.get(param_element_ind).unwrap();
@@ -2439,8 +2462,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
             syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
             let is_root=if let ElementType::Stub{..}=&cur_element.element_type{false}else{true};
+            let has_script = cur_element.has_script;
 
-            syntax_tree.push(ScriptSyntax::CallStub { is_root, stub: cur_work.element_ind } );
+            syntax_tree.push(ScriptSyntax::CallStub { is_root, has_script, stub: cur_work.element_ind } );
         }
     } //end while
 
@@ -2464,7 +2488,7 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
             ScriptSyntax::Stub { name, ..  } => {
                 println!("{indent}stub {name:?}");
             }
-            ScriptSyntax::CallStub { is_root, stub } => {
+            ScriptSyntax::CallStub { is_root, stub, .. } => {
                 println!("{indent}call_stub {stub}, is_root={is_root}");
             }
             ScriptSyntax::CallTemplate { ret, func, params } => {
@@ -2492,8 +2516,8 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
 pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
     let mut stk=vec![(0,0,false)]; //ind,depth,exit
     let mut src=String::new();
-    src+="var root;\n";
-    src+="var _stubs;\n";
+    src+="var root, _stubs\n";
+
     while let Some((cur_ind,depth, exit))=stk.pop() {
         let indent="    ".repeat(if depth<=1{0}else{depth-1});
         let cur=syntax_tree.get(cur_ind).unwrap();
@@ -2515,9 +2539,14 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             ScriptSyntax::Stub { .. } => {
                 src+=&format!("{indent}}}\n");
             }
-            ScriptSyntax::CallStub { is_root, stub } => {
-                let parent = if *is_root{"root"}else{"self"}; //what?
+            &ScriptSyntax::CallStub { is_root, stub, .. } => {
+                let parent = if is_root{"root"}else{"self"};
                 src+=&format!("{indent}var _ns [call _stubs {stub} {parent}]\n");
+
+                if is_root //&& cur.h
+                {
+                    src+=&format!("{indent}var env _ns.e0\n");
+                }
             }
             ScriptSyntax::CallTemplate { ret, func, params } => {
                 let mut params2=vec!["self".to_string()];
@@ -2677,7 +2706,7 @@ pub fn debug_print_elements(elements:&Vec<Element>) {
         let from_path=&cur_element.calcd_created_from;
         let params = &cur_element.calcd_node_params;
         let has_script=cur_element.has_script;
-        let has_apply_script=cur_element.has_apply_script;
+        let has_apply_script=cur_element.has_apply_decl_script;
         let calcd_original=cur_element.calcd_original.map(|x|format!("{x}")).unwrap_or("_".to_string());
 
         match &cur_element.element_type {

@@ -94,8 +94,10 @@ pub struct Element<'a> {
     pub calcd_node_params:BTreeSet<usize>, //element_ind
     pub calcd_created_from : usize,
     pub calcd_original : Option<usize>,
+    pub has_own_script:bool,
+    pub has_template_use_script:bool,
     pub has_script:bool,
-    pub has_apply_script:bool,
+    pub has_apply_decl_script:bool,
     pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 }
 
@@ -138,6 +140,7 @@ pub struct ScriptSyntaxApplyUse(pub usize);
 pub enum ScriptSyntax {
     Root {
         children:Vec<usize>,
+        // has_script:bool,
     },
     // InitStub {
     //     name:String,
@@ -167,10 +170,12 @@ pub enum ScriptSyntax {
     Stub {
         name : String,
         children:Vec<usize>, //syntax_inds
+        // has_script:bool,
     },
 
     CallStub {
         is_root:bool,
+        has_script:bool,
         stub : usize,//element_ind
 
     },
@@ -199,13 +204,13 @@ pub enum ScriptSyntax {
 impl ScriptSyntax {
     pub fn get_children(&self) -> Option<&Vec<usize>> {
         match self {
-            ScriptSyntax::Root{children}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
+            ScriptSyntax::Root{children, ..}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
             _ =>None,
         }
     }
     pub fn get_children_mut(&mut self) -> Option<&mut Vec<usize>> {
         match self {
-            ScriptSyntax::Root{children}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
+            ScriptSyntax::Root{children, ..}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
             _ =>None,
         }
     }
