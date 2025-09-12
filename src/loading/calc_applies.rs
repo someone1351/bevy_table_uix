@@ -8,9 +8,36 @@ use table_ui::*;
 use super::super::script_vals::*;
 use super::vals::*;
 
+
+struct Thing { //
+    applies : Vec<(
+        usize, //apply_element_ind
+        usize, //from_element_ind
+    )>, //apply_element_ind, from_apply_use_element_ind
+    apply_after:usize,
+    element_ind:usize,
+}
+
+#[derive(Clone)]
+struct Work {
+    element_ind:usize,
+    from_applies:HashSet<usize>, //apply_element_ind
+    in_template:Option<usize>, //template_use_id
+    in_apply:Option<usize>, //apply_decl_id
+    new_from_parent:Option<usize>, //element_ind
+    thing_apply_after_offset:usize, //Option<usize>,
+
+    node_depth:usize,
+    thing_depth:usize,
+
+    created_from:usize,
+}
+
+
+
 pub fn calc_applies(elements:&mut Vec<Element>) {
 
-    let mut work_stk=vec![CalcAppliesWork{
+    let mut work_stk=vec![Work{
         element_ind:0,
         in_template:None,
         in_apply:None,
@@ -24,7 +51,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
         created_from:0,
     }];
 
-    let mut things: Vec<CalcAppliesThing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
+    let mut things: Vec<Thing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
     let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
     while let Some(cur_work)=work_stk.pop() {
@@ -303,7 +330,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                                 cur_work.in_template //why this?
                             };
 
-                            CalcAppliesWork{
+                            Work{
                                 element_ind: child_element_ind,
                                 in_template,
                                 in_apply,
@@ -357,7 +384,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                         if let ElementType::ApplyUse { .. } =&child_element.element_type {
                             None
                         } else {
-                            let w=CalcAppliesWork{
+                            let w=Work{
                                 element_ind: child_element_ind,
                                 from_applies:cur_work.from_applies.clone(),
                                 in_apply:cur_work.in_apply,
@@ -373,7 +400,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::Stub { .. } => {
-                    work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|CalcAppliesWork{
+                    work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                         element_ind: child_element_ind,
                         from_applies:cur_work.from_applies.clone(),
                         in_apply:cur_work.in_apply,
@@ -397,7 +424,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                             Some(cur_element_ind)
                         };
 
-                        CalcAppliesWork{
+                        Work{
                             element_ind: child_element_ind,
                             from_applies:cur_work.from_applies.clone(),
                             in_apply:cur_work.in_apply,
@@ -425,14 +452,14 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
             let cur_element_ind=the_new_element_ind.unwrap_or(cur_work.element_ind);
             match &cur_element.element_type {
                 ElementType::Node {  ..  } => {
-                    things.push(CalcAppliesThing {
+                    things.push(Thing {
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
                         element_ind:cur_element_ind,
                     });
                 }
                 ElementType::Stub { .. } => {
-                    things.push(CalcAppliesThing {
+                    things.push(Thing {
                         // applies: Vec::new(), //new_applies, //doesn't use new applies? should be empty anyway
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
@@ -440,7 +467,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                     });
                 }
                 ElementType::TemplateUse { .. } => {
-                    things.push(CalcAppliesThing {
+                    things.push(Thing {
                         applies: new_applies,
                         apply_after: cur_element.apply_after+cur_work.thing_apply_after_offset, //for elements added by apply
                         element_ind:cur_element_ind,

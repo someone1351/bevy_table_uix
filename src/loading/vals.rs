@@ -220,66 +220,6 @@ impl ScriptSyntax {
 //////
 
 
-pub struct CalcAppliesThing { //
-    pub applies : Vec<(
-        usize, //apply_element_ind
-        usize, //from_element_ind
-    )>, //apply_element_ind, from_apply_use_element_ind
-    pub apply_after:usize,
-    pub element_ind:usize,
-}
-
-#[derive(Clone)]
-pub struct CalcAppliesWork {
-    pub element_ind:usize,
-    pub from_applies:HashSet<usize>, //apply_element_ind
-    pub in_template:Option<usize>, //template_use_id
-    pub in_apply:Option<usize>, //apply_decl_id
-    pub new_from_parent:Option<usize>, //element_ind
-    pub thing_apply_after_offset:usize, //Option<usize>,
-
-    pub node_depth:usize,
-    pub thing_depth:usize,
-
-    pub created_from:usize,
-}
-
-#[derive(Clone)]
-pub struct CalcNodeParamsWork {
-    pub element_ind:usize,
-    pub exit:bool,
-    pub parent:Option<usize>,
-    pub in_decl:bool,
-}
-
-#[derive(Clone)]
-pub struct GenStubsWork {
-    pub element_ind:usize,
-    pub parent:Option<usize>,
-    pub stub:Option<usize>,
-}
-
-
-#[derive(Clone)]
-pub struct GenScriptSyntaxTreeWork {
-    pub element_ind:usize,
-    pub depth:usize,
-    pub exit:bool,
-    pub parent:Option<usize>,
-    pub in_a_use:bool,
-    pub inside:Option<usize>,
-}
-
-pub struct GenScriptSyntaxTreeApplyCallStkItem {
-    pub inside_element_ind:Option<usize>,
-    pub parent_element_ind:usize,
-    pub apply_use_element_ind:usize,
-}
-
-pub struct CalcNodeApplyIgnoresWork{
-    pub element_ind:usize,
-    pub depth:usize,
-}
 
 
 

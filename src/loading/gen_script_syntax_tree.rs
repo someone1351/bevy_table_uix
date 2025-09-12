@@ -4,14 +4,32 @@ use std::cmp::Ordering;
 
 use super::vals::*;
 
+
+struct ApplyCallStkItem {
+    inside_element_ind:Option<usize>,
+    parent_element_ind:usize,
+    apply_use_element_ind:usize,
+}
+
+
+#[derive(Clone)]
+struct Work {
+    element_ind:usize,
+    depth:usize,
+    exit:bool,
+    parent:Option<usize>,
+    in_a_use:bool,
+    inside:Option<usize>,
+}
+
 pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root { children: Vec::new(),  }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
 
-    let mut work_stk=vec![GenScriptSyntaxTreeWork{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];
+    let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];
 
-    let mut apply_calls_stk: Vec<Vec<GenScriptSyntaxTreeApplyCallStkItem>> = Vec::new();
+    let mut apply_calls_stk: Vec<Vec<ApplyCallStkItem>> = Vec::new();
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
@@ -37,8 +55,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     cur_work.inside
                 };
 
-                work_stk.push(GenScriptSyntaxTreeWork{exit:true, ..cur_work.clone()});
-                work_stk.extend(cur_element.children.iter().rev().map(|&child|GenScriptSyntaxTreeWork {
+                work_stk.push(Work{exit:true, ..cur_work.clone()});
+                work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
                     element_ind: child, depth: cur_work.depth+1, exit:false,
                     parent:Some(cur_work.element_ind),
                     in_a_use: in_use,
@@ -175,7 +193,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     continue;
                 }
 
-                apply_calls_stk.last_mut().unwrap().push(GenScriptSyntaxTreeApplyCallStkItem {
+                apply_calls_stk.last_mut().unwrap().push(ApplyCallStkItem {
                     inside_element_ind:cur_work.inside,
                     parent_element_ind:cur_work.parent.unwrap(),
                     apply_use_element_ind:cur_work.element_ind,

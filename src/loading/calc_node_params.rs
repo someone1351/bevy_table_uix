@@ -2,32 +2,42 @@
 
 use super::vals::*;
 
+#[derive(Clone)]
+struct Work {
+    element_ind:usize,
+    exit:bool,
+    parent:Option<usize>,
+    in_template_or_apply_decl:bool,
+}
+
 pub fn calc_node_params(elements:&mut Vec<Element>) {
 
 
-    let mut work_stk=vec![CalcNodeParamsWork { element_ind:0, exit:false, parent:None,in_decl:false, }];
+    let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
+        //on enter
         if !cur_work.exit {
-            work_stk.push(CalcNodeParamsWork{exit:true, ..cur_work.clone()});
+            work_stk.push(Work{exit:true, ..cur_work.clone()});
 
-            let in_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {true} else {cur_work.in_decl};
+            let in_template_or_apply_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=
+                &cur_element.element_type {true} else {cur_work.in_template_or_apply_decl};
 
-            work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|CalcNodeParamsWork {
+            work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
                 element_ind,
                 exit:false,
                 parent:Some(cur_work.element_ind),
-                in_decl,
+                in_template_or_apply_decl,
             }));
         }
 
-        let Some(parent_element_ind)=cur_work.parent else {
-            continue;
-        };
+        //only work on elements with a parent
+        let Some(parent_element_ind)=cur_work.parent else { continue; };
 
-        if !cur_work.exit {
+        //
+        if !cur_work.exit { //on enter
             //works by traversing expanded nodes
             //  getting nodes and storing them as params in their parent
             //  and then extending ancestor params with those
@@ -46,7 +56,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
                     parent_element.calcd_node_params.insert(cur_work.element_ind);
                 }
-                ElementType::TemplateUse{ template_decl_element_ind, .. } if cur_work.in_decl  => {
+                ElementType::TemplateUse{ template_decl_element_ind, .. } if cur_work.in_template_or_apply_decl  => {
                     let decl_element=elements.get(*template_decl_element_ind).unwrap();
                     let params=decl_element.calcd_node_params.clone();
 

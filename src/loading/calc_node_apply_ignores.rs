@@ -1,15 +1,20 @@
 
 use super::vals::*;
 
+struct Work{
+    element_ind:usize,
+    depth:usize,
+}
+
 pub fn calc_node_apply_ignores(elements:&mut Vec<Element>) { //not currently used?
 
-    let mut work_stk=vec![CalcNodeApplyIgnoresWork{ element_ind: 0, depth:0 }];
+    let mut work_stk=vec![Work{ element_ind: 0, depth:0 }];
 
     let mut ancestor_stk: Vec<usize> = Vec::new(); //element_ind
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
-        work_stk.extend(cur_element.children.iter().rev().map(|&c|CalcNodeApplyIgnoresWork { element_ind: c,depth:cur_work.depth+1 }));
+        work_stk.extend(cur_element.children.iter().rev().map(|&c|Work { element_ind: c,depth:cur_work.depth+1 }));
         ancestor_stk.truncate(cur_work.depth);
 
         /*

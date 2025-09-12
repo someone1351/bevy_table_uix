@@ -11,6 +11,13 @@ use super::super::script_vals::*;
 
 use super::vals::*;
 
+#[derive(Clone)]
+struct Work {
+    element_ind:usize,
+    parent:Option<usize>,
+    stub:Option<usize>,
+}
+
 pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
     let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
@@ -21,7 +28,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     //
 
 
-    let mut work_stk=vec![GenStubsWork{ element_ind: 0, parent:None,stub:None,}];
+    let mut work_stk=vec![Work{ element_ind: 0, parent:None,stub:None,}];
     let mut creates:BTreeMap<usize,BTreeMap<usize,usize>>= BTreeMap::new(); //[root/stub][node]=parent
     let mut attribs:HashMap<usize,Vec<AttribFunc>> = HashMap::new(); //[element_ind]=attribs
     let mut element_ind_inds: HashMap<usize,usize>=HashMap::new(); //[element_ind]=ind;
@@ -89,7 +96,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
                 cur_work.parent
             };
 
-            work_stk.extend(cur_element.children.iter().rev().map(|&child|GenStubsWork {
+            work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
                 element_ind: child, parent, stub,
             }));
         }
