@@ -154,8 +154,15 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 let new_syntax_ind=syntax_tree.len();
                 syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
-                // let params=[apply_call.parent_element_ind].iter().chain().collect();
-                let mut params=vec![ScriptSyntaxNode(apply_call.parent_element_ind)];
+                // // let params=[apply_call.parent_element_ind].iter().chain().collect();
+                // let mut params=vec![ScriptSyntaxNode(apply_call.parent_element_ind)];
+                let mut params=Vec::new();
+                let mut not_has_self=None;
+                if apply_decl_element.has_own_script || apply_decl_element.has_template_use_script {
+                    params.push(ScriptSyntaxNode(apply_call.parent_element_ind));
+                } else {
+                    not_has_self=Some(apply_call.parent_element_ind);
+                }
 
                 // let param_has_scripts:Vec<bool>=apply_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
                 //     let param_element=elements.get(param_element_ind).unwrap();
@@ -179,6 +186,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),
                     func_apply: ScriptSyntaxApplyDecl(*apply_decl_element_ind),
                     params,
+                    not_has_self
                 });
             }
         }
@@ -353,6 +361,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     //     Some(ScriptSyntaxNode(param_element_ind))
                     // }).collect::<Vec<_>>();
 
+                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
+
                     let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                         let param_element=elements.get(param_element_ind).unwrap();
                         let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
@@ -365,6 +375,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         params,
                         children: Vec::new(),
                         returns: Vec::new(),
+                        self_param,
                     });
                 }
                 ElementType::Node{..} => { //exit
@@ -377,7 +388,12 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     let in_func=if let ElementType::Stub{..}=&parent_element.element_type {false}else{cur_work.depth!=1};
 
                     // let params=[cur_work.element_ind].iter().chain().collect();
-                    let mut params=vec![ScriptSyntaxNode(cur_work.element_ind)];
+                    // let mut params=vec![ScriptSyntaxNode(cur_work.element_ind)];
+                    let mut params=Vec::new();
+
+                    if cur_element.has_own_script || cur_element.has_template_use_script {
+                        params.push(ScriptSyntaxNode(cur_work.element_ind));
+                    }
 
                     // params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                     //     let param_element=elements.get(param_element_ind).unwrap();
@@ -396,6 +412,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         in_func,
                         func: ScriptSyntaxNode(cur_work.element_ind),
                         params,
+
                     });
                 }
                 ElementType::Apply{..} if !cur_work.exit => { //enter
@@ -405,6 +422,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     }).collect::<Vec<_>>();
 
                     //
+
+                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
+
                     let new_syntax_ind=syntax_tree.len();
 
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
@@ -416,6 +436,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         params,
                         children: Vec::new(),
                         returns: Vec::new(),
+                        self_param ,
                     });
 
                 }
@@ -428,6 +449,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
                     }).collect::<Vec<_>>();
 
+
+                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
                     syntax_stk.push(new_syntax_ind);
@@ -437,6 +460,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         params,
                         children: Vec::new(),
                         returns: Vec::new(),
+                        self_param,
                     });
                 }
                 ElementType::TemplateDecl{..} => { //exit
@@ -446,7 +470,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     let new_syntax_ind=syntax_tree.len();
                     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
-                    // let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
+                    let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
 
                     // let param_has_scripts:Vec<bool>=template_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
                     //     let param_element=elements.get(param_element_ind).unwrap();
@@ -467,10 +491,16 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         has_script.then_some(ScriptSyntaxNode(param_element_ind))
                     }).collect();
 
+                    // let use_self =None;
+
+                    let has_self=template_decl_element.has_own_script || template_decl_element.has_template_use_script;
+
                     syntax_tree.push(ScriptSyntax::CallTemplate {
                         ret,
                         func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
                         params,
+                        has_self,
+                        // use_self,
                     });
 
                     continue;
@@ -542,14 +572,14 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
             ScriptSyntax::CallStub { is_root, stub, .. } => {
                 println!("{indent}call_stub {stub}, is_root={is_root}");
             }
-            ScriptSyntax::CallTemplate { ret, func, params } => {
-                println!("{indent}call_template {func:?}({params:?}) => {ret:?}");
+            ScriptSyntax::CallTemplate { ret, func, params, has_self  } => {
+                println!("{indent}call_template {func:?}({}{params:?}) => {ret:?}, ",has_self.then(||"self,").unwrap_or_default());
             }
-            ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
-                println!("{indent}call_apply {func_froms:?} {func_apply:?}({params:?}) => {ret:?}");
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, not_has_self: has_self } => {
+                println!("{indent}call_apply {func_froms:?} {func_apply:?}({has_self:?},{params:?}) => {ret:?}");
             }
-            ScriptSyntax::CallNode { in_func, func, params, ret  } => {
-                println!("{indent}call_node {func:?}({params:?}), in_func={in_func}, ret={ret}");
+            ScriptSyntax::CallNode { in_func, func, params, ret,   } => {
+                println!("{indent}call_node {func:?}({params:?}), in_func={in_func}, ret={ret}, ");
             }
             ScriptSyntax::Decl { name, params, returns, ..  } => {
                 println!("{indent}decl {name:?}({params:?}), => {returns:?}");

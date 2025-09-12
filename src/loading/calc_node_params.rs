@@ -11,7 +11,13 @@ struct Work {
 }
 
 pub fn calc_node_params(elements:&mut Vec<Element>) {
+    //for apply/template/node decls params
+    //are these params also used for apply use, template use, node init calls?
+    //what about apply returns? not here? no
 
+    //where are params not used in scripts filtered out? not here
+
+    //node's own self isn't included in its params
 
     let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
 
@@ -33,7 +39,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
             }));
         }
 
-        //only work on elements with a parent
+        //not root
         let Some(parent_element_ind)=cur_work.parent else { continue; };
 
         //
@@ -65,13 +71,9 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                 }
                 _ =>  {}
             }
-        } else {
+        } else { //on exit
             match &cur_element.element_type {
-                ElementType::Stub { .. }|ElementType::Apply { .. }
-                |ElementType::ApplyUse{..}
-                |ElementType::TemplateDecl { .. }
-                => {
-                }
+                ElementType::Stub { .. }|ElementType::Apply { .. }|ElementType::ApplyUse{..}|ElementType::TemplateDecl { .. } => { }
                 // ElementType::TemplateUse{ template_decl_element_ind, .. }  => {
                 //     let decl_element=elements.get(*template_decl_element_ind).unwrap();
                 //     let params=decl_element.calcd_node_params.clone();
@@ -79,7 +81,8 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                 //     let parent_element=elements.get_mut(parent_element_ind).unwrap();
                 //     parent_element.calcd_node_params.extend(params);
                 // }
-                _ => {
+                _ => { //not stub, apply, apply_use, template_decl
+                    //add cur element's params to parent
                     let cur_nodes_params=cur_element.calcd_node_params.clone();
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
                     parent_element.calcd_node_params.extend(cur_nodes_params);

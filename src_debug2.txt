@@ -1,12 +1,15 @@
 var root, _stubs
 var _ns [call _stubs 0 root]
 var env _ns.e0
-fn _t1 (self _p2) {
-    fn _n2 (self) {
+fn _a5 (_p6) {
+    fn _n6 (self) {
     }
-    call _n2 _p2
+    call _n6 _p6
 }
-fn _n8 (self _p13) {
-    call _t1 self _p13
+fn _n8 (_p12) {
+    fn _n12 (self) {
+    }
+    call _n12 _p12
 }
-call _n8 _ns.n8 _ns.n13
+call _n8 _ns.n12
+call _a5 _ns.n15 # <- n12

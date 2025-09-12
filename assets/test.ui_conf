@@ -1,12 +1,14 @@
 template t
-    node
-        script
-apply a
     script
     node
         script
+apply a
+    #script
+    #color red
+    node
+        script
 node
-    template t
+    #template t
 
     width 150
     height 150
@@ -14,5 +16,5 @@ node
     #script
         #println self
 
-    #node aa
-    #    script
+    node a
+        script

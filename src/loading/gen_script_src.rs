@@ -37,8 +37,14 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                     src+=&format!("{indent}var env _ns.e0\n");
                 }
             }
-            ScriptSyntax::CallTemplate { ret, func, params } => {
-                let mut params2=vec!["self".to_string()];
+            ScriptSyntax::CallTemplate { ret, func, params, has_self } => {
+                // let mut params2=vec!["self".to_string()];
+                let mut params2= Vec::new();
+
+                if *has_self {
+                    params2.push("self".to_string());
+                }
+
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
                 let c=format!("call _t{func} {params2}");
@@ -47,9 +53,13 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 } else {
                     c
                 };
+
+                // // let self_info=if *use_self {format!(" #self")} else {};
+                // let self_info=use_self.then(||" #self").unwrap_or_default();
+                // src+=&format!("{indent}{x}{self_info}\n");
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallApply { ret, func_froms, func_apply, params } => {
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, not_has_self } => {
                 let mut params2=Vec::new();
                 params2.extend(params.iter().map(|x|format!("_ns.n{x}")));
                 let params2=params2.join(" ");
@@ -68,15 +78,25 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 func.push(format!("a{func_apply}"));
                 let func=func.join(".");
 
+                // let not_has_self=not_has_self.map(|self_element_ind|format!("#!n{self_element_ind}!#{}",(!params2.is_empty()).then(||" ").unwrap_or_default())).unwrap_or_default();
+                // //#!{n12}!
+
+                // let c=format!("call _{func} {not_has_self}{params2}");
                 let c=format!("call _{func} {params2}");
                 let x=if let Some(ret)=ret {
                     format!("var _ra{ret} [{c}]")
                 } else {
                     c
                 };
-                src+=&format!("{indent}{x}\n");
+                //
+                let not_has_self=not_has_self.map(|self_element_ind|format!(" # <- n{self_element_ind}")).unwrap_or_default();
+                src+=&format!("{indent}{x}{not_has_self}\n");
+                // if let Some(not_has_self)=not_has_self {
+                //     src+=&format!("{indent}#n{not_has_self}\n");
+                // }
+                // src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallNode { in_func, func, params, ret  } => {
+            ScriptSyntax::CallNode { in_func, func, params, ret,  } => {
 
                 let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})).collect::<Vec<_>>().join(" ");
 
@@ -88,8 +108,14 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 };
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::Decl { name, params, .. }  if !exit => { //enter
-                let mut params2=vec!["self".to_string()];
+            ScriptSyntax::Decl { name, params, self_param, .. }  if !exit => { //enter
+                // let mut params2=vec!["self".to_string()];
+                let mut params2 = Vec::new();
+
+                if *self_param {
+                    params2.push("self".to_string());
+                }
+
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
                 let name = match name {
@@ -98,7 +124,10 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                     ScriptSyntaxNodeOrApplyOrTemplate::Template(x) => format!("_t{x}"),
                 };
 
+
+
                 src+=&format!("{indent}fn {name} ({params2}) {{\n");
+                // src+=&format!("{indent}fn {name} ({params2}) {{{}\n",(*self_param).then(||));
             }
             ScriptSyntax::Decl { returns, .. } => { //exit
                 if !returns.is_empty()

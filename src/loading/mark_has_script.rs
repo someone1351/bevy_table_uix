@@ -28,7 +28,10 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
 
 
         let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{false};
-        let has_template_use_script =if let ElementType::TemplateUse { .. }=&cur_element.element_type {true}else{false};
+        let has_template_use_script =if let &ElementType::TemplateUse { template_decl_element_ind  }=&cur_element.element_type {
+            let template_decl_element=elements.get(template_decl_element_ind).unwrap();
+            template_decl_element.has_own_script
+        }else{false};
         //
         let has_script=match &cur_element.element_type {
             ElementType::Script { .. } => true,
@@ -60,11 +63,12 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
         //has_apply_script means it returns an apply decl func or a template decl that has a descendent that is an apply decl func with script
 
         //
-        // if has_own_script
+        if has_own_script || has_template_use_script
         {
-            let cur_element=elements.get_mut(cur_element_ind).unwrap();
-            cur_element.has_own_script=has_own_script;
-            cur_element.has_template_use_script=has_template_use_script;
+            let parent_element_ind=element_parent_map.get(&cur_element_ind).cloned().unwrap();
+            let parent_element=elements.get_mut(parent_element_ind).unwrap();
+            parent_element.has_own_script=has_own_script;
+            parent_element.has_template_use_script=has_template_use_script;
         }
         // cur_element
 

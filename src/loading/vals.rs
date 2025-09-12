@@ -165,6 +165,7 @@ pub enum ScriptSyntax {
             Option<ScriptSyntaxNode>, //node_element_ind
             ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
         )>,
+        self_param:bool,
     },
 
     Stub {
@@ -183,6 +184,8 @@ pub enum ScriptSyntax {
         ret : Option<ScriptSyntaxTemplateUse>, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
+        // use_self : Option<usize>, // element_ind of self
+        has_self : bool,
     },
     CallApply {
         ret : Option<ScriptSyntaxApplyUse>, //apply_use_element_ind
@@ -192,12 +195,14 @@ pub enum ScriptSyntax {
         )>,
         func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
+        not_has_self : Option<usize>, //element_ind of self
     },
     CallNode {
         ret:bool,
         in_func:bool, //inside template_decl, apply_decl or node
         func : ScriptSyntaxNode, //node_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
+        // self_param:bool, //doesn't need, params will have it (or not)
     },
 }
 
