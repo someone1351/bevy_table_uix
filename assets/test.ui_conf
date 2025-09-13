@@ -10,8 +10,8 @@ apply a
     #color red
     node
         script
-node
     template t
+node
 
     width 150
     height 150

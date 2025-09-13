@@ -9,16 +9,16 @@ fn _t3 (self _p5) {
     call _n5 _p5
     call _t1 self
 }
-fn _a8 (_p9) {
+fn _a8 (self _p5 _p9) {
     fn _n9 (self) {
     }
     call _n9 _p9
+    call _t3 self _p5
 }
-fn _n11 (self _p16 _p18) {
-    call _t3 self _p18
+fn _n12 (_p16) {
     fn _n16 (self) {
     }
     call _n16 _p16
 }
-call _n11 _ns.n11 _ns.n16 _ns.n18
-call _a8 _ns.n21 # <- n16
+call _n12 _ns.n16
+call _a8 _ns.n16 _ns.n19 _ns.n21
