@@ -142,20 +142,21 @@ pub fn on_asset_load<'a>(
         calc_node_apply_ignores(&mut elements);
 
         //
-        debug_print_elements2(&elements);
+        debug_print_elements1(&elements);
 
         //
         calc_applies(&mut elements);
 
         //calc nodes params
         calc_node_params(&mut elements);
+        calc_env_params(&mut elements);
 
         mark_used(&mut elements);
         mark_has_script(&mut elements);
         calc_envs(&mut elements);
 
         //debug
-        debug_print_elements(&elements);
+        debug_print_elements2(&elements);
 
         //get attribs
         //{ }

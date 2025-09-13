@@ -14,9 +14,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
     //for apply/template/node decls params
     //are these params also used for apply use, template use, node init calls?
     //what about apply returns? not here? no
-
     //where are params not used in scripts filtered out? not here
-
     //node's own self isn't included in its params
 
     let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
@@ -26,11 +24,14 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
 
         //on enter
         if !cur_work.exit {
+            //add exit to stack
             work_stk.push(Work{exit:true, ..cur_work.clone()});
 
+            //
             let in_template_or_apply_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=
                 &cur_element.element_type {true} else {cur_work.in_template_or_apply_decl};
 
+            //add cur's children enters to stack
             work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
                 element_ind,
                 exit:false,
@@ -57,12 +58,13 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
 
 
             match &cur_element.element_type {
-                ElementType::Node { .. }  => {
-
+                ElementType::Node { .. }  => { //only nodes added
+                    //add self as param in parent
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
                     parent_element.calcd_node_params.insert(cur_work.element_ind);
                 }
                 ElementType::TemplateUse{ template_decl_element_ind, .. } if cur_work.in_template_or_apply_decl  => {
+                    //add cur template use's decl params to cur's params
                     let decl_element=elements.get(*template_decl_element_ind).unwrap();
                     let params=decl_element.calcd_node_params.clone();
 
@@ -74,14 +76,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
         } else { //on exit
             match &cur_element.element_type {
                 ElementType::Stub { .. }|ElementType::Apply { .. }|ElementType::ApplyUse{..}|ElementType::TemplateDecl { .. } => { }
-                // ElementType::TemplateUse{ template_decl_element_ind, .. }  => {
-                //     let decl_element=elements.get(*template_decl_element_ind).unwrap();
-                //     let params=decl_element.calcd_node_params.clone();
-
-                //     let parent_element=elements.get_mut(parent_element_ind).unwrap();
-                //     parent_element.calcd_node_params.extend(params);
-                // }
-                _ => { //not stub, apply, apply_use, template_decl
+                _ => { //not root, stub, apply, apply_use, template_decl, should just be node, template_use?,
                     //add cur element's params to parent
                     let cur_nodes_params=cur_element.calcd_node_params.clone();
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
