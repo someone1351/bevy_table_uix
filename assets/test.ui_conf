@@ -1,14 +1,17 @@
+template s
+    script
 template t
     script
     node
         script
+    template s
 apply a
     #script
     #color red
     node
         script
 node
-    #template t
+    template t
 
     width 150
     height 150

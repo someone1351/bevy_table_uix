@@ -67,8 +67,8 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
         {
             let parent_element_ind=element_parent_map.get(&cur_element_ind).cloned().unwrap();
             let parent_element=elements.get_mut(parent_element_ind).unwrap();
-            parent_element.has_own_script=has_own_script;
-            parent_element.has_template_use_script=has_template_use_script;
+            parent_element.has_own_script|=has_own_script;
+            parent_element.has_template_use_script|=has_template_use_script;
         }
         // cur_element
 
