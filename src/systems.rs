@@ -152,9 +152,10 @@ pub fn on_asset_load<'a>(
         calc_node_params(&mut elements);
         calc_env_params(&mut elements);
 
-        mark_used(&mut elements,true);
-        // mark_has_script(&mut elements,false);
-        mark_has_script(&mut elements,true);
+        mark_used(&mut elements,false);
+        // mark_used(&mut elements,true);
+        mark_has_script(&mut elements,false);
+        // mark_has_script(&mut elements,true);
         // // mark_has_script(&mut elements);
         calc_envs(&mut elements);
 

@@ -9,11 +9,8 @@ fn _t1 (self _p3 _p5) {
     }
     call _n5 _p5
 }
-fn _t7 (self _p17 _p18) {
-    call _t1 self _p17 _p18
-}
 fn _a9 () {
-    fn _a10 (self _p31 _p32 _p33 _p34) {
+    fn _a10 (self) {
         call _t1 self _p31 _p32
         call _t1 self _p33 _p34
     }
