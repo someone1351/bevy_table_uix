@@ -146,13 +146,16 @@ pub fn on_asset_load<'a>(
 
         //
         expand_elements(&mut elements);
+        expand_template_apply_decl_elements(&mut elements);
 
         //calc nodes params
         calc_node_params(&mut elements);
         calc_env_params(&mut elements);
 
         mark_used(&mut elements);
-        mark_has_script(&mut elements);
+        // mark_has_script(&mut elements,false);
+        mark_has_script(&mut elements,true);
+        // // mark_has_script(&mut elements);
         calc_envs(&mut elements);
 
         //debug

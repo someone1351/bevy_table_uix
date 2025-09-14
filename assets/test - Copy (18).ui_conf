@@ -1,0 +1,18 @@
+template s
+    script
+    node
+        script
+
+template t
+    template s
+
+apply a
+    template s
+    template s
+node a
+    #template t
+
+    apply b
+        template s
+        template s
+    node b

@@ -3,14 +3,33 @@ use std::collections::HashMap;
 
 use super::vals::*;
 
+// pub fn mark_all_has_script(elements:&mut Vec<Element>) {
+//     let mut work_stk=vec![0];
 
-pub fn mark_has_script(elements:&mut Vec<Element>) {
+//     while let Some(cur_element_ind)=work_stk.pop() {
+//         let cur_element=elements.get(cur_element_ind).unwrap();
+
+//         if cur_element.use
+//         work_stk.extend(cur_element.children.iter().rev());
+
+
+//             let cur_element=elements.get_mut(cur_element_ind).unwrap();
+//             cur_element.has_script=true;
+//             cur_element.has_own_script=true;
+//             cur_element.has_apply_decl_script=true;
+//             cur_element.has_template_use_script=true;
+//     }
+// }
+
+pub fn mark_has_script(elements:&mut Vec<Element>, always_has_script:bool,) {
+
     let mut element_parent_map: HashMap<usize, usize>=HashMap::new(); //[element]=parent
     let mut work_stk=vec![0];
 
     while let Some(cur_element_ind)=work_stk.pop() {
         let cur_element=elements.get(cur_element_ind).unwrap();
 
+        let always_has_script=element_parent_map.contains_key(&cur_element_ind) && always_has_script;
         if cur_element.has_script {
             // break;
         }
@@ -27,7 +46,7 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
 
 
 
-        let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{false};
+        let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{always_has_script};
         let has_template_use_script =if let &ElementType::TemplateUse { template_decl_element_ind  }=&cur_element.element_type {
             let template_decl_element=elements.get(template_decl_element_ind).unwrap();
             template_decl_element.has_own_script
@@ -44,7 +63,7 @@ pub fn mark_has_script(elements:&mut Vec<Element>) {
                 }=&element.element_type else {panic!("");};
                 // println!("---- {name:?} used={used}, script={}",element.has_script);
 
-                used && element.has_script
+                used && (element.has_script || always_has_script)
             },
             _ => false,
         };

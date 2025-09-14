@@ -1,7 +1,22 @@
-template t
+template s
     script
     node
         script
+    node
+        script
 
-node
-    template t
+template t
+    template s
+
+apply a
+    apply b
+        template s
+        template s
+node a
+    #template t
+
+    #apply b
+    template s
+    template s
+    node b
+
