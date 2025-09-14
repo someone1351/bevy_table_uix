@@ -145,7 +145,7 @@ pub fn on_asset_load<'a>(
         debug_print_elements1(&elements);
 
         //
-        calc_applies(&mut elements);
+        expand_elements(&mut elements);
 
         //calc nodes params
         calc_node_params(&mut elements);

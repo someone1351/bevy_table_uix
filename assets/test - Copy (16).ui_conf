@@ -1,0 +1,14 @@
+template s
+    node a
+        script
+
+template t
+    template s
+    template s
+apply b
+    template s
+    template s
+node b
+    apply a
+        color red
+    #template t

@@ -19,6 +19,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
 
     let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
 
+    //traverse enters downward, depth first, but exits traverse upward from descendents to ancestors/root
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
@@ -40,7 +41,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
             }));
         }
 
-        //not root
+        //skip root
         let Some(parent_element_ind)=cur_work.parent else { continue; };
 
         //
@@ -65,6 +66,20 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                 }
                 ElementType::TemplateUse{ template_decl_element_ind, .. } if cur_work.in_template_or_apply_decl  => {
                     //add cur template use's decl params to cur's params
+
+                    //why decl's node params?
+                    //  wouldn't it add nodes from decl,
+                    //  in addition to the nodes from expanded elements?
+                    //  it only does so for non expanded elements,
+                    //    here specifically of a parent element that is within a template/apply decl
+                    //    but are template/apply decls expanded? don't think so
+                    //    so they will only be used for the node/apply/template decl func params?
+                    //  its because the template use is unexpanded, as it is within a template or apply decl
+                    //    so it needs the params from the template decl
+                    //    it uses the params for the template_use call
+                    //      but if it is called twice, it is just the same nodes used (for child nodes of template decl)
+                    //          need to expand decls
+
                     let decl_element=elements.get(*template_decl_element_ind).unwrap();
                     let params=decl_element.calcd_node_params.clone();
 

@@ -3,7 +3,7 @@
 pub mod vals;
 pub mod load_elements;
 pub mod calc_node_apply_ignores;
-pub mod calc_applies;
+pub mod expand_elements;
 pub mod calc_node_params;
 pub mod calc_env_params;
 pub mod mark_used;
@@ -32,7 +32,7 @@ use vals::*;
 
 pub use load_elements::*;
 pub use calc_node_apply_ignores::*;
-pub use calc_applies::*;
+pub use expand_elements::*;
 pub use calc_node_params::*;
 pub use calc_env_params::*;
 pub use mark_used::*;

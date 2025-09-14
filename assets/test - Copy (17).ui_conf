@@ -1,0 +1,9 @@
+apply a
+    node x
+        script
+
+node a
+    apply x
+        script
+        node y
+            script

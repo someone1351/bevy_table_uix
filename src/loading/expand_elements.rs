@@ -9,7 +9,7 @@ use super::super::script_vals::*;
 use super::vals::*;
 
 
-struct Thing { //
+struct Thing { //whats this for? something to do with applies ...
     applies : Vec<(
         usize, //apply_element_ind
         usize, //from_element_ind
@@ -33,9 +33,9 @@ struct Work {
     created_from:usize,
 }
 
+// expand templates and applies, other stuff as well ..
 
-
-pub fn calc_applies(elements:&mut Vec<Element>) {
+pub fn expand_elements(elements:&mut Vec<Element>) {
 
     let mut work_stk=vec![Work{
         element_ind:0,
@@ -443,7 +443,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 // }
                 _=> {}
             }
-        }
+        } //push children end
 
         //push thing
         // if enter
@@ -476,7 +476,7 @@ pub fn calc_applies(elements:&mut Vec<Element>) {
                 }
                 _=> {}
             }
-        }
-    }
+        } //push thing end
+    } //end while
 }
 
