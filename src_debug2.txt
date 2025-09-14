@@ -9,8 +9,11 @@ fn _t1 (self _p3 _p5) {
     }
     call _n5 _p5
 }
-fn _a9 (self) {
-    fn _a10 (self) {
+fn _t7 (self _p17 _p18) {
+    call _t1 self _p17 _p18
+}
+fn _a9 () {
+    fn _a10 (self _p31 _p32 _p33 _p34) {
         call _t1 self _p31 _p32
         call _t1 self _p33 _p34
     }
@@ -19,10 +22,10 @@ fn _a9 (self) {
 fn _n13 (self _p16 _p20 _p21 _p22 _p23) {
     call _t1 self _p20 _p21
     call _t1 self _p22 _p23
-    fn _n16 (self) {
+    fn _n16 () {
     }
-    call _n16 _p16
+    call _n16 
 }
 call _n13 _ns.n13 _ns.n16 _ns.n20 _ns.n21 _ns.n22 _ns.n23
-var _ra19 [call _a9 _ns.n13]
+var _ra19 [call _a9 ] # <- n13
 call _ra19.a10 _ns.n16 _ns.n26 _ns.n27 _ns.n29 _ns.n30

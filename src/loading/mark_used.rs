@@ -6,20 +6,24 @@ TODO
 * don't generate funcs for nodes/applies/templates that don't have any script tags
 
 */
-pub fn mark_used(elements:&mut Vec<Element>) {
+pub fn mark_used(elements:&mut Vec<Element>, always_used:bool,) {
     for element in elements.iter_mut() {
 
         match &mut element.element_type {
             ElementType::Apply { used, .. } => {
-                *used=false;
+                *used=always_used;
             }
             ElementType::TemplateDecl { used, .. } => {
-                *used=false;
+                *used=always_used;
             }
             _ => {
 
             }
         }
+    }
+
+    if always_used {
+        return;
     }
 
     //

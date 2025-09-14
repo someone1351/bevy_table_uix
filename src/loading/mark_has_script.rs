@@ -28,8 +28,9 @@ pub fn mark_has_script(elements:&mut Vec<Element>, always_has_script:bool,) {
 
     while let Some(cur_element_ind)=work_stk.pop() {
         let cur_element=elements.get(cur_element_ind).unwrap();
+        let cur_has_parent=element_parent_map.contains_key(&cur_element_ind);
 
-        let always_has_script=element_parent_map.contains_key(&cur_element_ind) && always_has_script;
+        // let always_has_script=element_parent_map.contains_key(&cur_element_ind) && always_has_script;
         if cur_element.has_script {
             // break;
         }
@@ -44,9 +45,18 @@ pub fn mark_has_script(elements:&mut Vec<Element>, always_has_script:bool,) {
             }
         }
 
+        // let always_has_script= always_has_script && match &cur_element.element_type {
+        //     ElementType::Node { .. } => true,
+        //     ElementType::Script { record } => todo!(),
+        //     ElementType::Apply { name, owner_apply_decl_id, used } => todo!(),
+        //     ElementType::ApplyUse { apply_decl_element_ind } => todo!(),
+        //     ElementType::TemplateDecl { name, used } => todo!(),
+        //     ElementType::TemplateUse { template_decl_element_ind } => todo!(),
+        //     ElementType::Stub { name } => todo!(),
+        // }
 
 
-        let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{always_has_script};
+        let has_own_script=if let ElementType::Script { .. }=&cur_element.element_type {true}else{false};
         let has_template_use_script =if let &ElementType::TemplateUse { template_decl_element_ind  }=&cur_element.element_type {
             let template_decl_element=elements.get(template_decl_element_ind).unwrap();
             template_decl_element.has_own_script
@@ -63,9 +73,10 @@ pub fn mark_has_script(elements:&mut Vec<Element>, always_has_script:bool,) {
                 }=&element.element_type else {panic!("");};
                 // println!("---- {name:?} used={used}, script={}",element.has_script);
 
-                used && (element.has_script || always_has_script)
+                used && element.has_script //(|| always_has_script)
             },
-            _ => false,
+
+            _ => always_has_script,
         };
 
         //for apply ret? in a template
