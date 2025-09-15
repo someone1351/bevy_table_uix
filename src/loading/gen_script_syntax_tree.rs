@@ -34,9 +34,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
 
-        if !cur_element.has_script {
-            // continue;
-        }
+        // if !cur_element.has_script {
+        //     // continue;
+        // }
 
         //push children on work_stk
         if !cur_work.exit { //enter
@@ -164,21 +164,19 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                     not_has_self=Some(apply_call.parent_element_ind);
                 }
 
-                // let param_has_scripts:Vec<bool>=apply_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
-                //     let param_element=elements.get(param_element_ind).unwrap();
-                //     param_element.has_script
-                // }).collect();
 
-                // params.extend(apply_use_element.calcd_node_params.iter().enumerate().filter_map(|(param_ind,&param_element_ind)|{
-                //     // let param_element=elements.get(param_element_ind).unwrap();
-                //     param_has_scripts[param_ind].then_some(ScriptSyntaxNode(param_element_ind))
-                // }));
-                params.extend(apply_use_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                    let param_element=elements.get(param_element_ind).unwrap();
-                    let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
-                    let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
-                    has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                }));
+                params.extend(apply_use_element.calcd_node_params.iter()
+                    // .filter_map(|&param_element_ind|{
+                    //     let param_element=elements.get(param_element_ind).unwrap();
+                    //     let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                    //     // let orig_element=param_element.calcd_from_element_ind.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+
+
+                    //     let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                    //     has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                    // })
+                        .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                    );
 
                 syntax_tree.push(ScriptSyntax::CallApply {
                     ret,
@@ -195,11 +193,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
         if !cur_work.exit { //enter //&& cur_element.has_script
             if let ElementType::ApplyUse{ apply_decl_element_ind } = &cur_element.element_type {
                 let apply_element=elements.get(*apply_decl_element_ind).unwrap();
-                // let ElementType::Apply {used , ..}=&apply_element.element_type else {panic!("");};
+                // // let ElementType::Apply {used , ..}=&apply_element.element_type else {panic!("");};
 
-                if !apply_element.has_script {
-                    continue;
-                }
+                // if !apply_element.has_script {
+                //     continue;
+                // }
 
                 apply_calls_stk.last_mut().unwrap().push(ApplyCallStkItem {
                     inside_element_ind:cur_work.inside,
@@ -210,7 +208,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
         }
 
         //handle node,apply,template_decl returns
-        if !cur_work.in_a_use && cur_work.exit && cur_element.has_script && match &cur_element.element_type {
+        if !cur_work.in_a_use && cur_work.exit
+            // && cur_element.has_script
+            && match &cur_element.element_type
+        {
             ElementType::Node{..} if cur_work.parent.is_some() => true,
             ElementType::Apply{..} => true,
             ElementType::TemplateDecl{..}=>true, //added
@@ -220,9 +221,9 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
             //apply/template uses returned by cur element's descendents
             for &child_element_ind in cur_element.children.iter() {
-                if !elements.get(child_element_ind).unwrap().has_script {
-                    continue;
-                }
+                // if !elements.get(child_element_ind).unwrap().has_script {
+                //     continue;
+                // }
 
                 //
                 let mut tmp_stk=vec![child_element_ind];
@@ -237,17 +238,17 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             tmp_stk.extend(tmp_element.children.iter());
 
                             for &apply_element_ind in tmp_element.applies.iter() {
-                                let apply_element=elements.get(apply_element_ind).unwrap();
+                                // let apply_element=elements.get(apply_element_ind).unwrap();
 
-                                if !apply_element.has_script {
-                                    continue;
-                                }
+                                // if !apply_element.has_script {
+                                //     continue;
+                                // }
 
                                 return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                             }
                         }
                         ElementType::TemplateUse{..}=>{
-                            if tmp_element.has_apply_decl_script
+                            // if tmp_element.has_apply_decl_script
                             {
 
                                 if tmp_element_ind==child_element_ind {
@@ -264,11 +265,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
             //apply uses returned from cur element
             for &apply_element_ind in cur_element.applies.iter() {
-                let apply_element=elements.get(apply_element_ind).unwrap();
+                // let apply_element=elements.get(apply_element_ind).unwrap();
 
-                if !apply_element.has_script {
-                    continue;
-                }
+                // if !apply_element.has_script {
+                //     continue;
+                // }
 
                 return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
             }
@@ -313,224 +314,223 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
             }
         }
         //
-        if !cur_work.in_a_use && cur_element.has_script {
+        if !cur_work.in_a_use
+            // // && (cur_element.has_own_script||cur_element.has_template_use_script||cur_element.has_apply_decl_script)
+
+            // && cur_element.has_script
+            // // && cur_element.
+        {
+
             match &cur_element.element_type {
-                ElementType::Node{..} if cur_work.depth==0 && !cur_work.exit => { //enter
-                    //
-                    // apply_calls_stk.push(Vec::new());
-
-                    //call stub
-                    // let new_syntax_ind=syntax_tree.len();
-                    // syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                    // syntax_tree.push(ScriptSyntax::CallStub { is_root:true, stub: cur_work.element_ind } );
+                ElementType::Node {..} if cur_work.depth==0 => { //root
                 }
-                ElementType::Node{..} if cur_work.depth==0 => { //exit
-                }
-                // ElementType::Stub{name,..} if !cur_work.exit => { //enter
-                //     //
-                //     // apply_calls_stk.push(Vec::new());
-
-                //     //stub func
-                //     let new_syntax_ind=syntax_tree.len();
-                //     syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                //     syntax_stk.push(new_syntax_ind);
-                //     syntax_tree.push(ScriptSyntax::Stub { name: name.to_string(), children: Vec::new() });
-
-                //     //call stub
-                //     // let new_syntax_ind=syntax_tree.len();
-                //     // syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                //     // syntax_tree.push(ScriptSyntax::CallStub { is_root:true, stub: cur_work.element_ind } );
-                // }
-                // ElementType::Stub{..} => { //exit
-                //     syntax_stk.pop().unwrap();
-                // }
-
-                ElementType::Node{..} if !cur_work.exit => { //enter
-                    let new_syntax_ind=syntax_tree.len();
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                    syntax_stk.push(new_syntax_ind);
-
-                    // let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                    //     let param_element=elements.get(param_element_ind).unwrap();
-                    //     param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    // }).collect::<Vec<_>>();
-
-                    // let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                    //     let param_element=elements.get(param_element_ind).unwrap();
-                    //     // param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    //     Some(ScriptSyntaxNode(param_element_ind))
-                    // }).collect::<Vec<_>>();
-
-                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
-
-                    let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                        let param_element=elements.get(param_element_ind).unwrap();
-                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
-                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
-                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    }).collect::<Vec<_>>();
-
-                    syntax_tree.push(ScriptSyntax::Decl {
-                        name: ScriptSyntaxNodeOrApplyOrTemplate::Node(cur_work.element_ind),
-                        params,
-                        children: Vec::new(),
-                        returns: Vec::new(),
-                        self_param,
-                    });
-                }
-                ElementType::Node{..} => { //exit
-                    let parent_element=elements.get(cur_work.parent.unwrap()).unwrap();
-
-                    syntax_stk.pop().unwrap();
-                    let new_syntax_ind=syntax_tree.len();
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-
-                    let in_func=if let ElementType::Stub{..}=&parent_element.element_type {false}else{cur_work.depth!=1};
-
-                    // let params=[cur_work.element_ind].iter().chain().collect();
-                    // let mut params=vec![ScriptSyntaxNode(cur_work.element_ind)];
-                    let mut params=Vec::new();
-
-                    if cur_element.has_own_script || cur_element.has_template_use_script {
-                        params.push(ScriptSyntaxNode(cur_work.element_ind));
-                    }
-
-                    // params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                    //     let param_element=elements.get(param_element_ind).unwrap();
-                    //     param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    // }));
-
-                    params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                        let param_element=elements.get(param_element_ind).unwrap();
-                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
-                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
-                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    }));
-
-                    syntax_tree.push(ScriptSyntax::CallNode {
-                        ret:cur_element.has_apply_decl_script,
-                        in_func,
-                        func: ScriptSyntaxNode(cur_work.element_ind),
-                        params,
-
-                    });
-                }
-                ElementType::Apply{..} if !cur_work.exit => { //enter
-                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                        let param_element=elements.get(param_element_ind).unwrap();
-                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    }).collect::<Vec<_>>();
-
-                    //
-
-                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
-
-                    let new_syntax_ind=syntax_tree.len();
-
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-
-                    syntax_stk.push(new_syntax_ind);
-                    syntax_tree.push(ScriptSyntax::Decl {
-                        // decl: ScriptSyntaxDecl::Apply,
-                        name: ScriptSyntaxNodeOrApplyOrTemplate::Apply(cur_work.element_ind),
-                        params,
-                        children: Vec::new(),
-                        returns: Vec::new(),
-                        self_param ,
-                    });
-
-                }
-                ElementType::Apply{..} => { //exit
-                    syntax_stk.pop().unwrap();
-                }
-                ElementType::TemplateDecl{..} if !cur_work.exit => { //enter
-                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                        let param_element=elements.get(param_element_ind).unwrap();
-                        param_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    }).collect::<Vec<_>>();
-
-
-                    let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
-                    let new_syntax_ind=syntax_tree.len();
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                    syntax_stk.push(new_syntax_ind);
-
-                    syntax_tree.push(ScriptSyntax::Decl {
-                        name: ScriptSyntaxNodeOrApplyOrTemplate::Template(cur_work.element_ind),
-                        params,
-                        children: Vec::new(),
-                        returns: Vec::new(),
-                        self_param,
-                    });
-                }
-                ElementType::TemplateDecl{..} => { //exit
-                    syntax_stk.pop().unwrap();
-                }
-                ElementType::TemplateUse{template_decl_element_ind,..} if !cur_work.exit => { //enter
-                    let new_syntax_ind=syntax_tree.len();
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-
-                    let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
-
-                    // let param_has_scripts:Vec<bool>=template_decl_element.calcd_node_params.iter().map(|&param_element_ind|{
-                    //     let param_element=elements.get(param_element_ind).unwrap();
-                    //     param_element.has_script
-                    // }).collect();
-
-                    let ret=cur_element.has_apply_decl_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
-
-                    // let params=cur_element.calcd_node_params.iter().enumerate().filter_map(|(param_ind,&param_element_ind)|{
-                    //     // let param_element=elements.get(param_element_ind).unwrap();
-                    //     param_has_scripts[param_ind].then_some(ScriptSyntaxNode(param_element_ind))
-                    // }).collect();
-
-                    let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
-                        let param_element=elements.get(param_element_ind).unwrap();
-                        let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
-                        let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
-                        has_script.then_some(ScriptSyntaxNode(param_element_ind))
-                    }).collect();
-
-                    // let use_self =None;
-
-                    let has_self=template_decl_element.has_own_script || template_decl_element.has_template_use_script;
-
-                    syntax_tree.push(ScriptSyntax::CallTemplate {
-                        ret,
-                        func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
-                        params,
-                        has_self,
-                        // use_self,
-                    });
-
-                    continue;
-                }
-                ElementType::TemplateUse{..} => { //exit
-                }
-                ElementType::ApplyUse{..} if !cur_work.exit => { //enter
-                    continue;
-                }
-                ElementType::ApplyUse{..} => { //exit
-                }
-                ElementType::Script { record  } if !cur_work.exit => { //enter
-                    for t in record.text_values() {
+                ElementType::Node {..} => {
+                    if !cur_work.exit { //enter
                         let new_syntax_ind=syntax_tree.len();
                         syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                        syntax_tree.push(ScriptSyntax::Insert { path: t.path().map(|x|x.to_path_buf()), loc: t.start_loc(), insert: t.str().to_string() } );
-                    }
+                        syntax_stk.push(new_syntax_ind);
 
-                    continue;
-                }
-                ElementType::Script { .. } => { //exit
+                        // let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
+                        let self_param=true;
+
+                        let params= cur_element.calcd_node_params.iter()
+                            // .filter_map(|&param_element_ind|{
+                            //     let param_element=elements.get(param_element_ind).unwrap();
+                            //     let orig_element=param_element.calcd_original
+                            //         .map(|orig_element_ind|elements.get(orig_element_ind).unwrap())
+                            //         .unwrap_or(param_element);
+                            //     let has_script=orig_element.has_own_script || orig_element.has_template_use_script;
+                            //     has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                            // })
+                            .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                            .collect::<Vec<_>>();
+
+                        syntax_tree.push(ScriptSyntax::Decl {
+                            name: ScriptSyntaxNodeOrApplyOrTemplate::Node(cur_work.element_ind),
+                            params,
+                            children: Vec::new(),
+                            returns: Vec::new(),
+                            self_param,
+                        });
+                    } else { //exit
+                        let parent_element=elements.get(cur_work.parent.unwrap()).unwrap();
+
+                        syntax_stk.pop().unwrap();
+                        let new_syntax_ind=syntax_tree.len();
+                        syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+
+                        let in_func=if let ElementType::Stub{..}=&parent_element.element_type {false}else{cur_work.depth!=1};
+
+                        let mut params=Vec::new();
+
+                        if cur_element.has_own_script || cur_element.has_template_use_script {
+                            params.push(ScriptSyntaxNode(cur_work.element_ind));
+                        }
+
+                        params.extend(cur_element.calcd_node_params.iter()
+                            // .filter_map(|&param_element_ind|{
+                            //     let param_element=elements.get(param_element_ind).unwrap();
+                            //     let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                            //     let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                            //     has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                            // })
+                            .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                    );
+
+                        syntax_tree.push(ScriptSyntax::CallNode {
+                            ret:cur_element.has_apply_decl_script,
+                            in_func,
+                            func: ScriptSyntaxNode(cur_work.element_ind),
+                            params,
+
+                        });
+                    }
                 }
                 ElementType::Attrib {..} => {
-                    continue;
+		            continue;
                 }
+                ElementType::Script { record } => {
+                    if !cur_work.exit { //enter
+                        for t in record.text_values() {
+                            let new_syntax_ind=syntax_tree.len();
+                            syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+                            syntax_tree.push(ScriptSyntax::Insert { path: t.path().map(|x|x.to_path_buf()), loc: t.start_loc(), insert: t.str().to_string() } );
+                        }
 
-                _ => {
+                        continue;
+                    } else { //exit
 
+                    }
+                }
+                ElementType::Apply {..} => {
+                    if !cur_work.exit { //enter
+                        let params=cur_element.calcd_node_params.iter()
+                            // .filter_map(|&param_element_ind|{
+                            //     let param_element=elements.get(param_element_ind).unwrap();
+                            //     // let param_element_ind2=param_element.calcd_original.unwrap_or(param_element_ind);
+                            //     // let param_element2=elements.get(param_element_ind2).unwrap();
+
+                            //     let orig_element=param_element.calcd_original
+                            //         .map(|orig_element_ind|elements.get(orig_element_ind).unwrap())
+                            //         .unwrap_or(param_element);
+
+                            //         if orig_element.has_own_script || orig_element.has_template_use_script {
+                            //             Some(ScriptSyntaxNode(param_element_ind))
+                            //         } else {
+                            //             None
+                            //         }
+                            //     // orig_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                            // })
+
+                            .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                            .collect::<Vec<_>>();
+
+                        //
+
+                        // let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
+                        let self_param=true;
+
+                        let new_syntax_ind=syntax_tree.len();
+
+                        syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+
+                        syntax_stk.push(new_syntax_ind);
+                        syntax_tree.push(ScriptSyntax::Decl {
+                            // decl: ScriptSyntaxDecl::Apply,
+                            name: ScriptSyntaxNodeOrApplyOrTemplate::Apply(cur_work.element_ind),
+                            params,
+                            children: Vec::new(),
+                            returns: Vec::new(),
+                            self_param ,
+                        });
+                    } else { //exit
+		                syntax_stk.pop().unwrap();
+                    }
+                }
+                ElementType::ApplyUse {..} => {
+                    if !cur_work.exit { //enter
+		                continue;
+                    } else { //exit
+
+                    }
+                }
+                ElementType::TemplateDecl {..} => {
+                    if !cur_work.exit { //enter
+                        let params=cur_element.calcd_node_params.iter()
+                            // .filter_map(|&param_element_ind|{
+                            //     let param_element=elements.get(param_element_ind).unwrap();
+
+                            //     let orig_element=param_element.calcd_original
+                            //         .map(|orig_element_ind|elements.get(orig_element_ind).unwrap())
+                            //         .unwrap_or(param_element);
+
+                            //         if orig_element.has_own_script || orig_element.has_template_use_script {
+                            //             Some(ScriptSyntaxNode(param_element_ind))
+                            //         } else {
+                            //             None
+                            //         }
+                            //     // orig_element.has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                            // })
+                            .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                            .collect::<Vec<_>>();
+
+
+                        // let self_param=cur_element.has_own_script || cur_element.has_template_use_script;
+                        let self_param=true;
+
+                        let new_syntax_ind=syntax_tree.len();
+                        syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+                        syntax_stk.push(new_syntax_ind);
+
+                        syntax_tree.push(ScriptSyntax::Decl {
+                            name: ScriptSyntaxNodeOrApplyOrTemplate::Template(cur_work.element_ind),
+                            params,
+                            children: Vec::new(),
+                            returns: Vec::new(),
+                            self_param,
+                        });
+                    } else { //exit
+		                syntax_stk.pop().unwrap();
+                    }
+                }
+                ElementType::TemplateUse { template_decl_element_ind } => {
+                    if !cur_work.exit { //enter
+                        let new_syntax_ind=syntax_tree.len();
+                        syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+
+                        // let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
+                        let ret=cur_element.has_apply_decl_script.then_some(ScriptSyntaxTemplateUse(cur_work.element_ind));
+
+                        let params=cur_element.calcd_node_params.iter()
+                            // .filter_map(|&param_element_ind|{
+                            //     let param_element=elements.get(param_element_ind).unwrap();
+                            //     let orig_element=param_element.calcd_original.map(|orig_element_ind|elements.get(orig_element_ind).unwrap());
+                            //     let has_script=orig_element.map(|x|x.has_script).unwrap_or(param_element.has_script);
+                            //     has_script.then_some(ScriptSyntaxNode(param_element_ind))
+                            // })
+                            .map(|&param_element_ind|ScriptSyntaxNode(param_element_ind))
+                            .collect();
+
+                        // let has_self=template_decl_element.has_own_script || template_decl_element.has_template_use_script;
+                        let has_self=true;
+
+                        syntax_tree.push(ScriptSyntax::CallTemplate {
+                            ret,
+                            func: ScriptSyntaxTemplateDecl(*template_decl_element_ind),
+                            params,
+                            has_self,
+                            // use_self,
+                        });
+
+                        continue;
+                    } else { //exit
+
+                    }
+                }
+                ElementType::Stub {..} => {
                 }
             }
+
         }
 
         //call stubs
@@ -543,9 +543,13 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
             syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
 
             let is_root=if let ElementType::Stub{..}=&cur_element.element_type{false}else{true};
-            let has_script = cur_element.has_script;
+            // let has_script = cur_element.has_script;
 
-            syntax_tree.push(ScriptSyntax::CallStub { is_root, has_script, stub: cur_work.element_ind } );
+            syntax_tree.push(ScriptSyntax::CallStub {
+                is_root,
+                // has_script,
+                stub: cur_work.element_ind,
+            } );
         }
     } //end while
 

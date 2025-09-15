@@ -1,5 +1,8 @@
 
-
+/*
+todo
+* swap dict usage with own type
+*/
 use super::vals::*;
 
 pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {

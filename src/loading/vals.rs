@@ -93,9 +93,9 @@ pub struct Element<'a> {
     pub calcd_from_element_ind : Option<usize>, //element_ind
     pub calcd_node_params:BTreeSet<usize>, //node element_ind
     pub calcd_env_params:BTreeSet<usize>, //element_ind
-    pub calcd_created_from : usize,
+    pub calcd_created_from : usize, //same as calcd_original??
     pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
-    pub has_own_script:bool,
+    pub has_own_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     pub has_template_use_script:bool,
     pub has_script:bool,
     pub has_apply_decl_script:bool,
@@ -177,7 +177,7 @@ pub enum ScriptSyntax {
 
     CallStub {
         is_root:bool,
-        has_script:bool,
+        // has_script:bool,
         stub : usize,//element_ind
 
     },

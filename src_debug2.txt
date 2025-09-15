@@ -1,28 +1,16 @@
 var root, _stubs
 var _ns [call _stubs 0 root]
 var env _ns.e0
-fn _t1 (self _p3 _p5) {
-    fn _n3 (self) {
+fn _n1 (self _p5) {
+    fn _a2 (self _p3) {
+        fn _n3 (self) {
+        }
+        call _n3 _p3
     }
-    call _n3 _p3
     fn _n5 (self) {
     }
     call _n5 _p5
+    return [dict ("a2" _a2)]
 }
-fn _a9 () {
-    fn _a10 (self) {
-        call _t1 self _p31 _p32
-        call _t1 self _p33 _p34
-    }
-    return [dict ("a10" _a10)]
-}
-fn _n13 (self _p16 _p20 _p21 _p22 _p23) {
-    call _t1 self _p20 _p21
-    call _t1 self _p22 _p23
-    fn _n16 () {
-    }
-    call _n16 
-}
-call _n13 _ns.n13 _ns.n16 _ns.n20 _ns.n21 _ns.n22 _ns.n23
-var _ra19 [call _a9 ] # <- n13
-call _ra19.a10 _ns.n16 _ns.n26 _ns.n27 _ns.n29 _ns.n30
+var _rn1 [call _n1 _ns.n5]
+call _rn1.a2 _ns.n8 # <- n5
