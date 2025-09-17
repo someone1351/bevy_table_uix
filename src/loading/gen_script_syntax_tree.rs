@@ -251,6 +251,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                         &ElementType::TemplateUse{ template_decl_element_ind }=>{
                             let template_decl_element=elements.get(template_decl_element_ind).unwrap();
                             // if tmp_element.has_apply_decl_script
+                            if template_decl_element.has_script
                             {
 
                                 if tmp_element_ind==child_element_ind {
@@ -267,11 +268,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
             //apply uses returned from cur element
             for &apply_element_ind in cur_element.applies.iter() {
-                // let apply_element=elements.get(apply_element_ind).unwrap();
+                let apply_element=elements.get(apply_element_ind).unwrap();
 
-                // if !apply_element.has_script {
-                //     continue;
-                // }
+                if !apply_element.has_script {
+                    continue;
+                }
 
                 return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
             }

@@ -10,6 +10,5 @@ fn _n1 (self _p4) {
     fn _n4 (self) {
     }
     var _rn4 [call _n4 _p4]
-    return [dict ("a2" _a2)]
 }
 var _rn1 [call _n1 _ns.n1 _ns.n4]
