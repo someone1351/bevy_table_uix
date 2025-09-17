@@ -210,7 +210,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
         //handle node/apply/template_decl returns
         if !cur_work.in_a_use && cur_work.exit
-            // && cur_element.has_script
+            && cur_element.has_script
             && match &cur_element.element_type
         {
             ElementType::Node{..} if cur_work.parent.is_some() => true,
@@ -291,36 +291,36 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
             apply_calls_stk.push(Vec::new());
         }
 
-        if !cur_work.in_a_use {
-            match &cur_element.element_type {
-                ElementType::Stub{name,..} if !cur_work.exit => { //enter
-                    //
-                    // apply_calls_stk.push(Vec::new());
+        //stub decl
+        // if !cur_work.in_a_use { //stub can only be in root, so no longer needed
 
-                    //stub func
-                    let new_syntax_ind=syntax_tree.len();
-                    syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                    syntax_stk.push(new_syntax_ind);
-                    syntax_tree.push(ScriptSyntax::Stub { name: name.to_string(), children: Vec::new(), });
+        if let ElementType::Stub{name,..}=&cur_element.element_type {
+            if !cur_work.exit { //enter
+                //
+                // apply_calls_stk.push(Vec::new());
 
-                    //call stub
-                    // let new_syntax_ind=syntax_tree.len();
-                    // syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
-                    // syntax_tree.push(ScriptSyntax::CallStub { is_root:true, stub: cur_work.element_ind } );
-                }
-                ElementType::Stub{..} => { //exit
-                    syntax_stk.pop().unwrap();
-                }
-                _ => {
+                //stub func
+                let new_syntax_ind=syntax_tree.len();
+                syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+                syntax_stk.push(new_syntax_ind);
+                syntax_tree.push(ScriptSyntax::Stub { name: name.to_string(), children: Vec::new(), });
 
-                }
+                //call stub
+                // let new_syntax_ind=syntax_tree.len();
+                // syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
+                // syntax_tree.push(ScriptSyntax::CallStub { is_root:true, stub: cur_work.element_ind } );
+            } else { //exit
+                syntax_stk.pop().unwrap();
             }
         }
+        // }
+        //stub decl end
+
         //
         if !cur_work.in_a_use
             // // && (cur_element.has_own_script||cur_element.has_template_use_script||cur_element.has_apply_decl_script)
 
-            // && cur_element.has_script
+            && cur_element.has_script
             // // && cur_element.
         {
 
@@ -555,7 +555,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                 // has_script,
                 stub: cur_work.element_ind,
             } );
-        }
+        } //end call stub
     } //end while
 
     //

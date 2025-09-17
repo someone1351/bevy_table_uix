@@ -1,9 +1,21 @@
 
+template t
+    #apply q
+    #    script
+    node q
+    script
+
 node a
+    template t
     apply b
+        apply c
+            script
+                var c;
         node
             #script
     node b
         script
+            var a;
+        node c
 
 
