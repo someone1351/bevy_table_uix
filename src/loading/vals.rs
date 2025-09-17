@@ -96,9 +96,9 @@ pub struct Element<'a> {
     pub calcd_created_from : usize, //same as calcd_original??
     pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
     pub has_own_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
-    pub has_template_use_script:bool,
+    // pub has_template_use_script:bool,
     pub has_script:bool,
-    pub has_apply_decl_script:bool,
+    // pub has_apply_decl_script:bool,
     pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 }
 

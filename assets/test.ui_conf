@@ -2,7 +2,7 @@
 node a
     apply b
         node
-            script
+            #script
     node b
         script
 

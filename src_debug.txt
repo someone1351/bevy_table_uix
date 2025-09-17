@@ -1,16 +1,15 @@
 var root, _stubs
 var _ns [call _stubs 0 root]
 var env _ns.e0
-fn _n1 (self _p5) {
+fn _n1 (self _p4) {
     fn _a2 (self _p3) {
         fn _n3 (self) {
         }
-        call _n3 _p3
+        var _rn3 [call _n3 _p3]
     }
-    fn _n5 (self) {
+    fn _n4 (self) {
     }
-    call _n5 _p5
+    var _rn4 [call _n4 _p4]
     return [dict ("a2" _a2)]
 }
-var _rn1 [call _n1 _ns.n5]
-call _rn1.a2 _ns.n8 # <- n5
+var _rn1 [call _n1 _ns.n1 _ns.n4]
