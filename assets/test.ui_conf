@@ -9,8 +9,8 @@ node a
     template t
     apply b
         apply c
-            script
-                var c;
+            #script
+            #    var c;
         node
             #script
     node b

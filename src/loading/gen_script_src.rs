@@ -31,7 +31,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             ScriptSyntax::Stub { .. } => {
                 src+=&format!("{indent}}}\n");
             }
-            &ScriptSyntax::CallStub { is_root, stub, .. } => {
+            &ScriptSyntax::CallStubCreate { is_root, stub, .. } => {
                 let parent = if is_root{"root"}else{"self"};
                 src+=&format!("{indent}var _ns [call _stubs {stub} {parent}]\n");
 
@@ -51,12 +51,12 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
                 let params2=params2.join(" ");
                 let c=format!("call _t{func} {params2}");
-                let x=if let Some(ret)=ret {
-                    format!("var _rt{ret} [{c}]")
-                } else {
-                    c
-                };
-
+                // let x=if let Some(ret)=ret {
+                //     format!("var _rt{ret} [{c}]")
+                // } else {
+                //     c
+                // };
+                let x=format!("var _rt{ret} [{c}]");
                 // // let self_info=if *use_self {format!(" #self")} else {};
                 // let self_info=use_self.then(||" #self").unwrap_or_default();
                 // src+=&format!("{indent}{x}{self_info}\n");
@@ -86,11 +86,13 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
 
                 // let c=format!("call _{func} {not_has_self}{params2}");
                 let c=format!("call _{func} {params2}");
-                let x=if let Some(ret)=ret {
-                    format!("var _ra{ret} [{c}]")
-                } else {
-                    c
-                };
+                // let x=if let Some(ret)=ret {
+                //     format!("var _ra{ret} [{c}]")
+                // } else {
+                //     c
+                // };
+                let x=format!("var _ra{ret} [{c}]");
+
                 //
                 let not_has_self=not_has_self.map(|self_element_ind|format!(" # <- n{self_element_ind}")).unwrap_or_default();
                 src+=&format!("{indent}{x}{not_has_self}\n");
@@ -132,8 +134,9 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 src+=&format!("{indent}fn {name} ({params2}) {{\n");
                 // src+=&format!("{indent}fn {name} ({params2}) {{{}\n",(*self_param).then(||));
             }
-            ScriptSyntax::Decl { returns, .. } => { //exit
-                if !returns.is_empty()
+            ScriptSyntax::Decl { returns,has_ret, .. } => { //exit
+                //if !returns.is_empty()
+                if *has_ret
                 {
                     let returns=returns.iter().map(|(k,v)|match (k,v) {
                         (Some(k),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _rn{k}.a{v}"),
@@ -141,8 +144,8 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                         (None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(v)) => format!("\"a{v}\" _a{v}"),
                         (None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(v)) => format!("\"t{v}\" _rt{v}"),
                     }).map(|x|format!("({x})")).collect::<Vec<_>>().join(" ");
-
-                    src+=&format!("{indent}    return [dict {returns}]\n");
+                    let spc=returns.is_empty().then_some("").unwrap_or(" ");
+                    src+=&format!("{indent}    return [dict{spc}{returns}]\n");
                 }
 
                 src+=&format!("{indent}}}\n");

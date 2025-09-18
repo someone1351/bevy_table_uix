@@ -369,7 +369,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 calcd_env_params: BTreeSet::new(),
                                 calcd_created_from:from,
                                 has_script:false,
-                                // has_apply_decl_script:false,
+                                //has_apply_decl_script:false,
                                 has_own_script:false,
                                 // has_template_use_script:false,
                                 calcd_original:None,

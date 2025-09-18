@@ -124,17 +124,23 @@ pub enum ScriptSyntaxNodeOrApplyUse {
 //     Template,
 // }
 
-#[derive(Debug)]
+#[derive(Debug,Copy,Clone)]
 pub enum ScriptSyntaxNodeOrApplyOrTemplate {
     Node(usize),
     Apply(usize),
     Template(usize),
 }
 
+
+#[derive(Copy,Clone)]
 pub struct ScriptSyntaxNode(pub usize);
+#[derive(Copy,Clone)]
 pub struct ScriptSyntaxTemplateUse(pub usize);
+#[derive(Copy,Clone)]
 pub struct ScriptSyntaxTemplateDecl(pub usize);
+#[derive(Copy,Clone)]
 pub struct ScriptSyntaxApplyDecl(pub usize);
+#[derive(Copy,Clone)]
 pub struct ScriptSyntaxApplyUse(pub usize);
 
 
@@ -167,6 +173,7 @@ pub enum ScriptSyntax {
             ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
         )>,
         self_param:bool,
+        has_ret:bool,
     },
 
     Stub {
@@ -175,28 +182,29 @@ pub enum ScriptSyntax {
         // has_script:bool,
     },
 
-    CallStub {
+    CallStubCreate {
         is_root:bool,
         // has_script:bool,
         stub : usize,//element_ind
 
     },
     CallTemplate {
-        ret : Option<ScriptSyntaxTemplateUse>, //template_use_element_ind
+
+        ret : ScriptSyntaxTemplateUse, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
         // use_self : Option<usize>, // element_ind of self
         has_self : bool,
     },
     CallApply {
-        ret : Option<ScriptSyntaxApplyUse>, //apply_use_element_ind
+        ret : ScriptSyntaxApplyUse, //apply_use_element_ind
         func_froms : Option<(
             ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
             Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
         )>,
         func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds
-        not_has_self : Option<usize>, //element_ind of self
+        not_has_self : Option<ScriptSyntaxNode>, //element_ind of self
     },
     CallNode {
         ret:bool,
