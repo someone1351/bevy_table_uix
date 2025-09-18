@@ -132,7 +132,7 @@ pub enum ScriptSyntaxNodeOrApplyOrTemplate {
 }
 
 
-#[derive(Copy,Clone)]
+#[derive(Copy,Clone,PartialEq,Eq)]
 pub struct ScriptSyntaxNode(pub usize);
 #[derive(Copy,Clone)]
 pub struct ScriptSyntaxTemplateUse(pub usize);
@@ -192,9 +192,10 @@ pub enum ScriptSyntax {
 
         ret : ScriptSyntaxTemplateUse, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self
         // use_self : Option<usize>, // element_ind of self
         has_self : bool,
+        has_ret:bool,
     },
     CallApply {
         ret : ScriptSyntaxApplyUse, //apply_use_element_ind
@@ -203,14 +204,17 @@ pub enum ScriptSyntax {
             Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
         )>,
         func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
-        not_has_self : Option<ScriptSyntaxNode>, //element_ind of self
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, includes self
+        // not_has_self : Option<ScriptSyntaxNode>, //element_ind of self
+        self_node:ScriptSyntaxNode, //
+        // has_self:bool, //not needed, can check if param[0]==self_node
+        has_ret:bool,
     },
     CallNode {
-        ret:bool,
+        has_ret:bool,
         in_func:bool, //inside template_decl, apply_decl or node
         func : ScriptSyntaxNode, //node_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, includes self
         // self_param:bool, //doesn't need, params will have it (or not)
     },
 }

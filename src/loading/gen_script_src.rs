@@ -40,7 +40,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                     src+=&format!("{indent}var env _ns.e0\n");
                 }
             }
-            ScriptSyntax::CallTemplate { ret, func, params, has_self } => {
+            ScriptSyntax::CallTemplate { ret, func, params, has_self,has_ret } => {
                 // let mut params2=vec!["self".to_string()];
                 let mut params2= Vec::new();
 
@@ -56,13 +56,13 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // } else {
                 //     c
                 // };
-                let x=format!("var _rt{ret} [{c}]");
+                let x=has_ret.then(||format!("var _rt{ret} [{c}]")).unwrap_or_else(||c);
                 // // let self_info=if *use_self {format!(" #self")} else {};
                 // let self_info=use_self.then(||" #self").unwrap_or_default();
                 // src+=&format!("{indent}{x}{self_info}\n");
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, not_has_self } => {
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node,has_ret } => {
                 let mut params2=Vec::new();
                 params2.extend(params.iter().map(|x|format!("_ns.n{x}")));
                 let params2=params2.join(" ");
@@ -91,22 +91,26 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // } else {
                 //     c
                 // };
-                let x=format!("var _ra{ret} [{c}]");
+                let x=has_ret.then(||format!("var _ra{ret} [{c}]")).unwrap_or_else(||c);
 
                 //
-                let not_has_self=not_has_self.map(|self_element_ind|format!(" # <- n{self_element_ind}")).unwrap_or_default();
+                if params.get(0)==Some(self_node) {
+
+                }
+                let not_has_self=(params.get(0)==Some(self_node)).then(||format!(" # <- n{self_node}")).unwrap_or_default();
+                // let not_has_self=not_has_self.map(|self_element_ind|format!(" # <- n{self_element_ind}")).unwrap_or_default();
                 src+=&format!("{indent}{x}{not_has_self}\n");
                 // if let Some(not_has_self)=not_has_self {
                 //     src+=&format!("{indent}#n{not_has_self}\n");
                 // }
                 // src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallNode { in_func, func, params, ret,  } => {
+            ScriptSyntax::CallNode { in_func, func, params, has_ret,  } => {
 
                 let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})).collect::<Vec<_>>().join(" ");
 
                 let c=format!("call _n{func} {params}");
-                let x=if *ret {
+                let x=if *has_ret {
                     format!("var _rn{func} [{c}]")
                 }else {
                     c

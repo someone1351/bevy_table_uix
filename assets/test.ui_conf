@@ -6,6 +6,9 @@ template t
     script
 
 node a
+    width 50
+    height 50
+    color red
     template t
     apply b
         apply c
