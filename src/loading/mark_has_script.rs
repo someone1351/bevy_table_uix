@@ -85,7 +85,7 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
 
         //has_apply_script means it returns an apply decl func or a template decl that has a descendent that is an apply decl func with script
 
-        let has_apply_script= if let ElementType::Apply{..} = &cur_element.element_type {has_script}else{false};
+        // let has_apply_script= if let ElementType::Apply{..} = &cur_element.element_type {has_script}else{false};
 
         //
         if has_own_script //|| has_template_use_script

@@ -1,24 +1,9 @@
 
-template t
-    #apply q
-    #    script
-    node q
-    script
-
-node a
-    width 50
-    height 50
-    color red
-    template t
+apply a2
     apply b
-        apply c
-            #script
-            #    var c;
-        node
-            #script
-    node b
         script
-            var a;
-        node c
 
+node a2
+    node b
 
+node a2

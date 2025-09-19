@@ -1,6 +1,8 @@
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
+
+use bevy::platform::collections::HashSet;
 
 use super::vals::*;
 
@@ -357,7 +359,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             params,
                             children: Vec::new(),
                             returns: Vec::new(),
-                            self_param,
+                            has_self: self_param,
                             has_ret:true,
                         });
                     } else { //exit
@@ -451,7 +453,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             params,
                             children: Vec::new(),
                             returns: Vec::new(),
-                            self_param ,
+                            has_self: self_param ,
                             has_ret:true,
                         });
                     } else { //exit
@@ -498,7 +500,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
                             params,
                             children: Vec::new(),
                             returns: Vec::new(),
-                            self_param,
+                            has_self: self_param,
                             has_ret:true,
                         });
                     } else { //exit
@@ -569,6 +571,73 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>) -> Vec<ScriptSyntax> {
 
     //
     syntax_tree
+}
+
+pub fn optimise_script_syntax_tree(elements:&Vec<Element>,syntax_tree:&mut Vec<ScriptSyntax>)  {
+    let mut element_map: HashMap<usize, usize> = HashMap::new(); //[element_ind]=syntax_ind
+    let mut has_src: HashSet<usize>=HashSet::new();
+    // let mut parent_map: HashMap<usize, usize> = HashMap::new(); //[element_ind]=syntax_ind
+
+    //
+    {
+        let mut stk=vec![(0,0)];
+
+        while let Some((cur_ind,parent))=stk.pop() {
+            let cur=syntax_tree.get(cur_ind).unwrap();
+            stk.extend(cur.get_children().map(|x|x.iter()).unwrap_or_default().map(|&child|(child,cur_ind)));
+
+            if let ScriptSyntax::Insert { .. } = cur {
+                has_src.insert(parent);
+            }
+
+            if let Some(element_ind)=cur.element_ind() {
+                element_map.insert(element_ind, cur_ind);
+            }
+        }
+    }
+
+    //
+    //need to check which ret vals are used
+    //in decls, check which params are used, then on their callers, remove unused
+    //  check most nested ones first?
+
+    //
+    struct Work {
+        syntax_ind:usize,
+    }
+    let mut work_stk=vec![Work{ syntax_ind: 0}];
+
+    while let Some(cur_work)=work_stk.pop() {
+        let cur_syntax=syntax_tree.get(cur_work.syntax_ind).unwrap();
+        work_stk.extend(cur_syntax.get_children().map(|x|x.iter()).unwrap_or_default().map(|&child_ind|Work{ syntax_ind: child_ind }));
+
+        match cur_syntax {
+            ScriptSyntax::Root { children } => {
+
+            }
+            ScriptSyntax::Insert { path, loc, insert } => {
+
+            }
+            ScriptSyntax::Decl { name, params, children, returns, has_self: self_param, has_ret } => {
+
+            }
+            ScriptSyntax::Stub { name, children } => {
+
+            }
+            ScriptSyntax::CallStubCreate { is_root, stub } => {
+
+            }
+            ScriptSyntax::CallTemplate { ret, func, params, has_self, has_ret } => {
+
+            }
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node, has_ret } => {
+
+            }
+            ScriptSyntax::CallNode { has_ret, in_func, func, params } => {
+
+            }
+        }
+    }
 }
 
 pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {

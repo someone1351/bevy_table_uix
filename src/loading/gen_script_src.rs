@@ -97,7 +97,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 if params.get(0)==Some(self_node) {
 
                 }
-                let not_has_self=(params.get(0)==Some(self_node)).then(||format!(" # <- n{self_node}")).unwrap_or_default();
+                let not_has_self=(params.get(0)!=Some(self_node)).then(||format!(" # <- n{self_node}")).unwrap_or_default();
                 // let not_has_self=not_has_self.map(|self_element_ind|format!(" # <- n{self_element_ind}")).unwrap_or_default();
                 src+=&format!("{indent}{x}{not_has_self}\n");
                 // if let Some(not_has_self)=not_has_self {
@@ -117,7 +117,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 };
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::Decl { name, params, self_param, .. }  if !exit => { //enter
+            ScriptSyntax::Decl { name, params, has_self: self_param, .. }  if !exit => { //enter
                 // let mut params2=vec!["self".to_string()];
                 let mut params2 = Vec::new();
 

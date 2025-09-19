@@ -130,7 +130,15 @@ pub enum ScriptSyntaxNodeOrApplyOrTemplate {
     Apply(usize),
     Template(usize),
 }
-
+impl ScriptSyntaxNodeOrApplyOrTemplate {
+    pub fn element_ind(&self) -> usize {
+        match *self {
+            ScriptSyntaxNodeOrApplyOrTemplate::Node(x) => x,
+            ScriptSyntaxNodeOrApplyOrTemplate::Apply(x) => x,
+            ScriptSyntaxNodeOrApplyOrTemplate::Template(x) => x,
+        }
+    }
+}
 
 #[derive(Copy,Clone,PartialEq,Eq)]
 pub struct ScriptSyntaxNode(pub usize);
@@ -163,7 +171,7 @@ pub enum ScriptSyntax {
 
 
 
-    Decl {
+    Decl { //name is element_ind
         // decl : ScriptSyntaxDecl,
         name : ScriptSyntaxNodeOrApplyOrTemplate, //element_ind
         params : Vec<ScriptSyntaxNode>, //node element_inds
@@ -172,11 +180,11 @@ pub enum ScriptSyntax {
             Option<ScriptSyntaxNode>, //node_element_ind
             ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
         )>,
-        self_param:bool,
+        has_self:bool, //self param
         has_ret:bool,
     },
 
-    Stub {
+    Stub { //needs stub_element_ind? no
         name : String,
         children:Vec<usize>, //syntax_inds
         // has_script:bool,
@@ -230,6 +238,18 @@ impl ScriptSyntax {
         match self {
             ScriptSyntax::Root{children, ..}|ScriptSyntax::Decl{children,..}|ScriptSyntax::Stub{children,..}=>Some(children),
             _ =>None,
+        }
+    }
+    pub fn element_ind(&self) -> Option<usize> {
+        match self {
+            ScriptSyntax::Root { .. } => None,
+            ScriptSyntax::Insert { .. } => None,
+            ScriptSyntax::Decl { name, .. } => Some(name.element_ind()),
+            ScriptSyntax::Stub { .. } => None,
+            ScriptSyntax::CallStubCreate { .. } => None,
+            ScriptSyntax::CallTemplate { ret, .. } => Some(ret.0),
+            ScriptSyntax::CallApply { ret, .. } => Some(ret.0),
+            ScriptSyntax::CallNode {  func, .. } => Some(func.0),
         }
     }
 }
