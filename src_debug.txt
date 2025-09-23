@@ -7,6 +7,30 @@ fn _a1 (self) {
     }
     return [dict ("a2" _a2)]
 }
-var _ra7 [call _a1 _ns.n4]
-var _ra8 [call _ra7.a2 _ns.n5]
-var _ra9 [call _a1 _ns.n6]
+fn _n4 (self _p9 _p10) {
+    fn _a5 (self _p7) {
+        fn _n7 (self) {
+            return [dict]
+        }
+        var _rn7 [call _n7 _p7]
+        return [dict]
+    }
+    fn _n9 (self) {
+        return [dict]
+    }
+    var _rn9 [call _n9 _p9]
+    fn _n10 (self) {
+        return [dict]
+    }
+    var _rn10 [call _n10 _p10]
+    return [dict ("a5" _a5)]
+}
+var _rn4 [call _n4 _ns.n4 _ns.n9 _ns.n10]
+fn _n11 (self) {
+    return [dict]
+}
+var _rn11 [call _n11 _ns.n11]
+var _ra12 [call _a1 _ns.n4]
+var _ra13 [call _ra12.a2 _ns.n10]
+var _ra14 [call _rn4.a5 _ns.n10 _ns.n15]
+var _ra16 [call _a1 _ns.n11]

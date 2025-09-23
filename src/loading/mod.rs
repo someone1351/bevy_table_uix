@@ -111,7 +111,7 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
         let has_script=cur_element.has_script;
         // let has_apply_script=cur_element.has_apply_decl_script;
         let calcd_original=cur_element.calcd_original.map(|x|format!("{x}")).unwrap_or("_".to_string());
-        let has_own_script=cur_element.has_own_script;
+        let has_own_script=cur_element.has_self_script;
         // let has_template_use_script= cur_element.has_template_use_script;
 
 

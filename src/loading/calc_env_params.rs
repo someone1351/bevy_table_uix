@@ -10,6 +10,11 @@ struct Work {
     in_template_or_apply_decl:bool,
 }
 
+/*
+
+instead of just grabbing nodes, grab elements that are nods, apply,template, decls, also uses?
+*/
+
 pub fn calc_env_params(elements:&mut Vec<Element>) {
     // let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
 

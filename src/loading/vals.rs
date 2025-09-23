@@ -95,7 +95,7 @@ pub struct Element<'a> {
     pub calcd_env_params:BTreeSet<usize>, //element_ind
     pub calcd_created_from : usize, //same as calcd_original??
     pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
-    pub has_own_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
+    pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     // pub has_template_use_script:bool,
     pub has_script:bool,
     // pub has_apply_decl_script:bool,
@@ -174,7 +174,7 @@ pub enum ScriptSyntax {
     Decl { //name is element_ind
         // decl : ScriptSyntaxDecl,
         name : ScriptSyntaxNodeOrApplyOrTemplate, //element_ind
-        params : Vec<ScriptSyntaxNode>, //node element_inds
+        params : Vec<ScriptSyntaxNode>, //node element_inds, doesn't include self
         children:Vec<usize>, //syntax_inds
         returns : Vec<(
             Option<ScriptSyntaxNode>, //node_element_ind
@@ -200,7 +200,7 @@ pub enum ScriptSyntax {
 
         ret : ScriptSyntaxTemplateUse, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self, why not?
         // use_self : Option<usize>, // element_ind of self
         has_self : bool,
         has_ret:bool,

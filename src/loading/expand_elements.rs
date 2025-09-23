@@ -370,7 +370,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 calcd_created_from:from,
                                 has_script:false,
                                 //has_apply_decl_script:false,
-                                has_own_script:false,
+                                has_self_script:false,
                                 // has_template_use_script:false,
                                 calcd_original:None,
                                 env: HashMap::new(),
