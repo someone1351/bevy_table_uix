@@ -200,7 +200,7 @@ pub enum ScriptSyntax {
 
         ret : ScriptSyntaxTemplateUse, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self, why not?
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self, why not? doesn't need it since "self" is passed
         // use_self : Option<usize>, // element_ind of self
         has_self : bool,
         has_ret:bool,
@@ -215,7 +215,7 @@ pub enum ScriptSyntax {
         params : Vec<ScriptSyntaxNode>, //node_element_inds, includes self
         // not_has_self : Option<ScriptSyntaxNode>, //element_ind of self
         self_node:ScriptSyntaxNode, //
-        // has_self:bool, //not needed, can check if param[0]==self_node
+        has_self:bool, //not needed, can check if param[0]==self_node
         has_ret:bool,
     },
     CallNode {

@@ -170,8 +170,8 @@ pub fn on_asset_load<'a>(
         //script
         {
 
-            let mut syntax_tree=gen_script_syntax_tree(&elements);
-            optimise_script_syntax_tree(&elements,&mut syntax_tree);
+            let mut syntax_tree=gen_script_syntax_tree(&elements,true,true);
+            // optimise_script_syntax_tree(&elements,&mut syntax_tree);
 
             debug_print_script_syntax_tree(&syntax_tree);
             let src=gen_script_src(&syntax_tree);

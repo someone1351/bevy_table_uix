@@ -1,0 +1,14 @@
+
+apply a2
+    apply b
+        script
+
+node a2
+    apply b
+        script
+        node
+            script
+    node
+    node b
+
+node a2

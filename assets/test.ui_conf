@@ -1,14 +1,17 @@
 
-apply a2
-    apply b
-        script
-
 node a2
-    apply b
-        script
-        node
-            script
-    node
+
     node b
+        script
+    node c
 
-node a2
+        apply d
+            #script
+
+            node e
+            apply e
+                script
+                    var a;
+
+        node d
+
