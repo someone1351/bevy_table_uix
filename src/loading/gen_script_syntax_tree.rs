@@ -315,7 +315,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
         //stub decl end
 
         //
-        if !cur_work.in_a_use
+        if !cur_work.in_a_use //ie not in a template/apply use element
             // // && (cur_element.has_own_script||cur_element.has_template_use_script||cur_element.has_apply_decl_script)
 
             // && cur_element.has_script
@@ -339,6 +339,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         let params= cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                             let param_element=&elements[param_element_ind];
+                            // let param_element2=param_element.calcd_from_element_ind.map(|from_element_ind|&elements[from_element_ind]).unwrap_or(param_element);
                             (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                         }).collect::<Vec<_>>();
 
@@ -371,6 +372,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         params.extend(cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                             let param_element=&elements[param_element_ind];
+                            // let param_element2=param_element.calcd_from_element_ind.map(|from_element_ind|&elements[from_element_ind]).unwrap_or(param_element); //doesn't need?
+
                             (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                         }));
 
@@ -405,6 +408,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                         // let params=cur_element.calcd_node_params.iter().map(|&param_element_ind|ScriptSyntaxNode(param_element_ind)).collect::<Vec<_>>();
                         let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                             let param_element=&elements[param_element_ind];
+                            // let param_element2=param_element.calcd_from_element_ind.map(|from_element_ind|&elements[from_element_ind]).unwrap_or(param_element);
                             (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                         }).collect::<Vec<_>>();
 
@@ -444,6 +448,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                         // let params=cur_element.calcd_node_params.iter().map(|&param_element_ind|ScriptSyntaxNode(param_element_ind)).collect::<Vec<_>>();
                         let params=cur_element.calcd_node_params.iter().filter_map(|&param_element_ind|{
                             let param_element=&elements[param_element_ind];
+                            // let param_element2=param_element.calcd_from_element_ind.map(|from_element_ind|&elements[from_element_ind]).unwrap_or(param_element);
                             (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                         }).collect::<Vec<_>>();
 
@@ -485,13 +490,16 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         let params=cur_element.calcd_node_params.iter().zip(template_decl_element.calcd_node_params.iter()).filter_map(|(&param_element_ind,&decl_param_element_ind)|{
                             let param_element=&elements[decl_param_element_ind];
+                            // let param_element2=param_element.calcd_from_element_ind.map(|from_element_ind|&elements[from_element_ind]).unwrap_or(param_element);
                             (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                         }).collect();
+
 
                         // let has_self=template_decl_element.has_own_script || template_decl_element.has_template_use_script;
                         // let self_param=true;
                         let self_param=!only_script || template_decl_element.has_self_script;
 
+                        println!("params is {params:?}, self is {self_param}");
                         syntax_tree.push(ScriptSyntax::CallTemplate {
                             ret,
                             func: ScriptSyntaxTemplateDecl(template_decl_element_ind),

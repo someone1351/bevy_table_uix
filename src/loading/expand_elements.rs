@@ -87,13 +87,16 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
             if ok {
 
                 //
-                let mut new_element=Element {
+                let new_element=Element {
                     children: Vec::new(),
-                    calcd_original:Some(cur_work.element_ind),
+                    // calcd_original:Some(cur_work.element_ind),
+                    calcd_from_element_ind:Some(cur_work.element_ind),
+                    calcd_created_from:cur_work.created_from,
+                    parent:Some(new_from_parent),
                     ..cur_element.clone()
                 };
 
-                new_element.calcd_from_element_ind=Some(cur_work.element_ind);
+                // new_element.calcd_from_element_ind=Some(cur_work.element_ind);
 
                 //
                 let new_element_ind=elements.len();
@@ -104,8 +107,8 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                 the_new_element_ind=Some(new_element_ind);
 
                 //
-                let new_element=elements.get_mut(new_element_ind).unwrap();
-                new_element.calcd_created_from=cur_work.created_from;
+                // let new_element=elements.get_mut(new_element_ind).unwrap();
+                // new_element.calcd_created_from=cur_work.created_from;
             }
         } //end add element
 
@@ -372,8 +375,9 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 //has_apply_decl_script:false,
                                 has_self_script:false,
                                 // has_template_use_script:false,
-                                calcd_original:None,
+                                // calcd_original:None,
                                 env: HashMap::new(),
+                                parent:Some(cur_element_ind),
                             });
                         }
                     }
@@ -598,64 +602,64 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 //  could probably put the code in the func above? no since don't want it messing with attribs/applies etc, just expanding template_uses, adding nodes and further template uses
 //don't need the same thing for applies as that is done via the before/after applies above
 
-pub fn expand_template_apply_decl_elements(elements:&mut Vec<Element>) {
-    // struct Work {
-    //     element_ind:usize,
-    //     in_template_or_apply_decl:bool,
-    // }
+// pub fn expand_template_apply_decl_elements(elements:&mut Vec<Element>) {
+//     // struct Work {
+//     //     element_ind:usize,
+//     //     in_template_or_apply_decl:bool,
+//     // }
 
-    // let mut work_stk=vec![Work{
-    //     element_ind:0,
-    //     in_template_or_apply_decl:false,
+//     // let mut work_stk=vec![Work{
+//     //     element_ind:0,
+//     //     in_template_or_apply_decl:false,
 
-    // }];
+//     // }];
 
-    // while let Some(cur_work)=work_stk.pop() {
-    //     let cur_element=elements.get(cur_work.element_ind).unwrap();
+//     // while let Some(cur_work)=work_stk.pop() {
+//     //     let cur_element=elements.get(cur_work.element_ind).unwrap();
 
-    //     //
-    //     // let is_template_or_apply_decl=match &cur_element.element_type{
-    //     //     ElementType::Apply{..}|ElementType::TemplateDecl{..}=>true,
-    //     //     _=>cur_work.in_template_or_apply_decl,
-    //     // };
+//     //     //
+//     //     // let is_template_or_apply_decl=match &cur_element.element_type{
+//     //     //     ElementType::Apply{..}|ElementType::TemplateDecl{..}=>true,
+//     //     //     _=>cur_work.in_template_or_apply_decl,
+//     //     // };
 
-    //     //
-    //     match &cur_element.element_type {
-    //         ElementType::Apply{..}|ElementType::TemplateDecl{..} => {
-    //             work_stk.extend(cur_element.children.iter().map(|&child_element_ind|Work {
-    //                 element_ind: child_element_ind,
-    //                 in_template_or_apply_decl:true,
-    //             }));
-    //         }
-    //         &ElementType::TemplateUse{ template_decl_element_ind } if cur_work.in_template_or_apply_decl => {
-    //             let decl_element=elements.get(template_decl_element_ind).unwrap();
-    //             work_stk.extend(decl_element.children.iter().map(|&child_element_ind|Work {
-    //                 element_ind: child_element_ind,
-    //                 in_template_or_apply_decl:cur_work.in_template_or_apply_decl,
-    //             }));
-    //         }
-    //         ElementType::Node{..} => {
-    //             work_stk.extend(cur_element.children.iter().map(|&child_element_ind|Work {
-    //                 element_ind: child_element_ind,
-    //                 in_template_or_apply_decl:cur_work.in_template_or_apply_decl,
-    //             }));
-    //         }
+//     //     //
+//     //     match &cur_element.element_type {
+//     //         ElementType::Apply{..}|ElementType::TemplateDecl{..} => {
+//     //             work_stk.extend(cur_element.children.iter().map(|&child_element_ind|Work {
+//     //                 element_ind: child_element_ind,
+//     //                 in_template_or_apply_decl:true,
+//     //             }));
+//     //         }
+//     //         &ElementType::TemplateUse{ template_decl_element_ind } if cur_work.in_template_or_apply_decl => {
+//     //             let decl_element=elements.get(template_decl_element_ind).unwrap();
+//     //             work_stk.extend(decl_element.children.iter().map(|&child_element_ind|Work {
+//     //                 element_ind: child_element_ind,
+//     //                 in_template_or_apply_decl:cur_work.in_template_or_apply_decl,
+//     //             }));
+//     //         }
+//     //         ElementType::Node{..} => {
+//     //             work_stk.extend(cur_element.children.iter().map(|&child_element_ind|Work {
+//     //                 element_ind: child_element_ind,
+//     //                 in_template_or_apply_decl:cur_work.in_template_or_apply_decl,
+//     //             }));
+//     //         }
 
-    //         _ => {}
-    //     }
+//     //         _ => {}
+//     //     }
 
-    //     //
-    //     if !cur_work.in_template_or_apply_decl {
-    //         continue;
-    //     }
+//     //     //
+//     //     if !cur_work.in_template_or_apply_decl {
+//     //         continue;
+//     //     }
 
-    //     //
-    //     if let ElementType::TemplateUse{ template_decl_element_ind }=cur_element.element_type {
-    //         let decl_element=elements.get(template_decl_element_ind).unwrap();
+//     //     //
+//     //     if let ElementType::TemplateUse{ template_decl_element_ind }=cur_element.element_type {
+//     //         let decl_element=elements.get(template_decl_element_ind).unwrap();
 
-    //     }
-    // }
-}
+//     //     }
+//     // }
+// }
 
             // ElementType::Node { .. } => todo!(),
             // ElementType::Script {.. } => todo!(),

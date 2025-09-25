@@ -7,7 +7,7 @@ struct Work {
     element_ind:usize,
     exit:bool,
     parent:Option<usize>,
-    in_template_or_apply_decl:bool,
+    // in_template_or_apply_decl:bool,
 }
 
 pub fn calc_node_params(elements:&mut Vec<Element>) {
@@ -17,7 +17,10 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
     //where are params not used in scripts filtered out? not here
     //node's own self isn't included in its params
 
-    let mut work_stk=vec![Work { element_ind:0, exit:false, parent:None,in_template_or_apply_decl:false, }];
+    let mut work_stk=vec![Work {
+        element_ind:0, exit:false, parent:None,
+        // in_template_or_apply_decl:false,
+    }];
 
     //traverse enters downward, depth first, but exits traverse upward from descendents to ancestors/root
     while let Some(cur_work)=work_stk.pop() {
@@ -29,15 +32,15 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
             work_stk.push(Work{exit:true, ..cur_work.clone()});
 
             //
-            let in_template_or_apply_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=
-                &cur_element.element_type {true} else {cur_work.in_template_or_apply_decl};
+            // let in_template_or_apply_decl=if let ElementType::TemplateDecl{..}|ElementType::Apply{..}=
+            //     &cur_element.element_type {true} else {cur_work.in_template_or_apply_decl};
 
             //add cur's children enters to stack
             work_stk.extend(cur_element.children.iter().rev().map(|&element_ind|Work {
                 element_ind,
                 exit:false,
                 parent:Some(cur_work.element_ind),
-                in_template_or_apply_decl,
+                // in_template_or_apply_decl,
             }));
         }
 
@@ -90,15 +93,60 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
             }
         } else { //on exit
             match &cur_element.element_type {
-                ElementType::Stub { .. }|ElementType::Apply { .. }|ElementType::ApplyUse{..}|ElementType::TemplateDecl { .. } => { }
-                _ => { //not root, stub, apply, apply_use, template_decl, should just be node, template_use?,
-                    //add cur element's params to parent
+                // ElementType::Stub { .. }|ElementType::Apply { .. }|ElementType::ApplyUse{..}|ElementType::TemplateDecl { .. } => { }
+
+                // // ElementType::Script { .. }|ElementType::Attrib { .. } => todo!(),
+
+
+                // // _ => { //not root, stub, apply, apply_use, template_decl, should just be node, template_use?,
+                //     //add cur element's params to parent
+
+                // // }
+
+                ElementType::Node { .. }|ElementType::TemplateUse { .. } => {
                     let cur_nodes_params=cur_element.calcd_node_params.clone();
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
                     parent_element.calcd_node_params.extend(cur_nodes_params);
                 }
+                _ => {}
+
             }
         }
     }
 }
 
+
+
+
+pub fn calc_node_params2(elements:&mut Vec<Element>) {
+     let mut work_stk=vec![0];
+
+    while let Some(cur_element_ind)=work_stk.pop() {
+        let cur_element=elements.get(cur_element_ind).unwrap();
+        // let parent_element_ind=
+
+        //
+        work_stk.extend(cur_element.children.iter().rev());
+
+        //only nodes added (non root)
+
+        //
+        if let ElementType::Node { .. }=&cur_element.element_type {
+            let mut ancestor_element_ind=cur_element.parent;
+
+            while let Some(ancestor_element_ind2)=ancestor_element_ind {
+                let ancestor_element=elements.get_mut(ancestor_element_ind2).unwrap();
+                ancestor_element.calcd_node_params.insert(cur_element_ind);
+                ancestor_element_ind=ancestor_element.parent;
+
+                match &ancestor_element.element_type {
+                    // ElementType::Node { .. }|ElementType::TemplateUse { .. } => { }
+                    ElementType::Apply {.. }|ElementType::ApplyUse { .. }|ElementType::TemplateDecl {.. }|ElementType::Stub { .. } => {
+                        break;
+                    }
+                    _ => { }
+                }
+            }
+        }
+    }
+}

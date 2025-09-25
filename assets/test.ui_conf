@@ -1,5 +1,14 @@
+template t
+    node
+        node
+            script
+                var q 1
 
+template s
+    template t
 node a2
+    template s
+
 
     node b
         script

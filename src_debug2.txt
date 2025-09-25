@@ -1,32 +1,49 @@
 var root, _stubs
 var _ns [call _stubs 0 root]
 var env _ns.e0
-fn _n1 (self _p2) {
-    fn _n2 (self) {
+fn _t1 (_p3) {
+    fn _n2 (_p3) {
+        fn _n3 (self) {
+            var q 1
+            return [dict]
+        }
+        var _rn3 [call _n3 _p3]
         return [dict]
     }
-    var _rn2 [call _n2 _p2]
-    fn _n4 () {
-        fn _a5 () {
-            fn _n6 () {
+    var _rn2 [call _n2 _p3]
+    return [dict]
+}
+fn _t5 (_p18) {
+    var _rt6 [call _t1 _p18]
+    return [dict ("t6" _rt6)]
+}
+fn _n7 (_p9 _p21) {
+    var _rt8 [call _t5 _p21]
+    fn _n9 (self) {
+        return [dict]
+    }
+    var _rn9 [call _n9 _p9]
+    fn _n11 () {
+        fn _a12 () {
+            fn _n13 () {
                 return [dict]
             }
-            var _rn6 [call _n6]
-            fn _a7 (self) {
+            var _rn13 [call _n13]
+            fn _a14 (self) {
                 var a;
                 return [dict]
             }
-            return [dict ("a7" _a7)]
+            return [dict ("a14" _a14)]
         }
-        fn _n9 () {
+        fn _n16 () {
             return [dict]
         }
-        var _rn9 [call _n9]
-        return [dict ("a5" _a5)]
+        var _rn16 [call _n16]
+        return [dict ("a12" _a12)]
     }
-    var _rn4 [call _n4]
-    return [dict ("a5" _rn4.a5)]
+    var _rn11 [call _n11]
+    return [dict ("t8" _rt8) ("a12" _rn11.a12)]
 }
-var _rn1 [call _n1 _ns.n1 _ns.n2]
-var _ra10 [call _rn1.a5] # <- n9
-var _ra12 [call _ra10.a7 _ns.n11]
+var _rn7 [call _n7 _ns.n9 _ns.n21]
+var _ra22 [call _rn7.a12] # <- n16
+var _ra24 [call _ra22.a14 _ns.n23]

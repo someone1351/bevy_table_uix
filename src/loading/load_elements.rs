@@ -45,61 +45,156 @@ pub fn load_elements<'a>(
         //has_apply_decl_script:false,
         has_self_script:false,
         // has_template_use_script:false,
-        calcd_original:None,
+        // calcd_original:None,
         env: HashMap::new(),
+        parent:None,
     }];
 
     //elements
 
-        let mut template_envs: Vec<HashMap<&str,(usize,RecordContainer)>> = vec![HashMap::new()]; //[template_env_ind][template_name]=element_ind
-        let mut element_script_records = HashMap::<usize,RecordContainer>::new(); //[src_element_ind]=script_record
+    let mut template_envs: Vec<HashMap<&str,(usize,RecordContainer)>> = vec![HashMap::new()]; //[template_env_ind][template_name]=element_ind
+    let mut element_script_records = HashMap::<usize,RecordContainer>::new(); //[src_element_ind]=script_record
 
-        let mut last_element_stk: Vec<usize>=vec![0];
+    let mut last_element_stk: Vec<usize>=vec![0];
 
-        //walk entire tree
-        if let Err(e)=asset.conf.root().walk_ext(|mut walk|{
-            let cur_element_ind=last_element_stk.last().cloned().unwrap();
-            let cur_template_env_ind = template_envs.len()-1;
+    //walk entire tree
+    if let Err(e)=asset.conf.root().walk_ext(|mut walk|{
+        let cur_element_ind=last_element_stk.last().cloned().unwrap();
+        let cur_template_env_ind = template_envs.len()-1;
 
-            let apply_after = elements.get(cur_element_ind).unwrap().applies.len();
+        let apply_after = elements.get(cur_element_ind).unwrap().applies.len();
 
-            //
-            match walk.record().tag().unwrap() {
-                "include" => {
-                    let include_path=walk.record().value(0).get_str().unwrap();
-                    let include_handle=asset_server.load(PathBuf::from(include_path));
-                    let include_asset=ui_assets.get(include_handle.id()).unwrap();
+        //
+        match walk.record().tag().unwrap() {
+            "include" => {
+                let include_path=walk.record().value(0).get_str().unwrap();
+                let include_handle=asset_server.load(PathBuf::from(include_path));
+                let include_asset=ui_assets.get(include_handle.id()).unwrap();
 
-                    // let include_asset=get_asset(include_path);
+                // let include_asset=get_asset(include_path);
 
-                    walk.extend(include_asset.conf.root().children());
+                walk.extend(include_asset.conf.root().children());
+            }
+            "template" if walk.record().node_label() == Some("template_decl") && walk.is_enter() => { //
+                walk.do_exit();
+
+                walk.set_named_note("in_node", false);
+
+
+                //
+                let template_name = walk.record().value(0).get_str().unwrap();
+                let template_decl_id=template_envs.last().unwrap().len();
+                let new_element_ind=elements.len();
+                elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+
+                //
+                walk.set_named_note("in_template", template_decl_id);
+
+                //
+                template_envs.push(template_envs.last().unwrap().clone());
+                template_envs.last_mut().unwrap().insert(template_name,(new_element_ind,walk.record()));
+
+
+                //
+                elements.push(Element {
+                    element_type: ElementType::TemplateDecl { name: template_name, used: true },
+                    children: Vec::new(),
+                    applies: Vec::new(),
+                    apply_after,
+                    calcd_from_element_ind: None,
+                    calcd_node_params:BTreeSet::new(),
+                    calcd_env_params: BTreeSet::new(),
+                    calcd_created_from:cur_element_ind,
+                    has_script:false,
+                    //has_apply_decl_script:false,
+                    has_self_script:false,
+                    // has_template_use_script:false,
+                    // calcd_original:None,
+                    env: HashMap::new(),
+                    parent:Some(cur_element_ind),
+                });
+
+                //
+                // cur_element_ind=new_element_ind;
+                last_element_stk.push(new_element_ind);
+            }
+            "template" if walk.record().node_label() == Some("template_decl") && walk.is_exit() => {
+                // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
+                last_element_stk.pop().unwrap();
+            }
+
+            "template" if walk.record().node_label() == Some("template_use") => {
+                walk.set_named_note("in_node", false);
+
+                let template_name = walk.record().value(0).get_str().unwrap();
+
+                let Some((template_decl_element_ind, _template_decl_record)) = template_envs.get(cur_template_env_ind).unwrap().get(&template_name).cloned() else {
+                    return Err(walk.error("template not found"));
+                };
+
+                //
+                let new_element_ind=elements.len();
+                elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+
+
+                //
+                elements.push(Element {
+                    element_type: ElementType::TemplateUse { template_decl_element_ind, } ,
+                    children: Vec::new(),
+                    applies: Vec::new(),
+                    apply_after,
+                    calcd_from_element_ind: None,
+                    calcd_node_params:BTreeSet::new(),
+                    calcd_env_params: BTreeSet::new(),
+                    calcd_created_from:cur_element_ind,
+                    has_script:false,
+                    //has_apply_decl_script:false,
+                    has_self_script:false,
+                    // has_template_use_script:false,
+                    // calcd_original:None,
+                    env: HashMap::new(),
+                    parent:Some(cur_element_ind),
+                });
+
+                //
+                // template_use_count+=1;
+            }
+
+            "template" if walk.record().node_label() == Some("template_use") && walk.is_exit() => {
+            }
+            "apply" if walk.is_enter() => {
+                walk.do_exit();
+
+
+                //for an apply inside a node
+                //  as if searched for, will ret true
+                walk.set_named_note("in_node", false);
+
+                let mut prev_owner_apply_decl_id: Option<usize>=walk.find_named_note("owner_apply_decl_id").cloned();
+                {
+                    let new_element_ind=elements.len();
+                    walk.set_named_note("owner_apply_decl_id", new_element_ind);
+
                 }
-                "template" if walk.record().node_label() == Some("template_decl") && walk.is_enter() => { //
-                    walk.do_exit();
 
-                    walk.set_named_note("in_node", false);
+                //
+                for (i,v) in walk.record().values().enumerate() {
+                    let name=v.str();
+                    let apply_after=if i==0 {apply_after}else{1};
 
-
-                    //
-                    let template_name = walk.record().value(0).get_str().unwrap();
-                    let template_decl_id=template_envs.last().unwrap().len();
                     let new_element_ind=elements.len();
                     elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
 
                     //
-                    walk.set_named_note("in_template", template_decl_id);
+                    elements.get_mut(cur_element_ind).unwrap().applies.push(new_element_ind); //push apply onto parent's applies
 
                     //
-                    template_envs.push(template_envs.last().unwrap().clone());
-                    template_envs.last_mut().unwrap().insert(template_name,(new_element_ind,walk.record()));
-
-
-                    //
+                    // let new_apply_decl_id=apply_decl_count;
                     elements.push(Element {
-                        element_type: ElementType::TemplateDecl { name: template_name, used: true },
+                        element_type: ElementType::Apply { name, owner_apply_decl_id: prev_owner_apply_decl_id, used: true },
+                        apply_after,
                         children: Vec::new(),
                         applies: Vec::new(),
-                        apply_after,
                         calcd_from_element_ind: None,
                         calcd_node_params:BTreeSet::new(),
                         calcd_env_params: BTreeSet::new(),
@@ -108,271 +203,184 @@ pub fn load_elements<'a>(
                         //has_apply_decl_script:false,
                         has_self_script:false,
                         // has_template_use_script:false,
-                        calcd_original:None,
+                        // calcd_original:None,
                         env: HashMap::new(),
+                        parent:Some(cur_element_ind),
                     });
 
                     //
                     // cur_element_ind=new_element_ind;
                     last_element_stk.push(new_element_ind);
-                }
-                "template" if walk.record().node_label() == Some("template_decl") && walk.is_exit() => {
-                    // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
-                    last_element_stk.pop().unwrap();
-                }
-
-                "template" if walk.record().node_label() == Some("template_use") => {
-                    walk.set_named_note("in_node", false);
-
-                    let template_name = walk.record().value(0).get_str().unwrap();
-
-                    let Some((template_decl_element_ind, _template_decl_record)) = template_envs.get(cur_template_env_ind).unwrap().get(&template_name).cloned() else {
-                        return Err(walk.error("template not found"));
-                    };
+                    prev_owner_apply_decl_id=Some(new_element_ind);
 
                     //
-                    let new_element_ind=elements.len();
-                    elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
 
-
-                    //
-                    elements.push(Element {
-                        element_type: ElementType::TemplateUse { template_decl_element_ind, } ,
-                        children: Vec::new(),
-                        applies: Vec::new(),
-                        apply_after,
-                        calcd_from_element_ind: None,
-                        calcd_node_params:BTreeSet::new(),
-                        calcd_env_params: BTreeSet::new(),
-                        calcd_created_from:cur_element_ind,
-                        has_script:false,
-                        //has_apply_decl_script:false,
-                        has_self_script:false,
-                        // has_template_use_script:false,
-                        calcd_original:None,
-                        env: HashMap::new(),
-                    });
-
-                    //
-                    // template_use_count+=1;
-                }
-
-                "template" if walk.record().node_label() == Some("template_use") && walk.is_exit() => {
-                }
-                "apply" if walk.is_enter() => {
-                    walk.do_exit();
-
-
-                    //for an apply inside a node
-                    //  as if searched for, will ret true
-                    walk.set_named_note("in_node", false);
-
-                    let mut prev_owner_apply_decl_id: Option<usize>=walk.find_named_note("owner_apply_decl_id").cloned();
-                    {
-                        let new_element_ind=elements.len();
-                        walk.set_named_note("owner_apply_decl_id", new_element_ind);
-
-                    }
-
-                    //
-                    for (i,v) in walk.record().values().enumerate() {
-                        let name=v.str();
-                        let apply_after=if i==0 {apply_after}else{1};
-
-                        let new_element_ind=elements.len();
-                        elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
-
-                        //
-                        elements.get_mut(cur_element_ind).unwrap().applies.push(new_element_ind); //push apply onto parent's applies
-
-                        //
-                        // let new_apply_decl_id=apply_decl_count;
-                        elements.push(Element {
-                            element_type: ElementType::Apply { name, owner_apply_decl_id: prev_owner_apply_decl_id, used: true },
-                            apply_after,
-                            children: Vec::new(),
-                            applies: Vec::new(),
-                            calcd_from_element_ind: None,
-                            calcd_node_params:BTreeSet::new(),
-                            calcd_env_params: BTreeSet::new(),
-                            calcd_created_from:cur_element_ind,
-                            has_script:false,
-                            //has_apply_decl_script:false,
-                            has_self_script:false,
-                            // has_template_use_script:false,
-                            calcd_original:None,
-                            env: HashMap::new(),
-                        });
-
-                        //
-                        // cur_element_ind=new_element_ind;
-                        last_element_stk.push(new_element_ind);
-                        prev_owner_apply_decl_id=Some(new_element_ind);
-
-                        //
-
-                        walk.push_named_note("in_apply", new_element_ind);
-                        // apply_decl_count+=1;
-                    }
-                }
-
-                "apply" if walk.is_exit() => {                    //
-                    for _ in 0..walk.record().values_num() {
-                        // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
-                        last_element_stk.pop().unwrap();
-                    }
-                }
-
-                "node" if walk.is_enter() => {
-                    walk.do_exit();
-
-                    walk.set_named_note("in_node", true);
-
-                    let names: HashSet<&str>=HashSet::from_iter(walk.record().values().map(|x|x.str()));
-
-                    let new_element_ind=elements.len();
-                    elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
-
-                    elements.push(Element {
-                        element_type: ElementType::Node { names,  ignore_applies:HashSet::new(), },
-                        children: Vec::new(),
-                        applies: Vec::new(),
-                        apply_after,
-                        calcd_from_element_ind: None,
-                        calcd_node_params:BTreeSet::new(),
-                        calcd_env_params: BTreeSet::new(),
-                        calcd_created_from:cur_element_ind,
-                        has_script:false,
-                        //has_apply_decl_script:false,
-                        has_self_script:false,
-                        // has_template_use_script:false,
-                        calcd_original:None,
-                        env: HashMap::new(),
-                    });
-
-                    // cur_element_ind=new_element_ind;
-                    last_element_stk.push(new_element_ind);
-                }
-                "node" if walk.is_exit() => {
-                    // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
-                    last_element_stk.pop().unwrap();
-                }
-                "script" => {
-                    //
-                    let new_element_ind=elements.len();
-                    elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
-
-                    //
-                    element_script_records.insert(new_element_ind, walk.record());
-
-                    //
-                    elements.push(Element {
-                        element_type: ElementType::Script { record : walk.record(), },
-                        children: Vec::new(),
-                        applies: Vec::new(),
-                        apply_after,
-                        calcd_from_element_ind: None,
-                        calcd_node_params:BTreeSet::new(),
-                        calcd_env_params: BTreeSet::new(),
-                        calcd_created_from:cur_element_ind,
-                        has_script:false,
-                        //has_apply_decl_script:false,
-                        has_self_script:false,
-                        // has_template_use_script:false,
-                        calcd_original:None,
-                        env: HashMap::new(),
-                    });
-                }
-
-                "on" => {
-                    walk.do_exit();
-                    let affect_state=walk.record().value(0).get_parsed::<UiAffectState>().unwrap();
-
-                    walk.set_named_note("on",affect_state);
-                }
-
-                "stub" if walk.is_enter() => {
-                    walk.do_exit();
-
-                    // walk.set_named_note("in_node", false); // not necessary? since attribs can't be used inside stub
-
-                    let name = walk.record().value(0).get_str().unwrap();
-
-                    let new_element_ind=elements.len();
-                    elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
-
-                    elements.push(Element {
-                        element_type: ElementType::Stub { name, },
-                        children: Vec::new(),
-                        applies: Vec::new(),
-                        apply_after,
-                        calcd_from_element_ind: None,
-                        calcd_node_params:BTreeSet::new(),
-                        calcd_env_params: BTreeSet::new(),
-                        calcd_created_from:cur_element_ind,
-                        has_script:false,
-                        //has_apply_decl_script:false,
-                        has_self_script:false,
-                        // has_template_use_script:false,
-                        calcd_original:None,
-                        env: HashMap::new(),
-                    });
-
-                    // cur_element_ind=new_element_ind;
-                    last_element_stk.push(new_element_ind);
-                }
-                "stub" if walk.is_exit() => {
-                    // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
-                    last_element_stk.pop().unwrap();
-                }
-                x => {
-                    let on_state: Option<UiAffectState>=walk.find_named_note("on").cloned();
-                    let in_node: bool=walk.find_named_note("in_node").cloned().unwrap_or_default();
-                    // let in_apply: Option<usize>=walk.get_named_note("in_apply").cloned();
-                    let in_template: Option<usize>=walk.find_named_note("in_template").cloned();
-
-                    //
-                    let mut attrib_funcs: Vec<(&str, Arc<dyn Fn(Entity, &mut World) + Send + Sync>)> = Vec::new();
-
-                    //
-                    do_attribs(x,on_state,asset_server,&walk,&mut attrib_funcs);
-
-                    //
-                    for (attrib_name,func) in attrib_funcs {
-                        let new_element_ind=elements.len();
-                        elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
-                        elements.push(Element {
-                            element_type: ElementType::Attrib {
-                                name:attrib_name,
-                                on_state,
-                                in_template,
-                                func:AttribFunc(func),
-                                in_node,
-                                calcd:Default::default(),
-                            },
-                            children: Vec::new(),
-                            applies: Vec::new(),
-                            apply_after,
-                            calcd_from_element_ind: None,
-                            calcd_node_params:BTreeSet::new(),
-                            calcd_env_params: BTreeSet::new(),
-                            calcd_created_from:cur_element_ind,
-                            has_script:false,
-                            //has_apply_decl_script:false,
-                            has_self_script:false,
-                            // has_template_use_script:false,
-                            calcd_original:None,
-                            env: HashMap::new(),
-                        });
-                    }
+                    walk.push_named_note("in_apply", new_element_ind);
+                    // apply_decl_count+=1;
                 }
             }
 
-            Ok(())
-        }) {
-            eprintln!("{}",e.msg(None));
-            return None;
+            "apply" if walk.is_exit() => {                    //
+                for _ in 0..walk.record().values_num() {
+                    // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
+                    last_element_stk.pop().unwrap();
+                }
+            }
+
+            "node" if walk.is_enter() => {
+                walk.do_exit();
+
+                walk.set_named_note("in_node", true);
+
+                let names: HashSet<&str>=HashSet::from_iter(walk.record().values().map(|x|x.str()));
+
+                let new_element_ind=elements.len();
+                elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+
+                elements.push(Element {
+                    element_type: ElementType::Node { names,  ignore_applies:HashSet::new(), },
+                    children: Vec::new(),
+                    applies: Vec::new(),
+                    apply_after,
+                    calcd_from_element_ind: None,
+                    calcd_node_params:BTreeSet::new(),
+                    calcd_env_params: BTreeSet::new(),
+                    calcd_created_from:cur_element_ind,
+                    has_script:false,
+                    //has_apply_decl_script:false,
+                    has_self_script:false,
+                    // has_template_use_script:false,
+                    // calcd_original:None,
+                    env: HashMap::new(),
+                    parent:Some(cur_element_ind),
+                });
+
+                // cur_element_ind=new_element_ind;
+                last_element_stk.push(new_element_ind);
+            }
+            "node" if walk.is_exit() => {
+                // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
+                last_element_stk.pop().unwrap();
+            }
+            "script" => {
+                //
+                let new_element_ind=elements.len();
+                elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+
+                //
+                element_script_records.insert(new_element_ind, walk.record());
+
+                //
+                elements.push(Element {
+                    element_type: ElementType::Script { record : walk.record(), },
+                    children: Vec::new(),
+                    applies: Vec::new(),
+                    apply_after,
+                    calcd_from_element_ind: None,
+                    calcd_node_params:BTreeSet::new(),
+                    calcd_env_params: BTreeSet::new(),
+                    calcd_created_from:cur_element_ind,
+                    has_script:false,
+                    //has_apply_decl_script:false,
+                    has_self_script:false,
+                    // has_template_use_script:false,
+                    // calcd_original:None,
+                    env: HashMap::new(),
+                    parent:Some(cur_element_ind),
+                });
+            }
+
+            "on" => {
+                walk.do_exit();
+                let affect_state=walk.record().value(0).get_parsed::<UiAffectState>().unwrap();
+
+                walk.set_named_note("on",affect_state);
+            }
+
+            "stub" if walk.is_enter() => {
+                walk.do_exit();
+
+                // walk.set_named_note("in_node", false); // not necessary? since attribs can't be used inside stub
+
+                let name = walk.record().value(0).get_str().unwrap();
+
+                let new_element_ind=elements.len();
+                elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+
+                elements.push(Element {
+                    element_type: ElementType::Stub { name, },
+                    children: Vec::new(),
+                    applies: Vec::new(),
+                    apply_after,
+                    calcd_from_element_ind: None,
+                    calcd_node_params:BTreeSet::new(),
+                    calcd_env_params: BTreeSet::new(),
+                    calcd_created_from:cur_element_ind,
+                    has_script:false,
+                    //has_apply_decl_script:false,
+                    has_self_script:false,
+                    // has_template_use_script:false,
+                    // calcd_original:None,
+                    env: HashMap::new(),
+                    parent:Some(cur_element_ind),
+                });
+
+                // cur_element_ind=new_element_ind;
+                last_element_stk.push(new_element_ind);
+            }
+            "stub" if walk.is_exit() => {
+                // cur_element_ind=elements.get(cur_element_ind).unwrap().parent.unwrap();
+                last_element_stk.pop().unwrap();
+            }
+            x => {
+                let on_state: Option<UiAffectState>=walk.find_named_note("on").cloned();
+                let in_node: bool=walk.find_named_note("in_node").cloned().unwrap_or_default();
+                // let in_apply: Option<usize>=walk.get_named_note("in_apply").cloned();
+                let in_template: Option<usize>=walk.find_named_note("in_template").cloned();
+
+                //
+                let mut attrib_funcs: Vec<(&str, Arc<dyn Fn(Entity, &mut World) + Send + Sync>)> = Vec::new();
+
+                //
+                do_attribs(x,on_state,asset_server,&walk,&mut attrib_funcs);
+
+                //
+                for (attrib_name,func) in attrib_funcs {
+                    let new_element_ind=elements.len();
+                    elements.get_mut(cur_element_ind).unwrap().children.push(new_element_ind);
+                    elements.push(Element {
+                        element_type: ElementType::Attrib {
+                            name:attrib_name,
+                            on_state,
+                            in_template,
+                            func:AttribFunc(func),
+                            in_node,
+                            calcd:Default::default(),
+                        },
+                        children: Vec::new(),
+                        applies: Vec::new(),
+                        apply_after,
+                        calcd_from_element_ind: None,
+                        calcd_node_params:BTreeSet::new(),
+                        calcd_env_params: BTreeSet::new(),
+                        calcd_created_from:cur_element_ind,
+                        has_script:false,
+                        //has_apply_decl_script:false,
+                        has_self_script:false,
+                        // has_template_use_script:false,
+                        // calcd_original:None,
+                        env: HashMap::new(),
+                        parent:Some(cur_element_ind),
+                    });
+                }
+            }
         }
+
+        Ok(())
+    }) {
+        eprintln!("{}",e.msg(None));
+        return None;
+    }
 
     Some(elements)
 }

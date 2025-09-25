@@ -90,16 +90,18 @@ pub struct Element<'a> {
     pub children : Vec<usize>,
     pub applies : Vec<usize>, //element_ind
     pub apply_after : usize, //parent_apply_ind
-    pub calcd_from_element_ind : Option<usize>, //element_ind
+    pub calcd_from_element_ind : Option<usize>, //element_ind, mirrors nodes inside template_use/apply_use to their template_decl/apply_decl origin
     pub calcd_node_params:BTreeSet<usize>, //node element_ind
     pub calcd_env_params:BTreeSet<usize>, //element_ind
-    pub calcd_created_from : usize, //same as calcd_original??
-    pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
+    pub calcd_created_from : usize, //same as calcd_original?? same as parent? no, something to do with applies, and their origin, which is sometimes parent, sometimes something else?
+    // pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
     pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     // pub has_template_use_script:bool,
     pub has_script:bool,
     // pub has_apply_decl_script:bool,
     pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
+
+    pub parent:Option<usize>,
 }
 
 
