@@ -1,5 +1,4 @@
 
-use ron::to_string;
 
 /*
 todo
@@ -51,6 +50,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 }
 
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
+
                 params2.extend(envs.iter().map(|x|format!("_e{x}")));
 
                 let params2=params2.join(" ");

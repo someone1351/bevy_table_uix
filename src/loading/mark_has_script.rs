@@ -29,7 +29,8 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
             &ElementType::TemplateUse { template_decl_element_ind  } => { //template_decl will always be before template_use,
                 let decl_element=elements.get(template_decl_element_ind).unwrap();
                 let &ElementType::TemplateDecl { used, .. }=&decl_element.element_type else {panic!("");};
-                (used && decl_element.has_script, used && decl_element.has_self_script,decl_element.has_env_script)
+                used.then_some((decl_element.has_script, decl_element.has_self_script,decl_element.has_env_script)).unwrap_or_default()
+                // (used && decl_element.has_script, used && decl_element.has_self_script,used && decl_element.has_env_script)
             },
             _ => (false,false,false),
         };
@@ -66,8 +67,26 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
 
         //
         if has_env_script {
-            let element=elements.get_mut(cur_element_ind).unwrap();
-            element.has_env_script=true;
+            let cur_element=elements.get_mut(cur_element_ind).unwrap();
+            // match &cur_element.element_type {
+            //     ElementType::TemplateUse { .. } => {
+            //         cur_element.has_env_script=true;
+
+            //     }
+            //     ElementType::Script { .. } => {
+            //         let parent_element_ind=cur_element.parent.unwrap();
+            //         let parent_element=elements.get_mut(parent_element_ind).unwrap();
+            //         parent_element.has_env_script=true;
+            //     }
+            //     _ => {}
+            // }
+            if let ElementType::TemplateUse { .. }=&cur_element.element_type {
+                cur_element.has_env_script=true;
+            } else { //parent = node/apply/template_decl/stub
+                let parent_element_ind=cur_element.parent.unwrap();
+                let parent_element=elements.get_mut(parent_element_ind).unwrap();
+                parent_element.has_env_script=true;
+            }
         }
     }
 }
