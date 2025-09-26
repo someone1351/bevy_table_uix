@@ -1,3 +1,9 @@
+script
+    var d (dict)
+    #d.insert "a" void
+    fn abc () {
+        void
+    }
 template t
     node
         node
