@@ -1,6 +1,11 @@
 template t
     script
-node
-    template t
-
-    #script
+node q
+    node x
+        script
+apply q
+    script
+    node x
+        script
+        node
+            template t

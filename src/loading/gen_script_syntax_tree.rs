@@ -97,14 +97,15 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                     (!only_script || param_element.has_self_script).then_some(ScriptSyntaxNode(param_element_ind))
                 }));
 
-                let has_self_env_param=!only_script || apply_use_element.has_env_script;
+                let has_self_env_param=!only_script || apply_decl_element.has_env_script;
                 let mut envs=Vec::new();
                 if has_self_env_param {
                     envs.push(apply_use_element_ind);
                 }
-                envs.extend(cur_element.calcd_env_params.iter().filter_map(|&x|{
-                    let e=&elements[x];
-                    e.has_env_script.then_some(x)
+                envs.extend(apply_use_element.calcd_env_params.iter().zip(apply_decl_element.calcd_env_params.iter()).filter_map(|(&param_element_ind,&decl_param_element_ind)|{
+                    let param_element=&elements[decl_param_element_ind];
+                    //println!("env{apply_use_element_ind} {param_element_ind} {decl_param_element_ind}");
+                    (!only_script || param_element.has_env_script).then_some(param_element_ind)
                 }));
 
 
@@ -199,7 +200,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         let envs = cur_element.calcd_env_params.iter().filter_map(|&x|{
                             let e=&elements[x];
-                            e.has_env_script.then_some(x)
+                            (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
                         let has_env=cur_element.has_env_script;
@@ -248,7 +249,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                         }
                         envs.extend(cur_element.calcd_env_params.iter().filter_map(|&x|{
                             let e=&elements[x];
-                            e.has_env_script.then_some(x)
+                            (!only_script || e.has_env_script).then_some(x)
                         }));
 
                         syntax_tree.push(ScriptSyntax::CallNode {
@@ -293,7 +294,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         let envs = cur_element.calcd_env_params.iter().filter_map(|&x|{
                             let e=&elements[x];
-                            e.has_env_script.then_some(x)
+                            (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
                         let has_env=cur_element.has_env_script;
@@ -336,7 +337,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
                         let envs = cur_element.calcd_env_params.iter().filter_map(|&x|{
                             let e=&elements[x];
-                            e.has_env_script.then_some(x)
+                            (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
                         let has_env=cur_element.has_env_script;
@@ -392,14 +393,14 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                         //     e.has_env_script.then_some(x)
                         // }).collect::<Vec<_>>();
 
-                        let has_self_env_param=!only_script || cur_element.has_env_script;
+                        let has_self_env_param=!only_script || template_decl_element.has_env_script;
                         let mut envs=Vec::new();
                         if has_self_env_param {
                             envs.push(cur_work.element_ind);
                         }
-                        envs.extend(cur_element.calcd_env_params.iter().filter_map(|&x|{
-                            let e=&elements[x];
-                            e.has_env_script.then_some(x)
+                        envs.extend(cur_element.calcd_env_params.iter().zip(template_decl_element.calcd_env_params.iter()).filter_map(|(&param_element_ind,&decl_param_element_ind)|{
+                            let param_element=&elements[decl_param_element_ind];
+                            (!only_script || param_element.has_env_script).then_some(param_element_ind)
                         }));
 
                         // println!("params is {params:?}, self is {self_param}");
