@@ -1,7 +1,4 @@
 
-use std::cmp::Ordering;
-
-
 
 use super::vals::*;
 
@@ -384,7 +381,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
         }
 
-        //call stubs
+        //call stubs node/env create
         if !cur_work.in_a_use && !cur_work.exit && match &cur_element.element_type { //enter
             ElementType::Node{..} if cur_work.depth==0 => true,
             ElementType::Stub{..} => true,
@@ -498,7 +495,7 @@ pub fn debug_print_script_syntax_tree(syntax_tree:&Vec<ScriptSyntax>) {
                 let ret=has_ret.then_some(ret);
                 println!("{indent}call_template {func:?}({}{params:?}:{envs:?}) => {ret:?}, ",has_self.then(||"self,").unwrap_or_default());
             }
-            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node,has_ret, has_self, envs } => {
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node,has_ret, envs,.. } => {
                 let ret=has_ret.then_some(ret);
                 println!("{indent}call_apply {func_froms:?} {func_apply:?}({self_node:?},{params:?}:{envs:?}) => {ret:?}");
             }

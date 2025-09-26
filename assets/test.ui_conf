@@ -11,9 +11,10 @@ template t
         node x
             script
                 var q 1
-
-template s
+template q
     template t
+template s
+    template q
 node a2
     template s
 

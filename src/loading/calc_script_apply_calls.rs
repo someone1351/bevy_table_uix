@@ -125,6 +125,7 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>, )  {
                                 break;
                             }
                             ElementType::TemplateUse { .. } => {
+                                let cur_from=from_element.calcd_from_element_ind.unwrap_or(cur_from);
                                 from_template_decls.push(ScriptSyntaxTemplateUse(cur_from));
                             }
                             ElementType::Node { .. } if from_element.calcd_created_from==to => {
@@ -138,6 +139,8 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>, )  {
                         cur_from=from_element.calcd_created_from;
                     }
                 }
+
+                from_template_decls.reverse();
 
                 //
                 if from_ret.is_none() && !from_template_decls.is_empty() {
