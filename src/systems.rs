@@ -162,6 +162,8 @@ pub fn on_asset_load<'a>(
         // mark_has_script(&mut elements,true);
         // // mark_has_script(&mut elements);
         calc_envs(&mut elements);
+        calc_script_returns(&mut elements);
+        calc_script_apply_calls(&mut elements);
 
         //debug
         debug_print_elements2(&elements);
@@ -174,7 +176,7 @@ pub fn on_asset_load<'a>(
         //script
         {
 
-            let mut syntax_tree=gen_script_syntax_tree(&elements,true,true);
+            let syntax_tree=gen_script_syntax_tree(&elements,true,true);
             // optimise_script_syntax_tree(&elements,&mut syntax_tree);
 
             debug_print_script_syntax_tree(&syntax_tree);

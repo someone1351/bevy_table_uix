@@ -27,9 +27,9 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
         let (has_script, has_self_script,has_env_script)=match &cur_element.element_type {
             ElementType::Script { .. } => (true,true,true),
             &ElementType::TemplateUse { template_decl_element_ind  } => { //template_decl will always be before template_use,
-                let element=elements.get(template_decl_element_ind).unwrap();
-                let &ElementType::TemplateDecl { used, .. }=&element.element_type else {panic!("");};
-                (used && element.has_script, used && element.has_self_script,false)
+                let decl_element=elements.get(template_decl_element_ind).unwrap();
+                let &ElementType::TemplateDecl { used, .. }=&decl_element.element_type else {panic!("");};
+                (used && decl_element.has_script, used && decl_element.has_self_script,decl_element.has_env_script)
             },
             _ => (false,false,false),
         };
@@ -62,6 +62,12 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
 
                 element_ind=element.parent;
             }
+        }
+
+        //
+        if has_env_script {
+            let element=elements.get_mut(cur_element_ind).unwrap();
+            element.has_env_script=true;
         }
     }
 }

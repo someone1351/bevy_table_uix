@@ -1,4 +1,6 @@
 
+use ron::to_string;
+
 /*
 todo
 * swap dict usage with own type
@@ -40,7 +42,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                     src+=&format!("{indent}var env _ns.e0\n");
                 }
             }
-            ScriptSyntax::CallTemplate { ret, func, params, has_self,has_ret } => {
+            ScriptSyntax::CallTemplate { ret, func, params, has_self,has_ret, envs,  } => {
                 // let mut params2=vec!["self".to_string()];
                 let mut params2= Vec::new();
 
@@ -49,9 +51,12 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 }
 
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
+                params2.extend(envs.iter().map(|x|format!("_e{x}")));
+
                 let params2=params2.join(" ");
                 let c=format!("call _t{func} {params2}");
                 let c=c.trim();
+
                 // let x=if let Some(ret)=ret {
                 //     format!("var _rt{ret} [{c}]")
                 // } else {
@@ -63,9 +68,11 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // src+=&format!("{indent}{x}{self_info}\n");
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node,has_ret, has_self } => {
+            ScriptSyntax::CallApply { ret, func_froms, func_apply, params, self_node,has_ret, has_self, envs } => {
                 let mut params2=Vec::new();
                 params2.extend(params.iter().map(|x|format!("_ns.n{x}")));
+                params2.extend(envs.iter().map(|x|format!("_ns.e{x}")));
+
                 let params2=params2.join(" ");
                 let mut func = Vec::new();
 
@@ -109,11 +116,14 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // }
                 // src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::CallNode { in_func, func, params, has_ret,  } => {
+            ScriptSyntax::CallNode { in_func, func, params, has_ret, envs } => {
+                // let params2=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})).collect::<Vec<_>>().join(" ");
+                let mut params2=Vec::new();
+                params2.extend(params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})));
+                params2.extend(envs.iter().map(|x|format!("_{}{x}",if *in_func{"e"}else{"ns.e"})));
 
-                let params=params.iter().map(|x|format!("_{}{x}",if *in_func{"p"}else{"ns.n"})).collect::<Vec<_>>().join(" ");
-
-                let c=format!("call _n{func} {params}");
+                let params2=params2.join(" ");
+                let c=format!("call _n{func} {params2}");
                 let c=c.trim();
                 let x=if *has_ret {
                     format!("var _rn{func} [{c}]")
@@ -122,7 +132,7 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 };
                 src+=&format!("{indent}{x}\n");
             }
-            ScriptSyntax::Decl { name, params, has_self: self_param, .. }  if !exit => { //enter
+            ScriptSyntax::Decl { name, params, has_self: self_param, envs,has_env, .. }  if !exit => { //enter
                 // let mut params2=vec!["self".to_string()];
                 let mut params2 = Vec::new();
 
@@ -131,11 +141,18 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 }
 
                 params2.extend(params.iter().map(|x|format!("_p{x}")));
+
+                if *has_env {
+                    params2.push("env".to_string());
+                }
+
+                params2.extend(envs.iter().map(|x|format!("_e{x}")));
+
                 let params2=params2.join(" ");
                 let name = match name {
-                    ScriptSyntaxNodeOrApplyOrTemplate::Node(x) => format!("_n{x}"),
-                    ScriptSyntaxNodeOrApplyOrTemplate::Apply(x) => format!("_a{x}"),
-                    ScriptSyntaxNodeOrApplyOrTemplate::Template(x) => format!("_t{x}"),
+                    ScriptSyntaxNodeOrApplyOrTemplateDecl::Node(x) => format!("_n{x}"),
+                    ScriptSyntaxNodeOrApplyOrTemplateDecl::ApplyDecl(x) => format!("_a{x}"),
+                    ScriptSyntaxNodeOrApplyOrTemplateDecl::TemplateDecl(x) => format!("_t{x}"),
                 };
 
 

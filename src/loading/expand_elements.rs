@@ -380,6 +380,8 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 // calcd_original:None,
                                 env: HashMap::new(),
                                 parent:Some(cur_element_ind),
+                                rets : Vec::new(),
+                                apply_calls:Vec::new(),
                             });
                         }
                     }

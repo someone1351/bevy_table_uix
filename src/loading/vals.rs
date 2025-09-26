@@ -85,6 +85,17 @@ pub enum ElementType<'a> {
 // }
 
 #[derive(Debug,Clone)]
+pub struct ElementApplyCall {
+    pub parent_element_ind : usize,
+    pub apply_use_element_ind : usize,
+    pub func_froms : Option<(
+        ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
+        Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
+    )>,
+
+}
+
+#[derive(Debug,Clone)]
 pub struct Element<'a> {
     pub element_type:ElementType<'a>,
     pub children : Vec<usize>,
@@ -103,12 +114,23 @@ pub struct Element<'a> {
     pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 
     pub parent:Option<usize>,
+
+    pub rets : Vec<(
+        Option<ScriptSyntaxNode>, //node_element_ind
+        ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
+    )>, //for template decl, apply decl, node
+
+    pub apply_calls : Vec<ElementApplyCall>,
+    // apply_froms : Option<(
+    //     ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
+    //     Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
+    // )>, //for apply_use, only in nodes, and not descendant of apply_decl or template_decl
 }
 
 
 //////
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum ScriptSyntaxTemplateUseOrApplyDecl {
     ApplyDecl(usize),
     TemplateUse(usize),
@@ -116,7 +138,7 @@ pub enum ScriptSyntaxTemplateUseOrApplyDecl {
 
 
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub enum ScriptSyntaxNodeOrApplyUse {
     Node(usize),
     ApplyUse(usize),
@@ -128,20 +150,35 @@ pub enum ScriptSyntaxNodeOrApplyUse {
 // }
 
 #[derive(Debug,Copy,Clone)]
-pub enum ScriptSyntaxNodeOrApplyOrTemplate {
+pub enum ScriptSyntaxNodeOrApplyOrTemplateDecl {
     Node(usize),
-    Apply(usize),
-    Template(usize),
+    ApplyDecl(usize),
+    TemplateDecl(usize),
 }
-impl ScriptSyntaxNodeOrApplyOrTemplate {
+impl ScriptSyntaxNodeOrApplyOrTemplateDecl {
     pub fn element_ind(&self) -> usize {
         match *self {
-            ScriptSyntaxNodeOrApplyOrTemplate::Node(x) => x,
-            ScriptSyntaxNodeOrApplyOrTemplate::Apply(x) => x,
-            ScriptSyntaxNodeOrApplyOrTemplate::Template(x) => x,
+            Self::Node(x) => x,
+            Self::ApplyDecl(x) => x,
+            Self::TemplateDecl(x) => x,
         }
     }
 }
+// #[derive(Debug,Copy,Clone)]
+// pub enum usize {
+//     Node(usize),
+//     ApplyUse(usize),
+//     TemplateUse(usize),
+// }
+// impl usize {
+//     pub fn element_ind(&self) -> usize {
+//         match *self {
+//             Self::Node(x) => x,
+//             Self::ApplyUse(x) => x,
+//             Self::TemplateUse(x) => x,
+//         }
+//     }
+// }
 
 #[derive(Copy,Clone,PartialEq,Eq)]
 pub struct ScriptSyntaxNode(pub usize);
@@ -176,8 +213,9 @@ pub enum ScriptSyntax {
 
     Decl { //name is element_ind
         // decl : ScriptSyntaxDecl,
-        name : ScriptSyntaxNodeOrApplyOrTemplate, //element_ind
+        name : ScriptSyntaxNodeOrApplyOrTemplateDecl, //element_ind
         params : Vec<ScriptSyntaxNode>, //node element_inds, doesn't include self
+        envs : Vec<usize>, //excludes self, node/apply_use/template_use element_ind
         children:Vec<usize>, //syntax_inds
         returns : Vec<(
             Option<ScriptSyntaxNode>, //node_element_ind
@@ -185,6 +223,7 @@ pub enum ScriptSyntax {
         )>,
         has_self:bool, //self param
         has_ret:bool,
+        has_env:bool,
     },
 
     Stub { //needs stub_element_ind? no
@@ -203,7 +242,8 @@ pub enum ScriptSyntax {
 
         ret : ScriptSyntaxTemplateUse, //template_use_element_ind
         func : ScriptSyntaxTemplateDecl, //template_decl_element_ind
-        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self, why not? doesn't need it since "self" is passed
+        params : Vec<ScriptSyntaxNode>, //node_element_inds, doesn't include self, why not? doesn't need it since "self" is
+        envs : Vec<usize>, //includes self, node/apply_use/template_use element_ind
         // use_self : Option<usize>, // element_ind of self
         has_self : bool,
         has_ret:bool,
@@ -216,6 +256,7 @@ pub enum ScriptSyntax {
         )>,
         func_apply : ScriptSyntaxApplyDecl, //apply_decl_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds, includes self
+        envs : Vec<usize>, //includes self, node/apply_use/template_use element_ind
         // not_has_self : Option<ScriptSyntaxNode>, //element_ind of self
         self_node:ScriptSyntaxNode, //
         has_self:bool, //not needed, can check if param[0]==self_node
@@ -226,6 +267,7 @@ pub enum ScriptSyntax {
         in_func:bool, //inside template_decl, apply_decl or node
         func : ScriptSyntaxNode, //node_element_ind
         params : Vec<ScriptSyntaxNode>, //node_element_inds, includes self
+        envs : Vec<usize>, //includes self, node/apply_use/template_use element_ind
         // self_param:bool, //doesn't need, params will have it (or not)
     },
 }
@@ -289,6 +331,20 @@ impl Debug for ScriptSyntaxApplyUse {
         f.debug_tuple("ApplyUse").field(&self.0).finish()
     }
 }
+
+
+
+impl Display for ScriptSyntaxNodeOrApplyOrTemplateDecl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f,"{}",self.element_ind())
+    }
+}
+
+// impl Display for usize {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f,"{}",self.element_ind())
+//     }
+// }
 impl Display for ScriptSyntaxNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f,"{}",self.0)

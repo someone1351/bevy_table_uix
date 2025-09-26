@@ -49,6 +49,8 @@ pub fn load_elements<'a>(
         // calcd_original:None,
         env: HashMap::new(),
         parent:None,
+        rets : Vec::new(),
+        apply_calls:Vec::new(),
     }];
 
     //elements
@@ -114,6 +116,8 @@ pub fn load_elements<'a>(
                     // calcd_original:None,
                     env: HashMap::new(),
                     parent:Some(cur_element_ind),
+                    rets : Vec::new(),
+                    apply_calls:Vec::new(),
                 });
 
                 //
@@ -157,6 +161,8 @@ pub fn load_elements<'a>(
                     // calcd_original:None,
                     env: HashMap::new(),
                     parent:Some(cur_element_ind),
+                    rets : Vec::new(),
+                    apply_calls:Vec::new(),
                 });
 
                 //
@@ -210,6 +216,8 @@ pub fn load_elements<'a>(
                         // calcd_original:None,
                         env: HashMap::new(),
                         parent:Some(cur_element_ind),
+                        rets : Vec::new(),
+                        apply_calls:Vec::new(),
                     });
 
                     //
@@ -258,6 +266,8 @@ pub fn load_elements<'a>(
                     // calcd_original:None,
                     env: HashMap::new(),
                     parent:Some(cur_element_ind),
+                    rets : Vec::new(),
+                    apply_calls:Vec::new(),
                 });
 
                 // cur_element_ind=new_element_ind;
@@ -293,6 +303,8 @@ pub fn load_elements<'a>(
                     // calcd_original:None,
                     env: HashMap::new(),
                     parent:Some(cur_element_ind),
+                    rets : Vec::new(),
+                    apply_calls:Vec::new(),
                 });
             }
 
@@ -330,6 +342,8 @@ pub fn load_elements<'a>(
                     // calcd_original:None,
                     env: HashMap::new(),
                     parent:Some(cur_element_ind),
+                    rets : Vec::new(),
+                    apply_calls:Vec::new(),
                 });
 
                 // cur_element_ind=new_element_ind;
@@ -379,6 +393,8 @@ pub fn load_elements<'a>(
                         // calcd_original:None,
                         env: HashMap::new(),
                         parent:Some(cur_element_ind),
+                        rets : Vec::new(),
+                        apply_calls:Vec::new(),
                     });
                 }
             }
