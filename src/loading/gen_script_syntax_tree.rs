@@ -239,7 +239,6 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                     }
                 }
                 ElementType::Attrib {..} => {
-		            continue;
                 }
                 ElementType::Script { record } => {
                     if !cur_work.exit { //enter
@@ -292,11 +291,6 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                     }
                 }
                 ElementType::ApplyUse {..} => {
-                    if !cur_work.exit { //enter
-		                continue;
-                    } else { //exit
-
-                    }
                 }
                 ElementType::TemplateDecl {..} => {
                     if !cur_work.exit { //enter

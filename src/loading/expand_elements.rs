@@ -142,7 +142,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 
             match &cur_element.element_type {
                 ElementType::Node { .. } => {
-                    println!("hmm n");
+                    //println!("hmm n");
                     work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                         element_ind: child_element_ind,
                         from_applies:HashSet::new(), //don't care
@@ -158,7 +158,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::TemplateUse { template_decl_element_ind,   .. } => {
-                    println!("hmm t");
+                    //println!("hmm t");
                     let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
 
                     work_stk.extend(template_decl_element.children.iter().rev().map(|&child_element_ind|Work{
