@@ -1,54 +1,15 @@
 var root, _stubs
 var _ns [call _stubs 0 root]
 var env _ns.e0
-var d (dict)
-#d.insert "a" void
-fn abc () {
-    void
-}
-fn _t2 (_p4) {
-    fn _n3 (_p4) {
-        fn _n4 (self) {
-            var q 1
-            return [dict]
-        }
-        var _rn4 [call _n4 _p4]
-        return [dict]
-    }
-    var _rn3 [call _n3 _p4]
+fn _n1 (self) {
     return [dict]
 }
-fn _t6 (_p19) {
-    var _rt7 [call _t2 _p19]
-    return [dict ("t7" _rt7)]
-}
-fn _n8 (_p10 _p22) {
-    var _rt9 [call _t6 _p22]
-    fn _n10 (self) {
+var _rn1 [call _n1 _ns.n1]
+fn _a3 (_p4) {
+    fn _n4 (self) {
         return [dict]
     }
-    var _rn10 [call _n10 _p10]
-    fn _n12 () {
-        fn _a13 () {
-            fn _n14 () {
-                return [dict]
-            }
-            var _rn14 [call _n14]
-            fn _a15 (self) {
-                var a;
-                return [dict]
-            }
-            return [dict ("a15" _a15)]
-        }
-        fn _n17 () {
-            return [dict]
-        }
-        var _rn17 [call _n17]
-        return [dict ("a13" _a13)]
-    }
-    var _rn12 [call _n12]
-    return [dict ("t9" _rt9) ("a13" _rn12.a13)]
+    var _rn4 [call _n4 _p4]
+    return [dict]
 }
-var _rn8 [call _n8 _ns.n10 _ns.n22]
-var _ra23 [call _rn8.a13] # <- n17
-var _ra25 [call _ra23.a15 _ns.n24]
+var _ra6 [call _a3 _ns.n7] # <- n1

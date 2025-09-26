@@ -193,11 +193,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
         if !cur_work.exit
             // // && cur_element.has_script
         { //enter //
-            if let &ElementType::ApplyUse{ .. } = &cur_element.element_type {
-                // let apply_element=elements.get(apply_decl_element_ind).unwrap();
+            if let &ElementType::ApplyUse{ apply_decl_element_ind } = &cur_element.element_type {
+                let apply_element=elements.get(apply_decl_element_ind).unwrap();
                 // // let ElementType::Apply {used , ..}=&apply_element.element_type else {panic!("");};
 
-                // if apply_element.has_script
+                if !only_script || apply_element.has_script
                 {
                     apply_calls_stk.last_mut().unwrap().push(ApplyCallStkItem {
                         inside_element_ind:cur_work.inside,
@@ -210,7 +210,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
         //handle node/apply/template_decl returns
         if !cur_work.in_a_use && cur_work.exit
-            // && cur_element.has_script
+            && (!only_script || cur_element.has_script)
             && match &cur_element.element_type
         {
             ElementType::Node{..} if cur_work.parent.is_some() => true,
@@ -236,19 +236,19 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                             tmp_stk.extend(tmp_element.children.iter());
 
                             for &apply_element_ind in tmp_element.applies.iter() {
-                                // let apply_element=elements.get(apply_element_ind).unwrap();
+                                let apply_element=elements.get(apply_element_ind).unwrap();
 
-                                // if !apply_element.has_script {
-                                //     continue;
-                                // }
+                                if only_script && !apply_element.has_script {
+                                    continue;
+                                }
 
                                 return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                             }
                         }
-                        &ElementType::TemplateUse{ .. }=>{
-                            // let template_decl_element=elements.get(template_decl_element_ind).unwrap();
+                        &ElementType::TemplateUse{ template_decl_element_ind }=>{
+                            let template_decl_element=elements.get(template_decl_element_ind).unwrap();
                             // // if tmp_element.has_apply_decl_script
-                            // if template_decl_element.has_script
+                            if !only_script || template_decl_element.has_script
                             {
 
                                 if tmp_element_ind==child_element_ind {
@@ -265,11 +265,11 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
 
             //apply uses returned from cur element
             for &apply_element_ind in cur_element.applies.iter() {
-                // let apply_element=elements.get(apply_element_ind).unwrap();
+                let apply_element=elements.get(apply_element_ind).unwrap();
 
-                // if !apply_element.has_script {
-                //     continue;
-                // }
+                if only_script && !apply_element.has_script {
+                    continue;
+                }
 
                 return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
             }
@@ -317,7 +317,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
         if !cur_work.in_a_use //ie not in a template/apply use element
             // // && (cur_element.has_own_script||cur_element.has_template_use_script||cur_element.has_apply_decl_script)
 
-            // && cur_element.has_script
+            && (!only_script || cur_element.has_script)
             // // && cur_element.
         {
 

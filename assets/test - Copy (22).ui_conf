@@ -1,0 +1,32 @@
+script
+    var d (dict)
+    #d.insert "a" void
+    fn abc () {
+        void
+    }
+template t
+    node
+        node
+            script
+                var q 1
+
+template s
+    template t
+node a2
+    template s
+
+
+    node b
+        script
+    node c
+
+        apply d
+            #script
+
+            node e
+            apply e
+                script
+                    var a;
+
+        node d
+
