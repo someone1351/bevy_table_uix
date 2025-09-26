@@ -24,14 +24,14 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
         }
 
         //
-        let (has_script, has_self_script,)=match &cur_element.element_type {
-            ElementType::Script { .. } => (true,true),
+        let (has_script, has_self_script,has_env_script)=match &cur_element.element_type {
+            ElementType::Script { .. } => (true,true,true),
             &ElementType::TemplateUse { template_decl_element_ind  } => { //template_decl will always be before template_use,
                 let element=elements.get(template_decl_element_ind).unwrap();
                 let &ElementType::TemplateDecl { used, .. }=&element.element_type else {panic!("");};
-                (used && element.has_script, used && element.has_self_script)
+                (used && element.has_script, used && element.has_self_script,false)
             },
-            _ => (false,false),
+            _ => (false,false,false),
         };
 
         //set ancestors to has_script
@@ -80,10 +80,12 @@ pub fn mark_has_script_rest(elements:&mut Vec<Element>,) {
             let element=&elements[element_ind];
             let has_script=element.has_script;
             let has_self_script=element.has_self_script;
+            let has_env_script=element.has_env_script;
 
             let cur_element=&mut elements[cur_element_ind];
             cur_element.has_script=has_script;
             cur_element.has_self_script=has_self_script;
+            cur_element.has_env_script=has_env_script;
         }
     }
 }

@@ -98,6 +98,7 @@ pub struct Element<'a> {
     pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     // pub has_template_use_script:bool,
     pub has_script:bool,
+    pub has_env_script:bool,
     // pub has_apply_decl_script:bool,
     pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 
