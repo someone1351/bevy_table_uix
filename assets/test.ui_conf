@@ -1,6 +1,13 @@
+stub a
+    script
+    node
+        script
 template t
     script
 node q
+    color red
+    width 50
+    height 50
     node x
         script
 apply q
@@ -9,3 +16,5 @@ apply q
         script
         node
             template t
+
+script

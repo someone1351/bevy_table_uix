@@ -146,7 +146,7 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
                 println!("{indent}template decl, e={cur_element_ind} : {name:?}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, used={used}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, self_script={has_self_script}, env_script={has_env_script}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};

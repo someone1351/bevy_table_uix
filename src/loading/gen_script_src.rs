@@ -15,14 +15,26 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
         let indent="    ".repeat(if depth<=1{0}else{depth-1});
         let cur=syntax_tree.get(cur_ind).unwrap();
         match cur {
-            ScriptSyntax::Root { .. } => {
+            &ScriptSyntax::Root {has_env, .. } => {
+                src+=&format!("{indent}var _ns [call _stubs 0 root]\n");
+
+                if has_env {
+                    src+=&format!("{indent}var env _ns.e0\n");
+                }
             }
             ScriptSyntax::Insert { //path, loc,
                 insert , ..} => {
                 src+=&format!("{indent}{insert}\n");
             }
-            ScriptSyntax::Stub { name, .. } if !exit => {
+            ScriptSyntax::Stub { name, element_ind, has_env, .. } if !exit => {
                 src+=&format!("{indent}fn stub_{name} (self) {{\n");
+
+                src+=&format!("{indent}    var _ns [call _stubs {element_ind} self]\n");
+
+                if *has_env //&& cur.h
+                {
+                    src+=&format!("{indent}    var env _ns.e{element_ind}\n");
+                }
                 // let xx=children.iter().map(|&child_ind|{
                 //     let y=syntax_tree.get(child_ind).unwrap();
 
@@ -32,15 +44,15 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
             ScriptSyntax::Stub { .. } => {
                 src+=&format!("{indent}}}\n");
             }
-            &ScriptSyntax::CallStubCreate { is_root, stub, .. } => {
-                let parent = if is_root{"root"}else{"self"};
-                src+=&format!("{indent}var _ns [call _stubs {stub} {parent}]\n");
+            // &ScriptSyntax::CallStubCreate { is_root, stub, .. } => {
+            //     let parent = if is_root{"root"}else{"self"};
+            //     src+=&format!("{indent}var _ns [call _stubs {stub} {parent}]\n");
 
-                if is_root //&& cur.h
-                {
-                    src+=&format!("{indent}var env _ns.e0\n");
-                }
-            }
+            //     if is_root //&& cur.h
+            //     {
+            //         src+=&format!("{indent}var env _ns.e0\n");
+            //     }
+            // }
             ScriptSyntax::CallTemplate { ret, func, params, has_self,has_ret, envs,  } => {
                 // let mut params2=vec!["self".to_string()];
                 let mut params2= Vec::new();

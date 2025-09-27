@@ -20,7 +20,8 @@ struct Work {
 
 pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
-    let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
+    // let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
+    let mut all_nodes=Vec::new();
     let mut all_attribs: Vec<AttribFunc>=Vec::new(); //[]=func
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
@@ -141,7 +142,12 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
             let names_end=all_names.len();
 
             //
-            all_nodes.push((node_element_ind,parent_element_ind,attribs_start..attribs_end,names_start..names_end));
+            all_nodes.push(StuffNode {
+                element_ind: node_element_ind,
+                parent_element_ind: parent_element_ind,
+                attribs: attribs_start..attribs_end,
+                names: names_start..names_end,
+            });
         }
 
         //

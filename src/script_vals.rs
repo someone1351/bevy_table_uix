@@ -23,11 +23,19 @@ pub struct StuffResultEnv {
     pub by_ind : Vec<Value>, //[local_node_ind]=node
     pub by_name : HashMap<StringT,Vec<Value>> //[node_name]=nodes
 }
+
+pub struct StuffNode {
+    pub element_ind:usize,
+    pub parent_element_ind:usize,
+    pub attribs:Range<usize>,
+    pub names:Range<usize>
+}
  //
  pub struct Stuff {
     // pub root_entity:Entity,
     pub all_stubs: HashMap<usize, Range<usize>> , //[root/stub_element_ind]=(nodes_start,nodes_end)
-    pub all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>,//(element_ind,parent_element_ind,attribs_start_end,names_range)
+    // pub all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>,//(element_ind,parent_element_ind,attribs_start_end,names_range)
+    pub all_nodes:Vec<StuffNode>,
     pub all_attribs:Vec<AttribFunc>, //[]=func
     pub all_names : Vec<StringT>,
     pub all_envs : Vec<StuffEnv>,

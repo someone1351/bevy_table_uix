@@ -557,19 +557,19 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
             let Some(node_range)=stuff.all_stubs.get(&stub_ind).cloned() else {return Ok(Value::Nil);};
 
             for node_ind in node_range {
-                let (element_ind,parent_element_ind,attribs_range,names_range) = stuff.all_nodes.get(node_ind).unwrap().clone();
-                let names=stuff.all_names.get(names_range).unwrap();
+                let stuff_node = stuff.all_nodes.get(node_ind).unwrap();
+                let names=stuff.all_names.get(stuff_node.names.clone()).unwrap();
 
                 let mut e=world.spawn((UiLayoutComputed::default(),));
 
                 //
-                let &parent_entity=element_entity_map.get(&parent_element_ind).unwrap();
+                let &parent_entity=element_entity_map.get(&stuff_node.parent_element_ind).unwrap();
                 // e.set_parent(parent_entity);
                 e.insert(ChildOf(parent_entity));
 
                 //
                 let entity=e.id();
-                element_entity_map.insert(element_ind, entity);
+                element_entity_map.insert(stuff_node.element_ind, entity);
 
                 //
                 if !names.is_empty() {
@@ -577,7 +577,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 }
 
                 //
-                for attrib_ind in attribs_range {
+                for attrib_ind in stuff_node.attribs.clone() {
                     let attrib=stuff.all_attribs.get(attrib_ind).unwrap().0.clone();
                     attrib(entity,world);
                 }

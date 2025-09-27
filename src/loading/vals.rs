@@ -196,6 +196,7 @@ pub enum ScriptSyntax {
     Root {
         children:Vec<usize>,
         // has_script:bool,
+        has_env:bool,
     },
     // InitStub {
     //     name:String,
@@ -230,14 +231,16 @@ pub enum ScriptSyntax {
         name : String,
         children:Vec<usize>, //syntax_inds
         // has_script:bool,
+        element_ind:usize,
+        has_env:bool,
     },
 
-    CallStubCreate {
-        is_root:bool,
-        // has_script:bool,
-        stub : usize,//element_ind
+    // CallStubCreate {
+    //     is_root:bool,
+    //     // has_script:bool,
+    //     stub : usize,//element_ind
 
-    },
+    // },
     CallTemplate {
 
         ret : ScriptSyntaxTemplateUse, //template_use_element_ind
@@ -292,7 +295,7 @@ impl ScriptSyntax {
             ScriptSyntax::Insert { .. } => None,
             ScriptSyntax::Decl { name, .. } => Some(name.element_ind()),
             ScriptSyntax::Stub { .. } => None,
-            ScriptSyntax::CallStubCreate { .. } => None,
+            // ScriptSyntax::CallStubCreate { .. } => None,
             ScriptSyntax::CallTemplate { ret, .. } => Some(ret.0),
             ScriptSyntax::CallApply { ret, .. } => Some(ret.0),
             ScriptSyntax::CallNode {  func, .. } => Some(func.0),
