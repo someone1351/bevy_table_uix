@@ -6,13 +6,14 @@ node q
 apply q
     script
         var e env.x
-        var cs (array [vec4 0.0 1.0 0.0 1.0] [vec4 0.0 0.0 1.0 1.0] [vec4 0.0 0.0 0.4 1.0])
+        var cs (array [vec3 0.0 1.0 0.0] [vec3 0.0 0.0 1.0] [vec3 0.0 0.0 0.4])
         for i 0 (len e) {
             var n e.{i};
 
             set n.width 50
             set n.height 50
-            set n.color.xyzw cs.{i}
+            set n.color.xyz cs.{i}
+            set n.color.w 1.0
         }
 
         println "{} {} {}" e.0 e.1 (len e)
