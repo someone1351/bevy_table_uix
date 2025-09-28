@@ -14,21 +14,18 @@ impl std::fmt::Debug for AttribFunc {
     }
 }
 
+#[derive(Clone)]
 pub struct StuffEnv {
-    pub by_ind : Vec<usize>, //[local_node_ind]=node_element_ind
+    pub by_ind : Vec<usize>, //[ind]=node_element_ind
     pub by_name : HashMap<StringT,Vec<usize>> //[node_name]=node_element_inds
-}
-
-pub struct StuffResultEnv {
-    pub by_ind : Vec<Value>, //[local_node_ind]=node
-    pub by_name : HashMap<StringT,Vec<Value>> //[node_name]=nodes
 }
 
 pub struct StuffNode {
     pub element_ind:usize,
     pub parent_element_ind:usize,
     pub attribs:Range<usize>,
-    pub names:Range<usize>
+    pub names:Range<usize>,
+    // pub env:Option<usize>,
 }
  //
  pub struct Stuff {
@@ -38,13 +35,19 @@ pub struct StuffNode {
     pub all_nodes:Vec<StuffNode>,
     pub all_attribs:Vec<AttribFunc>, //[]=func
     pub all_names : Vec<StringT>,
-    pub all_envs : Vec<StuffEnv>,
+    pub all_envs : HashMap<usize, HashMap<usize, StuffEnv>>, //[root/stub_element_ind][element_ind]=env
+}
+
+pub struct StuffResultEnv {
+    pub by_ind : Vec<Value>, //[local_node_ind]=node
+    pub by_name : HashMap<StringT,Vec<Value>> //[node_name]=nodes
 }
 
 pub struct StuffResult {
     pub nodes : HashMap<usize,Value>, //[node_element_ind]=entity_val
+    // pub envs : HashMap<usize,Value>, //[node_element_ind]=entity_val
 
-    pub envs : Vec<Value>, //[env_ind]=env
+    pub envs : HashMap<usize,Value>, //[element_ind]=env
     // pub ind_envs : Vec<Value>, //[local_node_ind]=node
     // pub name_envs : Vec<HashMap<StringT,Vec<Value>>> //[node_name]=nodes
 }

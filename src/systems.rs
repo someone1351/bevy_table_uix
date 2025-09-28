@@ -161,7 +161,7 @@ pub fn on_asset_load<'a>(
 
         // mark_has_script(&mut elements,true);
         // // mark_has_script(&mut elements);
-        calc_envs(&mut elements);
+        // calc_envs(&mut elements);
         calc_script_returns(&mut elements);
         calc_script_apply_calls(&mut elements);
 

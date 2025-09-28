@@ -1,20 +1,31 @@
-stub a
-    script
-    node
-        script
+
 template t
     script
 node q
-    color red
-    width 50
-    height 50
-    node x
-        script
+
 apply q
     script
+        var e env.x
+        var cs (array [vec4 0.0 1.0 0.0 1.0] [vec4 0.0 0.0 1.0 1.0] [vec4 0.0 0.0 0.4 1.0])
+        for i 0 (len e) {
+            var n e.{i};
+
+            set n.width 50
+            set n.height 50
+            set n.color.xyzw cs.{i}
+        }
+
+        println "{} {} {}" e.0 e.1 (len e)
     node x
         script
         node
+            script
             template t
+        text "a"
+    node x
+        text "b"
+
+    node x
+        text "c"
 
 script

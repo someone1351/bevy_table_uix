@@ -593,12 +593,31 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 // }
             }
 
+            //
             let element_entity_map2: HashMap<usize, Value>=element_entity_map.iter().map(|(&k,&v)|{
                 let vv=self_entity_from_world(world, v);
                 (k,vv)
             }).collect();
 
-            Ok(Value::custom_unmanaged(StuffResult{ nodes: element_entity_map2, envs: Default::default() }))
+            //
+            let mut envs=HashMap::new();
+            //
+            if let Some(stub_envs)=stuff.all_envs.get(&stub_ind) {
+                for (&env_element_ind,stuff_env) in stub_envs {
+                    let v=StuffResultEnv{
+                        by_ind: stuff_env.by_ind.iter().map(|&element_ind|element_entity_map2.get(&element_ind).unwrap().clone()).collect(),
+                        by_name: stuff_env.by_name.iter().map(|(name,named_env)|{
+                            (name.clone(),named_env.iter().map(|&element_ind|element_entity_map2.get(&element_ind).unwrap().clone()).collect())
+                        }).collect(),
+                    };
+                    let v=Value::custom_unmanaged(v);
+                    envs.insert(env_element_ind, v);
+                }
+            }
+
+
+            //
+            Ok(Value::custom_unmanaged(StuffResult{ nodes: element_entity_map2, envs }))
             // Ok(Value::custom_unmanaged(StuffResult(element_entity_map)))
         })
     }).custom_ref::<Stuff>().int().custom_ref::<Entity>().end();
@@ -638,7 +657,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 };
                 Ok(entity)
             } else { //env
-                let Some(env)=data.envs.get(ind).cloned() else {
+                let Some(env)=data.envs.get(&ind).cloned() else {
                     return Ok(Value::Nil);
                 };
                 Ok(env)
@@ -847,5 +866,58 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //clear(node_children,name?)
 
     //pop(node_children)
+
+    //
+
+    //len stuff_result_env
+    lib_scope.method("len",|mut context|{
+        let env=context.param(0);
+        env.as_custom().with_data_ref(|data:&StuffResultEnv|Ok(Value::int(data.by_ind.len())))
+    }).custom_ref::<StuffResultEnv>().end();
+
+    //get stuff_result_env.int
+    lib_scope.field(|mut context|{
+        let env=context.param(0);
+
+        env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+            Ok(context.param(1).as_index(data.by_ind.len()).map(|index|data.by_ind[index].clone()).unwrap_or(Value::Nil))
+        })
+    }).custom_ref::<StuffResultEnv>().int().end();
+
+    //
+    #[derive(Clone)]
+    struct StuffResultNamedEnv {
+        env:Value,
+        name : StringT,
+    }
+
+    //get stuff_result_env.str
+    lib_scope.field(|mut context|{
+        let env=context.param(0);
+        let name=context.param(1).get_string().unwrap();
+        Ok(Value::custom_unmanaged(StuffResultNamedEnv{name,env}))
+    }).custom_ref::<StuffResultEnv>().str().end();
+
+
+    //len stuff_result_named_env
+    lib_scope.method("len",|mut context|{
+        let named_env:StuffResultNamedEnv=context.param(0).as_custom().data_clone()?;
+
+        named_env.env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+            Ok(Value::int(data.by_name.get(&named_env.name).map(|x|x.len()).unwrap_or(0)))
+        })
+    }).custom_ref::<StuffResultNamedEnv>().end();
+
+
+    //get stuff_result_named_env.int
+    lib_scope.field(|mut context|{
+        let named_env:StuffResultNamedEnv=context.param(0).as_custom().data_clone()?;
+
+        named_env.env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+            Ok(data.by_name.get(&named_env.name).and_then(|v|{
+                context.param(1).as_index(v.len()).map(|index|v.get(index).unwrap().clone())
+            }).unwrap_or(Value::Nil))
+        })
+    }).custom_ref::<StuffResultNamedEnv>().int().end();
 }
 
