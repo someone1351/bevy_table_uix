@@ -1,8 +1,14 @@
 
 template t
-    script
-node q
 
+node q
+    script
+        for i 0 (len self.children) {
+            var c self.children.{i}
+            println "c is {c}"
+            set c.height 0;
+        }
+        set self.children.1.height 100
 apply q
     script
         var e env.x
@@ -11,9 +17,10 @@ apply q
             var n e.{i};
 
             set n.width 50
-            set n.height 50
-            set n.color.xyz cs.{i}
-            set n.color.w 1.0
+            println n.height
+            set n.height (+ n.height 50)
+            set n.color.rgb cs.{i}
+            set n.color.a 1.0
         }
 
         println "{} {} {}" e.0 e.1 (len e)

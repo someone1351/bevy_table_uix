@@ -265,6 +265,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     });
 
     entity_get_field3::<UiSize>("height",lib_scope,|c|{
+        // println!("hmm height {:?}",c.height);
         uival_to_script_value(c.height)
     });
     entity_set_field_mut3::<UiSize>("height",lib_scope,|c,v|{
@@ -854,7 +855,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<NodeChildren>().str().end();
 
     //len(node_children)
-    lib_scope.field(|context|{
+    lib_scope.method("len",|context|{
         let node_children_val=context.param(0);
         let node_children:NodeChildren=node_children_val.as_custom().data_clone()?;
         let entity:Entity=node_children.entity.as_custom().data_clone()?;
