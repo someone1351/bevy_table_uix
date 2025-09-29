@@ -56,21 +56,22 @@ pub fn calc_script_returns(elements:&mut Vec<Element>) {
                         for &apply_element_ind in tmp_element.applies.iter() {
                             let apply_element=elements.get(apply_element_ind).unwrap();
 
-                            if !only_script || apply_element.has_script {
-                                return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
+                            if only_script && !apply_element.has_script {
+                                continue;
                             }
+
+                            return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                         }
                     }
                     &ElementType::TemplateUse{ template_decl_element_ind }=>{
                         let template_decl_element=elements.get(template_decl_element_ind).unwrap();
 
-                        if !only_script || template_decl_element.has_script {
-                            if tmp_element_ind==child_element_ind {
-                                return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
-                            } else {
-                                return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
-                            }
+                        if only_script && !template_decl_element.has_script {
+                            continue;
                         }
+
+                        let node=(tmp_element_ind!=child_element_ind).then_some(ScriptSyntaxNode(child_element_ind));
+                        return_items.push((node,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
                     }
                     _=>{}
                 }

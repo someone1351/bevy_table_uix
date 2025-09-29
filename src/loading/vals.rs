@@ -115,6 +115,8 @@ pub struct Element<'a> {
 
     pub parent:Option<usize>,
 
+    // pub has_used_apply:bool,
+
     pub rets : Vec<(
         Option<ScriptSyntaxNode>, //node_element_ind
         ScriptSyntaxTemplateUseOrApplyDecl, //template_use_element_ind or apply_decl_element_ind
