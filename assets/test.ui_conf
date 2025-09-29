@@ -1,5 +1,10 @@
 
 template t
+    node
+        apply q
+            script
+        node q
+
 
 node q
     script
@@ -35,5 +40,3 @@ apply q
 
     node x
         text "c"
-
-script

@@ -378,7 +378,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 
                                 // has_template_use_script:false,
                                 // calcd_original:None,
-                                env: HashMap::new(),
+                                // env: HashMap::new(),
                                 parent:Some(cur_element_ind),
                                 rets : Vec::new(),
                                 apply_calls:Vec::new(),

@@ -3,7 +3,7 @@
 // #![allow(unused_variables)]
 #![allow(dead_code)]
 use std::collections::BTreeSet;
-use std::collections::HashMap;
+// use std::collections::HashMap;
 use std::collections::HashSet;
 // use bevy::platform::collections
 // #![allow(unused_imports)]
@@ -111,7 +111,7 @@ pub struct Element<'a> {
     pub has_script:bool,
     pub has_env_script:bool,
     // pub has_apply_decl_script:bool,
-    pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
+    // pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 
     pub parent:Option<usize>,
 
