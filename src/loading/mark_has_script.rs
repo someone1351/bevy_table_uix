@@ -26,7 +26,7 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
         //
         let (has_script, has_self_script,has_env_script)=match &cur_element.element_type {
             ElementType::Script { .. } => (true,true,true),
-            &ElementType::TemplateUse { template_decl_element_ind  } => { //template_decl will always be before template_use,
+            &ElementType::TemplateUse { template_decl_element_ind  } => { //template_decl will always appear before the template_use,
                 let decl_element=elements.get(template_decl_element_ind).unwrap();
                 let &ElementType::TemplateDecl { used, .. }=&decl_element.element_type else {panic!("");};
                 used.then_some((decl_element.has_script, decl_element.has_self_script,decl_element.has_env_script)).unwrap_or_default()
@@ -38,9 +38,19 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
         //set ancestors to has_script
         if has_script {
             let mut element_ind=Some(cur_element_ind);
+            let mut has_apply_script=false;
 
             while let Some(element_ind2)=element_ind {
                 let element=elements.get_mut(element_ind2).unwrap();
+
+                if let ElementType::Apply{..}=&element.element_type {
+                    has_apply_script=true;
+                }
+
+                if has_apply_script {
+                    element.has_apply_script=true;
+                }
+
                 element.has_script=true;
                 element_ind=element.parent;
             }

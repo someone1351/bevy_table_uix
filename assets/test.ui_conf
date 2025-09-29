@@ -1,16 +1,12 @@
 template r
-    #apply z
-    #    script
     node z
         script
 template t
-    node
-        apply q
-            script
-        node q
-            template r
+	template r
+	node
+		
 
 
 node
-    node
-        template t
+	script
+	template t

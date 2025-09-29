@@ -23,8 +23,8 @@ struct Work {
     inside:Option<usize>,
 }
 
-pub fn calc_script_apply_calls(elements:&mut Vec<Element>, )  {
-    let only_script=true;
+pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
+    // let only_script=true;
 
 
     let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];

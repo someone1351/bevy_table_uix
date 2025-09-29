@@ -10,7 +10,7 @@ struct Work {
     parent:Option<usize>,
 }
 
-pub fn calc_script_returns(elements:&mut Vec<Element>) {
+pub fn calc_script_returns(elements:&mut Vec<Element>,only_script:bool) {
     let only_script=true;
 
     let mut work_stk=vec![Work{ element_ind: 0, parent:None, }];
@@ -66,6 +66,9 @@ pub fn calc_script_returns(elements:&mut Vec<Element>) {
                     &ElementType::TemplateUse{ template_decl_element_ind }=>{
                         let template_decl_element=elements.get(template_decl_element_ind).unwrap();
 
+                        if only_script && !template_decl_element.has_apply_script {
+                            continue;
+                        }
                         if only_script && !template_decl_element.has_script {
                             continue;
                         }

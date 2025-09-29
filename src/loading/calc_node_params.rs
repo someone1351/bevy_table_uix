@@ -65,7 +65,7 @@ pub fn calc_node_params(elements:&mut Vec<Element>) {
                 ElementType::Node { .. }  => { //only nodes added
                     //add self as param in parent
                     let parent_element=elements.get_mut(parent_element_ind).unwrap();
-                    parent_element.calcd_node_params.insert(cur_work.element_ind);
+                    parent_element.calcd_node_params.push(cur_work.element_ind);
                 }
                 // ElementType::TemplateUse{ template_decl_element_ind, .. } if cur_work.in_template_or_apply_decl  => {
                 //     //add cur template use's decl params to cur's params
@@ -136,7 +136,7 @@ pub fn calc_node_params2(elements:&mut Vec<Element>) {
 
             while let Some(ancestor_element_ind2)=ancestor_element_ind {
                 let ancestor_element=elements.get_mut(ancestor_element_ind2).unwrap();
-                ancestor_element.calcd_node_params.insert(cur_element_ind);
+                ancestor_element.calcd_node_params.push(cur_element_ind);
                 ancestor_element_ind=ancestor_element.parent;
 
                 match &ancestor_element.element_type {

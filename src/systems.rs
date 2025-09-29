@@ -162,8 +162,12 @@ pub fn on_asset_load<'a>(
         // mark_has_script(&mut elements,true);
         // // mark_has_script(&mut elements);
         // calc_envs(&mut elements);
-        calc_script_returns(&mut elements);
-        calc_script_apply_calls(&mut elements);
+
+
+        let only_script=true;
+
+        calc_script_returns(&mut elements,only_script);
+        calc_script_apply_calls(&mut elements,only_script);
 
         //debug
         debug_print_elements2(&elements);
@@ -175,8 +179,7 @@ pub fn on_asset_load<'a>(
 
         //script
         {
-
-            let syntax_tree=gen_script_syntax_tree(&elements,true,true);
+            let syntax_tree=gen_script_syntax_tree(&elements,only_script);
             // optimise_script_syntax_tree(&elements,&mut syntax_tree);
 
             debug_print_script_syntax_tree(&syntax_tree);

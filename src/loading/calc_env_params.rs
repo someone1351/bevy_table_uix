@@ -101,7 +101,7 @@ pub fn calc_env_params2(elements:&mut Vec<Element>) {
 
         while let Some(ancestor_element_ind2)=ancestor_element_ind {
             let ancestor_element=elements.get_mut(ancestor_element_ind2).unwrap();
-            ancestor_element.calcd_env_params.insert(cur_element_ind);
+            ancestor_element.calcd_env_params.push(cur_element_ind);
             ancestor_element_ind=ancestor_element.parent;
 
             match &ancestor_element.element_type {

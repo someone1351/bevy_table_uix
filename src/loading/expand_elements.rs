@@ -1,6 +1,6 @@
 
 use std::collections::{HashMap, HashSet};
-use std::collections::BTreeSet;
+// use std::collections::BTreeSet;
 
 use bevy_table_ui as table_ui;
 use table_ui::*;
@@ -368,13 +368,14 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 applies: Vec::new(),
                                 apply_after:parent_applies_len, //new_applies.len(), //wrong? since this refers to parent.applies and not thing.applies, so should be parent.applies.len()
                                 calcd_from_element_ind: None,
-                                calcd_node_params:BTreeSet::new(),
-                                calcd_env_params: BTreeSet::new(),
+                                calcd_node_params:Vec::new(),
+                                calcd_env_params: Vec::new(),
                                 calcd_created_from:from,
                                 has_script:false,
                                 //has_apply_decl_script:false,
                                 has_self_script:false,
                                 has_env_script:false,
+                                has_apply_script:false,
 
                                 // has_template_use_script:false,
                                 // calcd_original:None,

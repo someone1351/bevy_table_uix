@@ -15,7 +15,7 @@ struct Work {
     inside:Option<usize>,
 }
 
-pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script:bool) -> Vec<ScriptSyntax> {
+pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_script:bool) -> Vec<ScriptSyntax> {
     let mut syntax_tree: Vec<ScriptSyntax> = vec![ScriptSyntax::Root {children:Vec::new(), has_env: elements[0].has_env_script }];
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
@@ -208,7 +208,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                             (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
-                        let has_env=cur_element.has_env_script;
+                        let has_env=!only_script || cur_element.has_env_script;
 
                         syntax_tree.push(ScriptSyntax::Decl {
                             name: ScriptSyntaxNodeOrApplyOrTemplateDecl::Node(cur_work.element_ind),
@@ -257,6 +257,8 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                             (!only_script || e.has_env_script).then_some(x)
                         }));
 
+                        // println!("aaaa {} : {:?} : {envs:?}",cur_work.element_ind,cur_element.calcd_env_params);
+
                         syntax_tree.push(ScriptSyntax::CallNode {
                             // ret:cur_element.has_apply_decl_script,
                             has_ret:true,
@@ -302,7 +304,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                             (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
-                        let has_env=cur_element.has_env_script;
+                        let has_env=!only_script || cur_element.has_env_script;
 
                         let new_syntax_ind=syntax_tree.len();
 
@@ -345,7 +347,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                             (!only_script || e.has_env_script).then_some(x)
                         }).collect::<Vec<_>>();
 
-                        let has_env=cur_element.has_env_script;
+                        let has_env=!only_script || cur_element.has_env_script;
 
                         let new_syntax_ind=syntax_tree.len();
                         syntax_tree.get_mut(syntax_stk.last().cloned().unwrap()).unwrap().get_children_mut().unwrap().push(new_syntax_ind);
@@ -403,6 +405,15 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_used:bool,only_script
                         if has_self_env_param {
                             envs.push(cur_work.element_ind);
                         }
+
+                        // println!("tttt {}=>{template_decl_element_ind} : {:?}=>{:?} : {:?}",
+                        //     cur_work.element_ind,cur_element.calcd_env_params,template_decl_element.calcd_env_params,
+                        //     cur_element.calcd_env_params.iter().zip(template_decl_element.calcd_env_params.iter()).map(|(&param_element_ind,&decl_param_element_ind)|{
+                        //         let param_element=&elements[decl_param_element_ind];
+                        //         (param_element_ind,decl_param_element_ind,!only_script,param_element.has_env_script)
+                        //     }).collect::<Vec<_>>()
+                        // );
+
                         envs.extend(cur_element.calcd_env_params.iter().zip(template_decl_element.calcd_env_params.iter()).filter_map(|(&param_element_ind,&decl_param_element_ind)|{
                             let param_element=&elements[decl_param_element_ind];
                             (!only_script || param_element.has_env_script).then_some(param_element_ind)
