@@ -13,9 +13,7 @@ struct Work {
 pub fn calc_script_returns(elements:&mut Vec<Element>) {
     let only_script=true;
 
-
     let mut work_stk=vec![Work{ element_ind: 0, parent:None, }];
-
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=&elements[cur_work.element_ind];
@@ -29,9 +27,7 @@ pub fn calc_script_returns(elements:&mut Vec<Element>) {
         }
 
         //
-        if cur_work.parent.is_none() //not root
-            || (only_script && !cur_element.has_script) //no script
-        {
+        if cur_work.parent.is_none() || (only_script && !cur_element.has_script) {
             continue;
         }
 
@@ -48,14 +44,10 @@ pub fn calc_script_returns(elements:&mut Vec<Element>) {
 
         //apply/template uses returned by cur element's descendents
         for &child_element_ind in cur_element.children.iter() {
-
-            //
             let mut tmp_stk=vec![child_element_ind];
 
             while let Some(tmp_element_ind)=tmp_stk.pop() {
                 let tmp_element=elements.get(tmp_element_ind).unwrap();
-
-                // if tmp_element.has_apply_script {} //should wrap below in this?
 
                 match &tmp_element.element_type {
                     ElementType::Node{..}=>{
@@ -64,19 +56,15 @@ pub fn calc_script_returns(elements:&mut Vec<Element>) {
                         for &apply_element_ind in tmp_element.applies.iter() {
                             let apply_element=elements.get(apply_element_ind).unwrap();
 
-                            if only_script && !apply_element.has_script {
-                                continue;
+                            if !only_script || apply_element.has_script {
+                                return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                             }
-
-                            return_items.push((Some(ScriptSyntaxNode(child_element_ind)),ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
                         }
                     }
                     &ElementType::TemplateUse{ template_decl_element_ind }=>{
                         let template_decl_element=elements.get(template_decl_element_ind).unwrap();
-                        // // if tmp_element.has_apply_decl_script
-                        if !only_script || template_decl_element.has_script
-                        {
 
+                        if !only_script || template_decl_element.has_script {
                             if tmp_element_ind==child_element_ind {
                                 return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::TemplateUse(tmp_element_ind)));
                             } else {
