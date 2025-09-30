@@ -1,11 +1,11 @@
 
 
 template t
-	apply x
-		apply y
-			script
-				var b
+	apply y
+		script
+			var b
 
+	node y
 node
 	template t
 	apply x
@@ -30,14 +30,7 @@ template z
 	node zz
 		script
 			var z 1;
-
 node
 	script
 		var z 3;
 	template z
-
-node
-	script
-		# 123
-	apply qq
-		script

@@ -1,5 +1,5 @@
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, collections::HashMap};
 
 
 
@@ -152,6 +152,7 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
                     func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),
                     parent_element_ind: apply_call.parent_element_ind,
                     apply_use_element_ind:apply_call.apply_use_element_ind,
+                    has_ret: false,
                 });
             }
 
@@ -196,4 +197,36 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
     } //end while
 
     //
+}
+
+
+pub fn calc_script_apply_calls_has_rets(elements:&mut Vec<Element>) {
+    let stubs= if let Some(root)=elements.get(0) { //should always have root? so unnecessary?
+        let mut v = vec![0];
+        v.extend(root.children.iter().filter_map(|&child|{if let ElementType::Stub { .. } = &elements[child].element_type {Some(child)} else {None}}));
+        v
+    } else {
+        Vec::new()
+    };
+
+
+    for stub in stubs {
+        let stub_element=&mut elements[stub];
+        let mut from_map = HashMap::new();
+
+        for (i,ac) in stub_element.apply_calls.iter().enumerate() {
+            from_map.insert(ac.apply_use_element_ind, i);
+        }
+
+        let ac_froms=stub_element.apply_calls.iter()
+            .filter_map(|ac|ac.func_froms.as_ref().and_then(|(from,_)|from.apply_use()))
+            .collect::<Vec<_>>();
+
+        for from_element_ind in ac_froms {
+            let ac_ind=from_map[&from_element_ind];
+            stub_element.apply_calls[ac_ind].has_ret=true;
+
+
+        }
+    }
 }

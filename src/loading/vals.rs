@@ -92,6 +92,7 @@ pub struct ElementApplyCall {
         ScriptSyntaxNodeOrApplyUse, //node_element_ind or apply_use_element_ind
         Vec<ScriptSyntaxTemplateUse>, //template_use_element_inds
     )>,
+    pub has_ret:bool,
 
 }
 
@@ -144,6 +145,21 @@ pub enum ScriptSyntaxTemplateUseOrApplyDecl {
 pub enum ScriptSyntaxNodeOrApplyUse {
     Node(usize),
     ApplyUse(usize),
+}
+
+impl ScriptSyntaxNodeOrApplyUse {
+    pub fn element_ind(&self) -> usize {
+        match self {
+            &ScriptSyntaxNodeOrApplyUse::Node(x) => x,
+            &ScriptSyntaxNodeOrApplyUse::ApplyUse(x) => x,
+        }
+    }
+    pub fn apply_use(&self) -> Option<usize> {
+        match self {
+            &ScriptSyntaxNodeOrApplyUse::Node(_) => None,
+            &ScriptSyntaxNodeOrApplyUse::ApplyUse(x) => Some(x),
+        }
+    }
 }
 // pub enum ScriptSyntaxDecl {
 //     Node,

@@ -1,0 +1,18 @@
+
+
+apply x
+	script
+		#var a
+	apply y
+		script
+			#var b
+
+node x
+	script
+		#var c
+node x
+	script
+		#var d
+	node y
+		script
+			#var e

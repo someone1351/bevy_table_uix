@@ -11,7 +11,6 @@ struct Work {
 }
 
 pub fn calc_script_returns(elements:&mut Vec<Element>,only_script:bool) {
-    let only_script=true;
 
     let mut work_stk=vec![Work{ element_ind: 0, parent:None, }];
 

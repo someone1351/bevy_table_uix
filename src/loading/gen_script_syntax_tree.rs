@@ -108,7 +108,10 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_script:bool) -> Vec<S
                     (!only_script || param_element.has_env_script).then_some(param_element_ind)
                 }));
 
-                let has_ret=cur_element.has_apply_script;
+                // let has_ret=cur_element.has_apply_script;
+                let has_ret=element_apply_call.has_ret;
+
+                // println!("aaa {apply_use_element_ind} <= {} {} {:?}",self_node.0,element_apply_call.has_ret,element_apply_call.func_froms);
 
                 syntax_tree.push(ScriptSyntax::CallApply {
                     ret,

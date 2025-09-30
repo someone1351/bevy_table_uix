@@ -168,7 +168,7 @@ pub fn on_asset_load<'a>(
 
         calc_script_returns(&mut elements,only_script);
         calc_script_apply_calls(&mut elements,only_script);
-
+        calc_script_apply_calls_has_rets(&mut elements,);
         //debug
         debug_print_elements2(&elements);
 
