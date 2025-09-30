@@ -1,5 +1,5 @@
 
-use std::{cmp::Ordering, collections::HashMap};
+use std::{cmp::Ordering, collections::{HashMap, HashSet}};
 
 
 
@@ -201,32 +201,24 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
 
 
 pub fn calc_script_apply_calls_has_rets(elements:&mut Vec<Element>) {
-    let stubs= if let Some(root)=elements.get(0) { //should always have root? so unnecessary?
-        let mut v = vec![0];
-        v.extend(root.children.iter().filter_map(|&child|{if let ElementType::Stub { .. } = &elements[child].element_type {Some(child)} else {None}}));
-        v
-    } else {
-        Vec::new()
-    };
-
+    let stubs: Vec<usize>=elements.get(0).map(|root|[0].into_iter().chain(root.children.iter().filter_map(|&child|{
+        elements[child].element_type.is_stub().then_some(child)
+    })).collect()).unwrap_or_default();
 
     for stub in stubs {
         let stub_element=&mut elements[stub];
-        let mut from_map = HashMap::new();
 
-        for (i,ac) in stub_element.apply_calls.iter().enumerate() {
-            from_map.insert(ac.apply_use_element_ind, i);
-        }
+        let from_map=stub_element.apply_calls.iter().enumerate()
+            .map(|(i,ac)|(ac.apply_use_element_ind, i))
+            .collect::<HashMap<_,_>>();
 
-        let ac_froms=stub_element.apply_calls.iter()
-            .filter_map(|ac|ac.func_froms.as_ref().and_then(|(from,_)|from.apply_use()))
-            .collect::<Vec<_>>();
+        let inds = stub_element.apply_calls.iter()
+            .filter_map(|ac|ac.func_froms.as_ref().and_then(|(from_start,_)|{
+                from_start.apply_use().map(|apply_use_element_ind|from_map[&apply_use_element_ind])
+            })).collect::<HashSet<_>>();
 
-        for from_element_ind in ac_froms {
-            let ac_ind=from_map[&from_element_ind];
-            stub_element.apply_calls[ac_ind].has_ret=true;
-
-
+        for ind in inds {
+            stub_element.apply_calls[ind].has_ret=true;
         }
     }
 }

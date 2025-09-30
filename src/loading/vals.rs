@@ -130,6 +130,15 @@ pub struct Element<'a> {
     // )>, //for apply_use, only in nodes, and not descendant of apply_decl or template_decl
 }
 
+impl<'a> ElementType<'a> {
+    pub fn is_stub(&self) -> bool {
+        if let ElementType::Stub { .. }=self {
+            true
+        } else{
+            false
+        }
+    }
+}
 
 //////
 
