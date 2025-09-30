@@ -118,6 +118,7 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
         // let calcd_original=cur_element.calcd_original.map(|x|format!("{x}")).unwrap_or("_".to_string());
         let has_self_script=cur_element.has_self_script;
         let has_env_script=cur_element.has_env_script;
+        let has_apply_script=cur_element.has_apply_script;
         // let has_template_use_script= cur_element.has_template_use_script;
 
         let parent=cur_element.parent.map(|p|format!("{p}")).unwrap_or("_".to_string());
@@ -125,15 +126,15 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
 
         match &cur_element.element_type {
             ElementType::Node { names,ignore_applies,.. } => {
-                println!("{indent}node {names:?}, e={cur_element_ind}, parent={parent}, ignaps={ignore_applies:?}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}" , );
+                println!("{indent}node {names:?}, e={cur_element_ind}, parent={parent}, ignaps={ignore_applies:?}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}, apply_script={has_apply_script}" , );
             }
             ElementType::TemplateUse { template_decl_element_ind, .. } => {
                 let ElementType::TemplateDecl { name, .. }=elements.get(*template_decl_element_ind).unwrap().element_type else {panic!("");};
 
-                println!("{indent}template use, e={cur_element_ind} : {name:?}, parent={parent}, e2={template_decl_element_ind}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}",);
+                println!("{indent}template use, e={cur_element_ind} : {name:?}, parent={parent}, e2={template_decl_element_ind}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}, apply_script={has_apply_script}",);
             }
             ElementType::Apply { name,used,.. } => {
-                println!("{indent}apply, e={cur_element_ind} : {name:?}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, used={used}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}",);
+                println!("{indent}apply, e={cur_element_ind} : {name:?}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, used={used}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}, apply_script={has_apply_script}",);
             }
             ElementType::Attrib { name,in_node,calcd, ..  } => {
                 println!("{indent}attrib {name:?}, e={cur_element_ind}, parent={parent}, in_node={in_node}, calcd={calcd:?}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, script={has_script:?}", );
@@ -143,10 +144,10 @@ pub fn debug_print_elements2(elements:&Vec<Element>) {
             }
             ElementType::TemplateDecl { name, used, .. } => {
                 // let name=texts[*name];
-                println!("{indent}template decl, e={cur_element_ind} : {name:?}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, used={used}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}",);
+                println!("{indent}template decl, e={cur_element_ind} : {name:?}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, used={used}, script={has_script:?}, self_script={has_self_script}, env_script={has_env_script}, apply_script={has_apply_script}",);
             }
             ElementType::Stub { name } => {
-                println!("{indent}stub {name:?}, e={cur_element_ind}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, self_script={has_self_script}, env_script={has_env_script}");
+                println!("{indent}stub {name:?}, e={cur_element_ind}, parent={parent}, created_from={created_from:?}, calcd_from={calcd_from:?}, nparams={nparams:?}, eparams={eparams:?}, self_script={has_self_script}, env_script={has_env_script}, apply_script={has_apply_script}");
             }
             ElementType::ApplyUse { apply_decl_element_ind,   } => {
                 // let ElementType::Apply { apply_decl_id, .. }=elements.get(*apply_decl_element_ind).unwrap().element_type else {panic!("");};

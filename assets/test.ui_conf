@@ -1,12 +1,15 @@
-template r
-    node z
-        script
-template t
-	template r
+template a
+	apply q
+		script
+			var x 1
+	node q
+
+template c
 	node
-		
-
-
+		script
+			var x 2
+template b
+	template a
+	template c
 node
-	script
-	template t
+	template b

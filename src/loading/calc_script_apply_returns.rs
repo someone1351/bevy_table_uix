@@ -18,7 +18,7 @@ pub fn calc_script_returns(elements:&mut Vec<Element>,only_script:bool) {
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=&elements[cur_work.element_ind];
 
-        //push children on work_stk
+        //push children on work_stk (no in apply_use/template_use)
         if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {
             work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
                 element_ind: child,

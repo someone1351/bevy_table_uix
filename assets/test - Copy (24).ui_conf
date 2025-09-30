@@ -1,0 +1,24 @@
+template r
+    node z
+        script
+			var x;
+template t
+	template r
+	apply u
+		script
+			var x;
+	node u
+	node
+
+
+
+node
+	apply x
+		script
+			var a
+		apply y
+			script
+				var b
+	#script
+	#	var x;
+	template t
