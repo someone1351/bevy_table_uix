@@ -13,7 +13,7 @@ use script_lang::*;
 // use crate::UixSelf;
 
 use super::components::*;
-use super::events::*;
+use super::messages::*;
 use super::script_vals::*;
 
 use super::script_utils::*;
@@ -695,7 +695,7 @@ pub fn register_events(lib_scope:&mut LibScope<World>) {
         let event = context.param(1).get_string().unwrap();
         let params=(2..context.params_num()).map(|i|context.param(i).clone_root()).collect();
         let world=context.core_mut();
-        world.send_event(UixUserEvent{ entity, event, params });
+        world.write_message(UixUserMessage{ entity, event, params });
         Ok(Value::Void)
     }).custom_ref::<Entity>().str().optional().any().variadic_end();
 

@@ -14,7 +14,7 @@ use crate::resources::UixLibScope;
 // use crate::script_stuff::self_entity_from_world;
 
 
-use super::events::*;
+use super::messages::*;
 use super::resources::*;
 use super::script_utils::*;
 
@@ -26,7 +26,7 @@ use super::components::*;
 use super::loading::*;
 
 pub fn on_asset_modified_event(
-    mut asset_events: EventReader<AssetEvent<UiAsset>>,
+    mut asset_events: MessageReader<AssetEvent<UiAsset>>,
     mut modified_assets : ResMut<UiModifiedAssets>,
 ) {
     // let mut modified_handles = HashSet::<AssetId<UiAsset>>::new();
@@ -192,12 +192,12 @@ pub fn on_asset_load<'a>(
             let stuff = script_lang::Value::custom_unmanaged(stuff);
             println!("===\n\n{src}\n====");
 
-            {
+            // {
 
-                std::fs::write("src_debug.txt", &src).expect("Should be able to write to `/foo/tmp`");
-                let src2=gen_script_src(&syntax_tree);
-                std::fs::write("src_debug2.txt", &src2).expect("Should be able to write to `/foo/tmp`");
-            }
+            //     std::fs::write("src_debug.txt", &src).expect("Should be able to write to `/foo/tmp`");
+            //     let src2=gen_script_src(&syntax_tree);
+            //     std::fs::write("src_debug2.txt", &src2).expect("Should be able to write to `/foo/tmp`");
+            // }
 
             // let compiler=script_lang::langs::cexpr_compiler::Compiler::new();
             // let build = compiler.compile(src.as_str(), 0, None, true, );
@@ -260,9 +260,9 @@ pub fn on_event_listeners<'a>(
     // world: &mut World,
 
 
-    // mut input_event_reader: EventReader<UiInteractInputEvent>,
-    mut interact_event_reader: EventReader<UiInteractEvent>,
-    mut user_event_reader: EventReader<UixUserEvent>,
+    // mut input_event_reader: MessageReader<UiInteractInputEvent>,
+    mut interact_event_reader: MessageReader<UiInteractEvent>,
+    mut user_event_reader: MessageReader<UixUserMessage>,
     time: Res<bevy::time::Time>,
     // mut gc_sope:GcS
 ) {
@@ -297,17 +297,17 @@ pub fn on_event_listeners<'a>(
             // event_listener.event_listeners.contains_key(ev.event_type.name())
             if let Some((_k,listeners))=event_listener.event_listeners.get_key_value(ev.event_type.name()) {
                 let params= match ev.event_type {
-                    UiInteractEventType::HoverBegin { device } => vec![script_lang::Value::int(device)],
-                    UiInteractEventType::HoverEnd { device } => vec![script_lang::Value::int(device)],
-                    UiInteractEventType::PressBegin => vec![],
-                    UiInteractEventType::PressEnd => vec![],
-                    UiInteractEventType::Click => vec![],
-                    UiInteractEventType::DragX { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
-                    UiInteractEventType::DragY { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
-                    UiInteractEventType::SelectBegin => vec![],
-                    UiInteractEventType::SelectEnd => vec![],
-                    UiInteractEventType::FocusBegin { group } => vec![script_lang::Value::int(group)],
-                    UiInteractEventType::FocusEnd { group } => vec![script_lang::Value::int(group)],
+                    UiInteractMessageType::HoverBegin { device } => vec![script_lang::Value::int(device)],
+                    UiInteractMessageType::HoverEnd { device } => vec![script_lang::Value::int(device)],
+                    UiInteractMessageType::PressBegin => vec![],
+                    UiInteractMessageType::PressEnd => vec![],
+                    UiInteractMessageType::Click => vec![],
+                    UiInteractMessageType::DragX { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
+                    UiInteractMessageType::DragY { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
+                    UiInteractMessageType::SelectBegin => vec![],
+                    UiInteractMessageType::SelectEnd => vec![],
+                    UiInteractMessageType::FocusBegin { group } => vec![script_lang::Value::int(group)],
+                    UiInteractMessageType::FocusEnd { group } => vec![script_lang::Value::int(group)],
                 };
                 bla.push((
                     // ev.entity,k.clone(),

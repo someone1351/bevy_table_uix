@@ -37,6 +37,9 @@ node
 	template z
 
 node
+	width 50
+	height 50
+	color red
 	script
 		# 123
 	apply qq

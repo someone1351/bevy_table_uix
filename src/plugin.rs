@@ -2,7 +2,7 @@
 use bevy::prelude::*;
 
 use super::{
-    assets::*, events::UixUserEvent, resources::*,  systems::*
+    assets::*, messages::UixUserMessage, resources::*,  systems::*
 };
 
 
@@ -18,7 +18,7 @@ impl bevy::app::Plugin for UixPlugin {
             .init_resource::<UiModifiedAssets>()
             .init_resource::<UixLibScope>()
             .init_resource::<UixGcScope>()
-            .add_event::<UixUserEvent>()
+            .add_message::<UixUserMessage>()
             // .add_systems(Startup, (
             //     init_asset ,
             // ))

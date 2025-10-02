@@ -7,11 +7,11 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputEvent, UiLayoutComputed, UiRoot,
+use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiLayoutComputed, UiRoot
     //UiColor, UiSize, UiVal
 };
 
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystem}, prelude::* };
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystems}, prelude::* };
 use bevy_table_uix::UixFromAsset;
 
 fn main() {
@@ -32,7 +32,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "uix test".into(),
-                        resolution: (1280.0, 720.0).into(),
+                        resolution: (1280, 720).into(),
                         resizable: true,
                         ..default()
                     }),
@@ -62,7 +62,7 @@ fn main() {
         .add_systems(PreUpdate,(
             run_input,
             global_input,
-        ).after(InputSystem))
+        ).after(InputSystems))
         ;
 
     app.run();
@@ -70,8 +70,8 @@ fn main() {
 
 
 fn global_input(
-    mut exit: EventWriter<AppExit>,
-    mut key_events: EventReader<KeyboardInput>,
+    mut exit: MessageWriter<AppExit>,
+    mut key_events: MessageReader<KeyboardInput>,
 ) {
 
     for ev in key_events.read() {
@@ -135,7 +135,7 @@ fn show_fps(
 pub fn update_ui_roots(
     windows: Query<&Window>,
     mut root_query: Query<&mut UiRoot,>,
-    mut key_events: EventReader<bevy::input::keyboard::KeyboardInput>,
+    mut key_events: MessageReader<bevy::input::keyboard::KeyboardInput>,
 ) {
 
     let window_size=windows.single()
@@ -164,11 +164,11 @@ pub fn setup_ui(
 pub fn run_input(
     mut windows: Query<&mut Window>,
     mut prev_cursor : Local<Option<Vec2>>,
-    mut ui_interact_input_event_writer: EventWriter<UiInteractInputEvent>,
+    mut ui_interact_input_event_writer: MessageWriter<UiInteractInputMessage>,
     ui_root_query : Query<Entity,(With<UiLayoutComputed>,Without<ChildOf>)>,
 
-    mut key_events: EventReader<KeyboardInput>,
-    mut mouse_button_events : EventReader<MouseButtonInput>,
+    mut key_events: MessageReader<KeyboardInput>,
+    mut mouse_button_events : MessageReader<MouseButtonInput>,
     mut key_lasts : Local<HashSet<KeyCode>>,
 ){
 
@@ -189,28 +189,28 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.key_code {
                         KeyCode::KeyW|KeyCode::ArrowUp => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusUp { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusUp { root_entity, group });
                         }
                         KeyCode::KeyS|KeyCode::ArrowDown => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusDown { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusDown { root_entity, group });
                         }
                         KeyCode::KeyA|KeyCode::ArrowLeft => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusRight { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusRight { root_entity, group });
                         }
                         KeyCode::KeyD|KeyCode::ArrowRight => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusLeft { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusLeft { root_entity, group });
                         }
                         KeyCode::Tab|KeyCode::KeyE => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusNext { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusNext { root_entity, group });
                         }
                         KeyCode::KeyQ => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusPrev { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPrev { root_entity, group });
                         }
                         KeyCode::Space|KeyCode::Enter => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusPressBegin{root_entity, group, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressBegin{root_entity, group, device});
                         }
                         KeyCode::Escape => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusPressCancel{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressCancel{root_entity, device});
                         }
                         _ => {}
                     }
@@ -222,7 +222,7 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.key_code {
                         KeyCode::Space|KeyCode::Enter => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::FocusPressEnd{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressEnd{root_entity, device});
                         }
                         _ => {}
                     }
@@ -239,10 +239,10 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.button {
                         MouseButton::Left => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::CursorPressBegin{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressBegin{root_entity, device});
                         }
                         MouseButton::Right => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::CursorPressCancel{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device});
                         }
                         MouseButton::Forward => {
                         }
@@ -256,7 +256,7 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.button {
                         MouseButton::Left => {
-                            ui_interact_input_event_writer.write(UiInteractInputEvent::CursorPressEnd {root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressEnd {root_entity, device});
                         }
                         _ => {}
                     }
@@ -269,7 +269,7 @@ pub fn run_input(
     for root_entity in ui_root_query.iter() {
         if *prev_cursor!=mouse_cursor {
             let player=0;
-            ui_interact_input_event_writer.write(UiInteractInputEvent::CursorMoveTo{root_entity,device: player,cursor:mouse_cursor});
+            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorMoveTo{root_entity,device: player,cursor:mouse_cursor});
         }
     }
 

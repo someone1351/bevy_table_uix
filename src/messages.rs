@@ -1,7 +1,7 @@
-use bevy::prelude::{Entity, Event};
+use bevy::prelude::{Entity, Message};
 
-#[derive(Debug,Event,Clone)]
-pub struct UixUserEvent {
+#[derive(Debug,Message,Clone)]
+pub struct UixUserMessage {
     pub entity : Entity,
     pub event : script_lang::StringT,
     pub params : Vec<script_lang::Value>,
