@@ -1,46 +1,33 @@
-
-
 template t
-	apply x
-		apply y
-			script
-				var b
+	node a
+		width 50
+		height 60
+		color blue
+template s
+    #script
 
-node
 	template t
-	apply x
-		script
-			var a
-		apply y
+		apply a
+			color red
 			script
-				var b
+node
 
-		node y
-			script
-				var c
-
-	node x
-	#node x
-	#	node y
-
-template z
-	apply zz
-		script
-			#var z 0;
-	node zz
-		script
-			var z 1;
+	template s
+	#script
 
 node
-	script
-		var z 3;
-	template z
 
-node
-	width 50
-	height 50
-	color red
-	script
-		# 123
-	apply qq
-		script
+	node a
+		color green
+		width 20
+		height 20
+	template t
+	template t
+		apply a
+			color orange
+			script
+
+	node a
+		color blue
+		width 20
+		height 20

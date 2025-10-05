@@ -4,34 +4,58 @@ use super::vals::*;
 
 
 
-#[derive(Clone)]
-struct Work {
-    element_ind:usize,
-    parent:Option<usize>,
-}
+// #[derive(Clone)]
+// struct Work {
+//     element_ind:usize,
+//     parent:Option<usize>,
+// }
 
 pub fn calc_script_returns(elements:&mut Vec<Element>,only_script:bool) {
 
-    let mut work_stk=vec![Work{ element_ind: 0, parent:None, }];
+    // let mut work_stk=vec![Work{ element_ind: 0, parent:None, }];
+    let mut work_stk=elements[0].children.clone();
 
-    while let Some(cur_work)=work_stk.pop() {
-        let cur_element=&elements[cur_work.element_ind];
+    while let Some(cur_element_ind)=work_stk.pop() {
+        // let cur_element=&elements[cur_work.element_ind];
+        let cur_element=&elements[cur_element_ind];
 
         //push children on work_stk (no in apply_use/template_use)
         if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}=&cur_element.element_type {
-            work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
-                element_ind: child,
-                parent:Some(cur_work.element_ind),
+            // work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work {
+            //     element_ind: child_element_ind,
+            //     parent:Some(cur_work.element_ind),
+            // }));
+
+            work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|child_element_ind));
+        }
+
+        //for applies declared in template_use
+        if let ElementType::TemplateUse{..}=&cur_element.element_type {
+            // println!("q0 {cur_element_ind}",);
+
+            work_stk.extend(cur_element.children.iter().rev().filter_map(|&child_element_ind|{
+                let child_element= &elements[child_element_ind];
+                // if child_element.element_type.is_apply() {
+                //     println!("q1 {child_element_ind}");
+                // }
+
+                child_element.element_type.is_apply().then_some(child_element_ind)
             }));
         }
 
         //
-        if cur_work.parent.is_none() || (only_script && !cur_element.has_script) {
+        // if cur_work.parent.is_none() {
+        //     continue;
+        // }
+
+        //
+        if only_script && !cur_element.has_script {
             continue;
         }
 
         //
         if let ElementType::Node{..}|ElementType::Apply{..}|ElementType::TemplateDecl{..}=&cur_element.element_type {
+        // } else if let ElementType::TemplateUse{..}=&cur_element.element_type {
         } else {
             continue;
         }
@@ -89,8 +113,24 @@ pub fn calc_script_returns(elements:&mut Vec<Element>,only_script:bool) {
             }
         }
 
+        //for applies declared in template_use
+        for &child_element_ind in cur_element.children.iter() {
+            let child_element=&elements[child_element_ind];
+
+            if child_element.element_type.is_template_use() {
+                for &apply_element_ind in child_element.applies.iter() {
+                    let apply_element=elements.get(apply_element_ind).unwrap();
+
+                    if !only_script || apply_element.has_script {
+                        return_items.push((None,ScriptSyntaxTemplateUseOrApplyDecl::ApplyDecl(apply_element_ind)));
+                    }
+                }
+            }
+        }
+
         //
-        elements[cur_work.element_ind].rets=return_items;
+        // elements[cur_work.element_ind].rets=return_items;
+        elements[cur_element_ind].rets=return_items;
     } //end while
 
 }

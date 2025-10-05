@@ -1,13 +1,13 @@
 
-use std::{cmp::Ordering, collections::{HashMap, HashSet}};
-
+use std::collections::{HashMap, HashSet};
+// use std::cmp::Ordering
 
 
 use super::vals::*;
 
 
 struct ApplyCallStkItem {
-    inside_element_ind:Option<usize>,
+    inside_element_ind:Option<usize>, //used for sorting calls?
     parent_element_ind:usize,
     apply_use_element_ind:usize,
 }
@@ -20,7 +20,7 @@ struct Work {
     exit:bool,
     parent:Option<usize>,
     in_a_use:bool,
-    inside:Option<usize>,
+    inside:Option<usize>, //used for sorting calls?
 }
 
 pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
@@ -39,11 +39,13 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
             if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}
                 |ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type
             {
-                let in_use = if let ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
-                    true
-                } else {
-                    cur_work.in_a_use
-                };
+                let in_a_use=cur_element.element_type.is_apply_use()||cur_element.element_type.is_template_use()||cur_work.in_a_use;
+
+                // let in_a_use = if let ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
+                //     true
+                // } else {
+                //     cur_work.in_a_use
+                // };
 
                 let inside = if let ElementType::Node{..}|ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
                     Some(cur_work.element_ind)
@@ -52,11 +54,29 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
                 };
 
                 work_stk.push(Work{exit:true, ..cur_work.clone()});
-                work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
-                    element_ind: child, depth: cur_work.depth+1, exit:false,
-                    parent:Some(cur_work.element_ind),
-                    in_a_use: in_use,
-                    inside,
+                // work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
+                //     element_ind: child, depth: cur_work.depth+1, exit:false,
+                //     parent:Some(cur_work.element_ind),
+                //     in_a_use,
+                //     inside,
+                // }));
+
+                work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|{
+                    let child_element=&elements[child_element_ind];
+
+                    //for applies declared in template_use
+                    let inside2=child_element.element_type.is_apply().then_some(cur_work.inside).unwrap_or(inside);
+                    if child_element.element_type.is_apply() {
+                        println!("c{child_element_ind}, p={}, {inside:?} => {inside2:?}",cur_work.element_ind,);
+                    }
+
+                    let inside=inside2;
+                    Work {
+                        element_ind: child_element_ind, depth: cur_work.depth+1, exit:false,
+                        parent:Some(cur_work.element_ind),
+                        in_a_use,
+                        inside,
+                    }
                 }));
             }
         }
@@ -72,21 +92,30 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
         } {
             let mut element_apply_calls=Vec::new();
 
-            let mut apply_calls=apply_calls_stk.pop().unwrap();
+            let  apply_calls=apply_calls_stk.pop().unwrap();
 
-            apply_calls.sort_by(|x,y|{
-                match x.apply_use_element_ind.cmp(&y.apply_use_element_ind) {
-                    Ordering::Equal=>x.inside_element_ind.cmp(&y.inside_element_ind),
-                    r=>r,
-                }
-            });
+            //is it even necessary?
+            // apply_calls.sort_by(|x,y|{
+            //     match x.apply_use_element_ind.cmp(&y.apply_use_element_ind) {
+            //         Ordering::Equal=>x.inside_element_ind.cmp(&y.inside_element_ind),
+            //         r=>r,
+            //     }
+            // });
 
             for apply_call in apply_calls.iter() {
                 let apply_use_element=elements.get(apply_call.apply_use_element_ind).unwrap();
-                // let ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
 
-                let apply_in = {
+                //for applies declared in template_use
+                let &ElementType::ApplyUse { apply_decl_element_ind,  }=&apply_use_element.element_type else {panic!("");};
+                let apply_element=&elements[apply_decl_element_ind];
+                let apply_parent_element_ind=apply_element.parent.unwrap();
+                let apply_parent_element=&elements[apply_parent_element_ind];
+                let apply_parent_is_template_use_element_ind=apply_parent_element.element_type.is_template_use().then_some(apply_parent_element_ind);
+
+                //
+                let apply_in = { //in root or a stub
                     if let ElementType::Stub{..} = &cur_element.element_type {
+                        //what does all this do/for?
                         let mut b=false;
                         let mut cur_from=apply_use_element.calcd_created_from;
 
@@ -110,13 +139,16 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
                 //
                 let mut from_ret = None;
                 let mut from_template_decls = Vec::new();
+
+                //
                 if apply_in
                 {
                     let mut cur_from=apply_use_element.calcd_created_from;
                     let to=if let ElementType::Stub{..} = &cur_element.element_type { cur_work.element_ind } else {0};
-
+                    let mut bla=Vec::new();
                     //
                     while cur_from!=to {
+                        bla.push(cur_from);
                         let from_element=elements.get(cur_from).unwrap();
 
                         match &from_element.element_type {
@@ -124,9 +156,18 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
                                 from_ret= Some(ScriptSyntaxNodeOrApplyUse::ApplyUse(cur_from));
                                 break;
                             }
+
+
+
                             ElementType::TemplateUse { .. } => {
+                                println!("tt {} {:?} {:?}",cur_work.element_ind,apply_parent_is_template_use_element_ind,cur_from);
                                 let cur_from=from_element.calcd_from_element_ind.unwrap_or(cur_from);
-                                from_template_decls.push(ScriptSyntaxTemplateUse(cur_from));
+
+                                if apply_parent_is_template_use_element_ind!=Some(cur_from) //for applies declared in template_use
+                                {
+                                    from_template_decls.push(ScriptSyntaxTemplateUse(cur_from));
+                                }
+
                             }
                             ElementType::Node { .. } if from_element.calcd_created_from==to => {
                                 from_ret= Some(ScriptSyntaxNodeOrApplyUse::Node(cur_from));
@@ -138,6 +179,8 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
 
                         cur_from=from_element.calcd_created_from;
                     }
+
+                    println!("hmm au={} {bla:?}",apply_call.apply_use_element_ind);
                 }
 
                 from_template_decls.reverse();
@@ -146,7 +189,6 @@ pub fn calc_script_apply_calls(elements:&mut Vec<Element>,only_script:bool )  {
                 if from_ret.is_none() && !from_template_decls.is_empty() {
                     panic!("");
                 }
-
 
                 element_apply_calls.push(ElementApplyCall {
                     func_froms:from_ret.map(|from_ret|(from_ret,from_template_decls)),

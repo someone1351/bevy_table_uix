@@ -118,10 +118,10 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<Attrib
 }
 
 
-pub fn calc_node_creates<'a>(elements:& Vec<Element<'a>>) -> BTreeMap<usize,BTreeMap<usize,usize>> {
+pub fn calc_node_creates<'a>(elements:& Vec<Element<'a>>) -> BTreeMap<usize,Vec<(usize,usize)>> {
     let mut work_stk=vec![Work{ element_ind: 0, parent_element_ind:None,stub_element_ind:None,}];
 
-    let mut tmp_creates:BTreeMap<usize,BTreeMap<usize,usize>>= BTreeMap::new(); //[root/stub element_ind][node_element_ind]=parent_element_ind
+    let mut tmp_creates:BTreeMap<usize,Vec<(usize,usize)>>= BTreeMap::new(); //[root/stub element_ind]=(node_element_ind,parent_element_ind)
 
 
     while let Some(cur_work)=work_stk.pop() {
@@ -148,7 +148,7 @@ pub fn calc_node_creates<'a>(elements:& Vec<Element<'a>>) -> BTreeMap<usize,BTre
             ElementType::Node{..}=> {
                 if let Some(parent)=cur_work.parent_element_ind {
                     let stub=cur_work.stub_element_ind.unwrap_or(0);
-                    tmp_creates.entry(stub).or_default().insert(cur_work.element_ind,parent);
+                    tmp_creates.entry(stub).or_default().push((cur_work.element_ind,parent));
                 }
 
             }

@@ -78,6 +78,21 @@ pub enum ElementType<'a> {
     //CalcNode? what to do with its applies?
 }
 
+impl<'a> Display for ElementType<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ElementType::Node {..} => write!(f,"Node"),
+            ElementType::Attrib {..} => write!(f,"Attrib"),
+            ElementType::Script {..} => write!(f,"Script"),
+            ElementType::Apply {..} => write!(f,"Apply"),
+            ElementType::ApplyUse {..} => write!(f,"ApplyUse"),
+            ElementType::TemplateDecl {..} => write!(f,"TemplateDecl"),
+            ElementType::TemplateUse {..} => write!(f,"TemplateUse"),
+            ElementType::Stub {..} => write!(f,"Stub"),
+        }
+    }
+}
+
 // #[derive(Debug,Clone,Hash,PartialEq, Eq)]
 // pub enum EnvIndex {
 //     Index(usize),
@@ -104,8 +119,8 @@ pub struct Element<'a> {
     pub apply_after : usize, //parent_apply_ind
     pub calcd_from_element_ind : Option<usize>, //element_ind, mirrors nodes inside template_use/apply_use to their template_decl/apply_decl origin
     pub calcd_node_params:Vec<usize>, //node element_ind
-    pub calcd_env_params:Vec<usize>, //element_ind
-    pub calcd_created_from : usize, //same as calcd_original?? same as parent? no, something to do with applies, and their origin, which is sometimes parent, sometimes something else?
+    pub calcd_env_params:Vec<usize>, //element_ind?
+    pub calcd_created_from : usize, //same as calcd_original?? same as parent? no, something to do with applies, and their origin, which is sometimes parent, sometimes something else? it's the owner of the apply decl? no its the element
     // pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
     pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     // pub has_template_use_script:bool,
@@ -133,6 +148,34 @@ pub struct Element<'a> {
 impl<'a> ElementType<'a> {
     pub fn is_stub(&self) -> bool {
         if let ElementType::Stub { .. }=self {
+            true
+        } else{
+            false
+        }
+    }
+    pub fn is_node(&self) -> bool {
+        if let ElementType::Node { .. }=self {
+            true
+        } else{
+            false
+        }
+    }
+    pub fn is_apply(&self) -> bool {
+        if let ElementType::Apply { .. }=self {
+            true
+        } else{
+            false
+        }
+    }
+    pub fn is_template_use(&self) -> bool {
+        if let ElementType::TemplateUse { .. }=self {
+            true
+        } else{
+            false
+        }
+    }
+    pub fn is_apply_use(&self) -> bool {
+        if let ElementType::ApplyUse { .. }=self {
             true
         } else{
             false

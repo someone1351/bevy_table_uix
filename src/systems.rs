@@ -144,24 +144,20 @@ pub fn on_asset_load<'a>(
         //
         debug_print_elements1(&elements);
 
+
         //
         expand_elements(&mut elements);
-        // expand_template_apply_decl_elements(&mut elements);
 
         //calc nodes params
-        // calc_node_params(&mut elements);
+
         calc_node_params2(&mut elements);
 
         calc_env_params2(&mut elements);
 
         mark_used(&mut elements,false);
-        // mark_used(&mut elements,true);
         mark_has_script(&mut elements,);
         mark_has_script_rest(&mut elements,);
 
-        // mark_has_script(&mut elements,true);
-        // // mark_has_script(&mut elements);
-        // calc_envs(&mut elements);
 
 
         let only_script=true;

@@ -79,7 +79,7 @@ pub fn debug_print_elements1(elements:&Vec<Element>) {
             let cur_element=elements.get(cur_element_ind).unwrap();
             stk.extend(cur_element.children.iter().rev().map(|&x|(x,depth+1)));
             let depth="    ".repeat(depth);
-            println!("{depth}{:?}, applies={:?}, after={}",
+            println!("{depth}{cur_element_ind}:{:?}, applies={:?}, after={}, child={:?}",
                 &cur_element.element_type,
                 &cur_element.applies,
                 // cur_element.applies.iter().map(|&i|{
@@ -88,6 +88,7 @@ pub fn debug_print_elements1(elements:&Vec<Element>) {
                 //     i
                 // }).collect::<Vec<_>>(),
                 cur_element.apply_after,
+                cur_element.children,
             );
         }
     }

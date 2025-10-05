@@ -131,7 +131,9 @@ pub fn load_elements<'a>(
                 last_element_stk.pop().unwrap();
             }
 
-            "template" if walk.record().node_label() == Some("template_use") => {
+            "template" if walk.record().node_label() == Some("template_use") && walk.is_enter() => {
+
+                walk.do_exit(); //for applies declared in template_use
                 walk.set_named_note("in_node", false);
 
                 let template_name = walk.record().value(0).get_str().unwrap();
@@ -170,9 +172,13 @@ pub fn load_elements<'a>(
 
                 //
                 // template_use_count+=1;
+
+
+                last_element_stk.push(new_element_ind); //for applies declared in template_use
             }
 
             "template" if walk.record().node_label() == Some("template_use") && walk.is_exit() => {
+                last_element_stk.pop().unwrap(); //for applies declared in template_use
             }
             "apply" if walk.is_enter() => {
                 walk.do_exit();

@@ -387,7 +387,7 @@ fn input_def() -> conf_lang::Def {
             .tags(["stub"])
                 .entry_children("nodes_branch")
                     .param_func(parse_identity)
-        .branch("nodes_branch")
+        .branch("nodes_branch").include(["apply_branch"])
             // .tags(["stub"])
             //     .entry_children("nodes_branch")
             //         .param_func(parse_identity)
@@ -398,6 +398,7 @@ fn input_def() -> conf_lang::Def {
                     .param_any()
             .tags(["script"])
                 .entry_text()
+        .branch("apply_branch")
             .tags(["apply"])
                 .entry_children("node_branch")
                     .grepeat()
@@ -405,7 +406,7 @@ fn input_def() -> conf_lang::Def {
 
         .branch("node_branch").include(["nodes_branch","attribs_branch"])
             .tags(["template"])
-                .entry().elabel("template_use")
+                .entry_children("apply_branch").elabel("template_use")
                     .grepeat()
                     .param_any()
 

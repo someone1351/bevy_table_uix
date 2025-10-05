@@ -1,0 +1,46 @@
+
+
+template t
+	apply x
+		apply y
+			script
+				var b
+
+node
+	template t
+	apply x
+		script
+			var a
+		apply y
+			script
+				var b
+
+		node y
+			script
+				var c
+
+	node x
+	#node x
+	#	node y
+
+template z
+	apply zz
+		script
+			#var z 0;
+	node zz
+		script
+			var z 1;
+
+node
+	script
+		var z 3;
+	template z
+
+node
+	width 50
+	height 50
+	color red
+	script
+		# 123
+	apply qq
+		script

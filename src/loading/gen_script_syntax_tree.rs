@@ -12,7 +12,7 @@ struct Work {
     exit:bool,
     parent:Option<usize>,
     in_a_use:bool,
-    inside:Option<usize>,
+    // inside:Option<usize>,
 }
 
 pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_script:bool) -> Vec<ScriptSyntax> {
@@ -20,35 +20,42 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_script:bool) -> Vec<S
     let mut syntax_stk: Vec<usize> = vec![0];//Vec::new(); //syntax_ind
 
 
-    let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,inside:None}];
+    let mut work_stk=vec![Work{ element_ind: 0, depth: 0, exit:false,parent:None, in_a_use:false,
+        // inside:None
+    }];
 
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
+        println!("{}w {} {}, use={}, exit={}, script={}","    ".repeat(cur_work.depth),cur_work.element_ind,cur_element.element_type,cur_work.in_a_use,cur_work.exit,cur_element.has_script);
 
         //push children on work_stk
         if !cur_work.exit { //enter
             if let ElementType::Node{..}|ElementType::Stub{..}|ElementType::TemplateDecl{..}|ElementType::Apply{..}
                 |ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type
             {
-                let in_use = if let ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
+                let in_a_use = if let ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
                     true
                 } else {
                     cur_work.in_a_use
                 };
 
-                let inside = if let ElementType::Node{..}|ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
-                    Some(cur_work.element_ind)
-                } else {
-                    cur_work.inside
-                };
+                // let inside = if let ElementType::Node{..}|ElementType::ApplyUse{..}|ElementType::TemplateUse{..}=&cur_element.element_type {
+                //     Some(cur_work.element_ind)
+                // } else {
+                //     cur_work.inside
+                // };
 
                 work_stk.push(Work{exit:true, ..cur_work.clone()});
-                work_stk.extend(cur_element.children.iter().rev().map(|&child|Work {
-                    element_ind: child, depth: cur_work.depth+1, exit:false,
-                    parent:Some(cur_work.element_ind),
-                    in_a_use: in_use,
-                    inside,
+                work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|{
+                    let child_element=&elements[child_element_ind];
+                    let in_a_use= in_a_use && !child_element.element_type.is_apply(); //for applies declared in template_use
+                    Work {
+                        element_ind: child_element_ind, depth: cur_work.depth+1, exit:false,
+                        parent:Some(cur_work.element_ind),
+                        in_a_use,
+                        // inside,
+                    }
                 }));
             }
         }

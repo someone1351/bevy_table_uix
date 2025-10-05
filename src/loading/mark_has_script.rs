@@ -2,12 +2,17 @@
 
 use super::vals::*;
 
+struct Work {
+    element_ind:usize,
+    apply_in_template_use:bool, //for applies declared in template_use
+}
+
 
 pub fn mark_has_script(elements:&mut Vec<Element>,) {
-    let mut work_stk: Vec<usize>=vec![0];
+    let mut work_stk=vec![Work{ element_ind: 0, apply_in_template_use: false }];
 
-    while let Some(cur_element_ind)=work_stk.pop() {
-        let cur_element=elements.get(cur_element_ind).unwrap();
+    while let Some(cur_work)=work_stk.pop() {
+        let cur_element=elements.get(cur_work.element_ind).unwrap();
 
         //
         if cur_element.calcd_from_element_ind.is_some() {
@@ -17,9 +22,18 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
         //
         match &cur_element.element_type {
             &ElementType::Apply { used, .. }|&ElementType::TemplateDecl { used, .. } if !used => {}
-            ElementType::TemplateUse {..}|ElementType::ApplyUse {..} => {} //do children later
+            ElementType::ApplyUse {..} => {} //do children later in mark_has_script_rest
+            ElementType::TemplateUse {..} => {
+                //for applies declared in template_use
+                work_stk.extend(cur_element.children.iter().rev().filter_map(|&child_element_ind|{
+                    let child_element=&elements[child_element_ind];
+                    child_element.element_type.is_apply().then_some(Work { element_ind: child_element_ind, apply_in_template_use: true })
+                }));
+            }
             _=>{
-                work_stk.extend(cur_element.children.iter().rev());
+                work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
+                    element_ind: child_element_ind, apply_in_template_use: cur_work.apply_in_template_use,
+                }));
             }
         }
 
@@ -37,35 +51,48 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
 
         //set ancestors to has_script
         if has_script {
-            let mut element_ind=Some(cur_element_ind);
+            let mut element_ind=Some(cur_work.element_ind);
             let mut has_apply_script=has_apply_script;
 
             while let Some(element_ind2)=element_ind {
                 let element=elements.get_mut(element_ind2).unwrap();
 
-                if let ElementType::Apply{..}=&element.element_type {
+                if element.element_type.is_apply() {
                     has_apply_script=true;
                 }
 
-                if has_apply_script {
-                    element.has_apply_script=true;
+                //
+                if !element.element_type.is_template_use() || !cur_work.apply_in_template_use //for applies declared in template_use
+                {
+
+                    //
+                    if has_apply_script
+                        // && !element.element_type.is_template_use()
+                    {
+                        element.has_apply_script=true;
+                    }
+
+                    //
+
+                    element.has_script=true;
                 }
 
-                element.has_script=true;
+                //
                 element_ind=element.parent;
             }
         }
 
         //set ancestors to has_self_script
         if has_self_script {
-            let mut element_ind=Some(cur_element_ind);
+            let mut element_ind=Some(cur_work.element_ind);
 
             while let Some(element_ind2)=element_ind {
                 let element=elements.get_mut(element_ind2).unwrap();
                 element.has_self_script=true;
 
                 match &element.element_type {
-                    ElementType::TemplateUse {..}|ElementType::Script {..} => {}
+                    ElementType::TemplateUse {..}|ElementType::Script {..} => {
+                    }
                     _ => {
                         break;
                     }
@@ -77,19 +104,8 @@ pub fn mark_has_script(elements:&mut Vec<Element>,) {
 
         //
         if has_env_script {
-            let cur_element=elements.get_mut(cur_element_ind).unwrap();
-            // match &cur_element.element_type {
-            //     ElementType::TemplateUse { .. } => {
-            //         cur_element.has_env_script=true;
+            let cur_element=elements.get_mut(cur_work.element_ind).unwrap();
 
-            //     }
-            //     ElementType::Script { .. } => {
-            //         let parent_element_ind=cur_element.parent.unwrap();
-            //         let parent_element=elements.get_mut(parent_element_ind).unwrap();
-            //         parent_element.has_env_script=true;
-            //     }
-            //     _ => {}
-            // }
             if let ElementType::TemplateUse { .. }=&cur_element.element_type {
                 cur_element.has_env_script=true;
             } else { //parent = node/apply/template_decl/stub

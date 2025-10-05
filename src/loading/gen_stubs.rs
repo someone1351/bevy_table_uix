@@ -66,7 +66,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
         // println!("{node_parents:?}");
         //
-        for (&node_element_ind,&parent_element_ind) in node_parents.iter() {
+        for &(node_element_ind,parent_element_ind) in node_parents.iter() {
             //
             let funcs=tmp_attribs.get(&node_element_ind);
             let attribs_start=all_attribs.len();

@@ -59,7 +59,12 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
     let mut things: Vec<Thing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
     let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
+    // let mut count=0;
     while let Some(cur_work)=work_stk.pop() {
+        // println!("aaa {}, size={}, {:?}",cur_work.element_ind,work_stk.len(),work_stk.iter().map(|x|x.element_ind).collect::<Vec<_>>());
+        // count+=1;
+        // if count > 50 {break;}
+
         let mut the_new_element_ind:Option<usize> = None;
 
         //add element
@@ -142,6 +147,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 
             match &cur_element.element_type {
                 ElementType::Node { .. } => {
+                    // println!("p6 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     //println!("hmm n");
                     work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                         element_ind: child_element_ind,
@@ -158,6 +164,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::TemplateUse { template_decl_element_ind,   .. } => {
+                    // println!("p5 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     //println!("hmm t");
                     let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
 
@@ -189,7 +196,8 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
         let (node_depth, thing_depth,)= {
             let cur_element=elements.get(cur_work.element_ind).unwrap();
 
-            let cur_is_node=if let ElementType::Node{..}=&cur_element.element_type {true}else{false};
+            // let cur_is_node=if let ElementType::Node{..}=&cur_element.element_type {true}else{false};
+            let cur_is_node=cur_element.element_type.is_node();
             let cur_is_thing=if let ElementType::Node{..}|ElementType::TemplateUse{..}|ElementType::Stub{..} =&cur_element.element_type {true}else{false};
 
             (
@@ -276,6 +284,8 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                 ElementType::TemplateUse { template_decl_element_ind, .. } => {
                     let template_decl_element=elements.get(template_decl_element_ind).unwrap();
                     new_applies.extend(template_decl_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
+
+                    new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, ))); //for applies declared in template_use
                 }
                 ElementType::Stub { .. } => {
                     new_applies.extend(cur_element.applies.iter().map(|&apply_element_ind|( apply_element_ind, cur_element_ind, )));
@@ -442,6 +452,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                                 in_template_or_apply_decl: false, //this part is only done for elements not in template/apply decl
                             }
                         }));
+                        // println!("p4 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     }
 
                     //get applies for new thing
@@ -479,6 +490,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 
             match &cur_element.element_type {
                 ElementType::Node { .. } => {
+                    // println!("p3 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     work_stk.extend(cur_element.children.iter().rev().filter_map(|&child_element_ind|{
                         let child_element=elements.get(child_element_ind).unwrap();
                         if let ElementType::ApplyUse { .. } =&child_element.element_type {
@@ -502,6 +514,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::Stub { .. } => {
+                    // println!("p2 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     work_stk.extend(cur_element.children.iter().rev().map(|&child_element_ind|Work{
                         element_ind: child_element_ind,
                         from_applies:cur_work.from_applies.clone(),
@@ -517,6 +530,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
                     }));
                 }
                 ElementType::TemplateUse { template_decl_element_ind,   .. } => {
+                    // println!("p1 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                     let template_decl_element=elements.get(*template_decl_element_ind).unwrap();
 
                     work_stk.extend(template_decl_element.children.iter().rev().map(|&child_element_ind|{
@@ -558,6 +572,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
 
                         in_template_or_apply_decl: true,
                     }));
+                    // println!("p0 [{}] => {:?}",cur_work.element_ind,elements[cur_work.element_ind].children);
                 }
                 // ElementType::ApplyUse { apply_decl_element_ind } => {
                 // }
