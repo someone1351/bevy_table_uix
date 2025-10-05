@@ -27,7 +27,7 @@ pub fn gen_script_syntax_tree(elements:&Vec<Element>, only_script:bool) -> Vec<S
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
-        println!("{}w {} {}, use={}, exit={}, script={}","    ".repeat(cur_work.depth),cur_work.element_ind,cur_element.element_type,cur_work.in_a_use,cur_work.exit,cur_element.has_script);
+        // println!("{}w {} {}, use={}, exit={}, script={}","    ".repeat(cur_work.depth),cur_work.element_ind,cur_element.element_type,cur_work.in_a_use,cur_work.exit,cur_element.has_script);
 
         //push children on work_stk
         if !cur_work.exit { //enter
