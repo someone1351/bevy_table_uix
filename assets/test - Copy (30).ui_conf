@@ -1,0 +1,33 @@
+template t
+	node a
+		width 50
+		height 60
+		color blue
+template s
+    #script
+
+	template t
+		apply a
+			color red
+			script
+node
+
+	template s
+	#script
+
+node
+
+	node a
+		color green
+		width 20
+		height 20
+	template t
+	template t
+		apply a
+			color orange
+			script
+
+	node a
+		color blue
+		width 20
+		height 20

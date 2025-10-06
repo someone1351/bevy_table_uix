@@ -122,11 +122,14 @@ pub struct Element<'a> {
     pub calcd_env_params:Vec<usize>, //element_ind?
     pub calcd_created_from : usize, //same as calcd_original?? same as parent? no, something to do with applies, and their origin, which is sometimes parent, sometimes something else? it's the owner of the apply decl? no its the element
     // pub calcd_original : Option<usize>, //source element (Node/TemplateUse/Attrib) used to create this one, from an apply use
-    pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
+
     // pub has_template_use_script:bool,
+
+    pub has_self_script:bool, //or has_node_script? no it also includes apply and template own, ie has_decl_init_script
     pub has_script:bool,
     pub has_env_script:bool,
     pub has_apply_script:bool,
+
     // pub env : HashMap<String,Vec<usize>>, //env[name]=element_inds
 
     pub parent:Option<usize>,

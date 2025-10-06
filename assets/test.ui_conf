@@ -3,31 +3,13 @@ template t
 		width 50
 		height 60
 		color blue
-template s
-    #script
-
-	template t
-		apply a
-			color red
-			script
-node
-
-	template s
-	#script
+		script
 
 node
-
-	node a
-		color green
-		width 20
-		height 20
 	template t
-	template t
+		script
+			var a 0
 		apply a
 			color orange
 			script
-
-	node a
-		color blue
-		width 20
-		height 20
+				println "a is {a}"
