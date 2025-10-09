@@ -33,11 +33,22 @@ template scroll_widget
 			color dark_grey
 
 			node scroll_vthumb
-				valign 0
 				color white
 				width 20
 				height 20
+				draggable
+				pressable
+				press_always
 
+				script
+					set self.valign 0.0
+					var start;
+					self.add_event_listener "press_begin" [fn () { set start self.valign }]
+					self.add_event_listener "press_end" [fn () { set start self.valign }]
+
+					self.add_event_listener "drag_y" [fn (px scale) {
+						set self.valign (clamp (+ start scale) 0.0 1.0)
+					}]
 		node scroll_vbar_down
 			color gold
 			hfill 1.0
@@ -57,7 +68,6 @@ template scroll_widget
 			color dark_grey
 
 			node scroll_hthumb
-				halign 0
 				color white
 				width 20
 				height 20
@@ -66,16 +76,14 @@ template scroll_widget
 				press_always
 
 				script
-					var start_x;
-					self.add_event_listener "press_begin" [fn () { set start_x self.halign }]
-					self.add_event_listener "press_end" [fn () { set start_x self.halign }]
+					set self.halign 0.0
+					var start;
+					self.add_event_listener "press_begin" [fn () { set start self.halign }]
+					self.add_event_listener "press_end" [fn () { set start self.halign }]
 
-					self.add_event_listener "drag_x" [fn (a b) {
-						set self.halign [+ start_x a]
-						#set self.halign [+ self.halign b]
-						println "e is {b} {start_x} {}" self.halign
+					self.add_event_listener "drag_x" [fn (px scale) {
+						set self.halign (clamp (+ start scale) 0.0 1.0)
 					}]
-					println "hmm {self}"
 
 		node scroll_hbar_right
 			color gold
