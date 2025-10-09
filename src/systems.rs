@@ -8,6 +8,7 @@ use std::collections::HashSet;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
+use script_lang::IntT;
 use table_ui::*;
 use crate::resources::UixGcScope;
 use crate::resources::UixLibScope;
@@ -298,8 +299,8 @@ pub fn on_event_listeners<'a>(
                     UiInteractMessageType::PressBegin => vec![],
                     UiInteractMessageType::PressEnd => vec![],
                     UiInteractMessageType::Click => vec![],
-                    UiInteractMessageType::DragX { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
-                    UiInteractMessageType::DragY { px, scale } => vec![script_lang::Value::float(px),script_lang::Value::float(scale)],
+                    UiInteractMessageType::DragX { px, scale } => vec![script_lang::Value::int((px+0.5) as IntT),script_lang::Value::float(scale)],
+                    UiInteractMessageType::DragY { px, scale } => vec![script_lang::Value::int((px+0.5) as IntT),script_lang::Value::float(scale)],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
                     UiInteractMessageType::FocusBegin { group } => vec![script_lang::Value::int(group)],

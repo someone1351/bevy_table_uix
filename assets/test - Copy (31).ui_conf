@@ -1,0 +1,8 @@
+template t
+	script
+	apply a
+		script
+	node a
+
+node
+	template t

@@ -1,15 +1,109 @@
-template t
-	node a
-		width 50
-		height 60
-		color blue
-		script
 
+
+template scroll_widget
+	#disabled
+	span 2
+    width 640
+    height 480
+    color red
+
+	node outer_body
+        hfill 1.0
+        vfill 1.0
+        hexpand 1.0
+        vexpand 1.0
+		width 0
+		height 0
+		color grey
+
+		node body
+
+    node scroll_vbar
+        vfill 1.0
+		span 1
+
+		node scroll_vbar_up
+			color gold
+			hfill 1.0
+			height 20
+
+		node scroll_vbar_inner
+			vexpand 1.0
+			vfill 1.0
+			color dark_grey
+
+			node scroll_vthumb
+				valign 0
+				color white
+				width 20
+				height 20
+
+		node scroll_vbar_down
+			color gold
+			hfill 1.0
+			height 20
+
+	node scroll_hbar
+        hfill 1.0
+
+		node scroll_hbar_left
+			color gold
+			vfill 1.0
+			width 20
+
+		node scroll_hbar_inner
+			hexpand 1.0
+			hfill 1.0
+			color dark_grey
+
+			node scroll_hthumb
+				halign 0
+				color white
+				width 20
+				height 20
+				draggable
+				pressable
+				press_always
+
+				script
+					var start_x;
+					self.add_event_listener "press_begin" [fn () { set start_x self.halign }]
+					self.add_event_listener "press_end" [fn () { set start_x self.halign }]
+
+					self.add_event_listener "drag_x" [fn (a b) {
+						set self.halign [+ start_x a]
+						#set self.halign [+ self.halign b]
+						println "e is {b} {start_x} {}" self.halign
+					}]
+					println "hmm {self}"
+
+		node scroll_hbar_right
+			color gold
+			vfill 1.0
+			width 20
+
+	node scroll_corner
+		color light_grey
+		hfill 1.0
+		vfill 1.0
+
+
+stub thing
+
+	node
+		width 50
+		height 50
+		color blue
 node
-	template t
-		script
-			var a 0
-		apply a
-			color orange
-			script
-				println "a is {a}"
+    template scroll_widget
+
+    apply body
+
+        span 20
+        gap 10
+
+        script
+            for i 0 (* 20 12) {
+                call stub_thing self
+            }
+

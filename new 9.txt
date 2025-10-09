@@ -1,0 +1,21 @@
+var root, _stubs
+var _ns [call _stubs 0 root]
+fn _t1 (_p2 _e2) {
+    fn _n2 (self env) {
+    }
+    call _n2 _p2 _e2
+}
+fn _n7 (_p13 _e13) {
+    call _t1 _p13 _e13
+	var _a10
+	{
+		var env _e99
+		var a 0
+		set _a10 [fn(self env) {
+			println "a is {a}"
+		}]
+	}
+    return [dict ("a10" _a10)]
+}
+var _rn7 [call _n7 _ns.n13 _ns.e13]
+call _rn7.a10 _ns.n13 _ns.e14

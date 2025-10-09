@@ -1,5 +1,35 @@
 
+/*
+INFO
 
+* templates only usefulness is it can add nodes in certain positions, whereas applies can only add things once, in the order of applies
+
+
+TODO
+
+* add script tag to template use
+
+TODO
+* script in template_use doesn't need env?
+** since doesn't decl any nodes
+** but could use same env passed to templ func call,
+** don't need to pass self, since using parent func's
+
+* for root/stub/node/apply/template_decl, should declare vars at start of func? and have rets/decls use set eg set _n15 [fn () {}] or set _rt33 [call _t1]
+** so that if user uses script to insert code blocks, can just use set to get around it
+** also works for template_use code bocks
+
+* if template_use has script, need code blocks
+** for syntax_tree, need block type
+** use has_self_script for template_use, to tell if using code block?
+
+* need to not have template_decl affect template_use's has_script/has_self_script/has_apply_script/has_env_script
+** should do same for apply_decl/apply_use for consistency
+** so that script and applies added under template_use can make use of has_script/has_self_script/has_apply_script/has_env_script
+*** does it need has_env_script? could give it env that would of otherwise be given to the template_decl
+
+
+*/
 use std::{collections::HashSet, path::PathBuf};
 
 use bevy::{asset::{io::Reader, AssetLoader, Handle, LoadContext}, color::Color, prelude::Asset, reflect::TypePath};
@@ -398,16 +428,18 @@ fn input_def() -> conf_lang::Def {
                     .param_any()
             // .tags(["script"])
             //     .entry_text()
-        .branch("apply_script_branch")
+        .branch("apply_branch")
             .tags(["apply"])
                 .entry_children("node_branch")
                     .grepeat()
                     .param_any()
+        .branch("script_branch")
             .tags(["script"])
                 .entry_text()
+        .branch("apply_script_branch").include(["apply_branch","script_branch"])
         .branch("node_branch").include(["nodes_branch","attribs_branch"])
             .tags(["template"])
-                .entry_children("apply_script_branch").elabel("template_use")
+                .entry_children("apply_branch").elabel("template_use")
                     .grepeat()
                     .param_any()
 

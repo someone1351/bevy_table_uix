@@ -86,6 +86,8 @@ pub fn calc_env_params2(elements:&mut Vec<Element>) {
 
         //
         match &cur_element.element_type {
+            //only they have envs? apply_use does too? applies are called at root/stub, where env is passed directly to them,
+            //  where as, node and template_use(ie template call), need envs passed to their parent funcs, to get to them
             ElementType::Node {..}|ElementType::TemplateUse {..}=>{}
             // ElementType::Apply {..}=>{}
             // ElementType::ApplyUse {..}=>{}
