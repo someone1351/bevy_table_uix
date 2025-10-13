@@ -4,7 +4,16 @@ use script_lang::{FloatT, IntT, LibScope, MachineError, Value};
 
 use super::components::*;
 
+pub fn get_component2<T:Component>(world:&World,entity:Entity) -> Option<&T> {
+    world.entity(entity).get()
+}
 
+pub fn set_component<T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(world:& mut World,entity:Entity,func:impl Fn(&mut T)) {
+    let mut entity_mut=world.entity_mut(entity);
+    let mut c_entry=entity_mut.entry::<T>().or_default();
+    let mut c=c_entry.get_mut();
+    func(&mut c);
+}
 
 pub fn self_entity_from_world(world : &mut World,entity:Entity) -> Value {
     world.entity_mut(entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(entity)).get().entity.to_weak().unwrap()
@@ -93,6 +102,10 @@ pub fn script_value_to_uint(val:Value) -> Result<u32,MachineError> {
 
 pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
     val.get_string().ok_or_else(||MachineError::method("expected string")).map(|x|x.to_string())
+}
+
+pub fn get_component<T:Component>(world:&World,entity:Entity) -> Option<&T> {
+    world.entity(entity).get::<T>()
 }
 
 pub fn entity_get_field(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,&World)->Value) {

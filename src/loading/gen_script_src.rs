@@ -41,7 +41,8 @@ pub fn gen_script_src(syntax_tree:&Vec<ScriptSyntax>) -> String {
                 // });
                 // src+=&format!("{indent}    var env [dict {xx}]\n");
             }
-            ScriptSyntax::Stub { .. } => {
+            ScriptSyntax::Stub { element_ind,.. } => {
+                src+=&format!("{indent}    return _ns.e{element_ind}\n");
                 src+=&format!("{indent}}}\n");
             }
             // &ScriptSyntax::CallStubCreate { is_root, stub, .. } => {

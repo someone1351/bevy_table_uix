@@ -30,9 +30,9 @@ template scroll_widget
 			#	println self.vscroll
 			#}]
 			self.add_event_listener "drag_y" [fn (px scale) {
-				set self.vscroll (clamp (+ start scale) 0.0 1.0)
+				set self.vscroll (clamp (- start scale) 0.0 1.0)
 				#set self.vscroll (- start px)
-				#println "{px} {scale}"
+				println px
 
 			}]
 		node body
@@ -119,8 +119,8 @@ stub thing
 	script
 
 	node
-		width 100
-		height 100
+		width 150
+		height 150
 		color blue
 node
     template scroll_widget
@@ -134,12 +134,7 @@ node
 			var w 20, h 12;
             for i 0 (* w h) {
                 var e (call stub_thing self)
-
-				var s (abs (cos (float i)))
-				var t (abs (sin (float i)))
-
-				set e.0.color.r (* 0.8 s)
-				set e.0.color.g (* 0.8 s s)
-				set e.0.color.b (* 0.8 (- 1.0 t))
+				println e #.0.color.r
+				set e.0.color.r 1.0
             }
 

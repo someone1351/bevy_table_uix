@@ -1,0 +1,31 @@
+node
+	width 250
+	height 50
+	gap 5
+	color red
+	script
+		set self.hscroll 1.0
+
+	node
+		gap 5
+		color green
+		node
+			width 50
+			height 50
+			color blue
+		node
+			width 50
+			height 50
+			color blue
+		node
+			width 50
+			height 50
+			color blue
+		node
+			width 50
+			height 50
+			color blue
+		node
+			width 50
+			height 50
+			color blue

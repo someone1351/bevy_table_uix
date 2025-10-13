@@ -13,6 +13,7 @@ struct Work {
 }
 
 pub fn calc_envs2<'a>(elements:& Vec<Element<'a>>, ) -> HashMap<usize, HashMap<usize, (Vec<usize>,HashMap<&'a str,Vec<usize>>)>> {//[stub][env]=(by_ind,by_name)
+    //todo, skip envs that are never used, ie non stub that don't have env_script?
     let mut output: HashMap<usize, HashMap<usize, (Vec<usize>,HashMap<&'a str,Vec<usize>>)>> = HashMap::new();
 
     let mut work_stk=vec![Work{ element_ind: 0, parent_element_ind:None,stub_element_ind: None }];

@@ -1,5 +1,6 @@
 
-use bevy::prelude::*;
+use bevy::{input::InputSystems, prelude::*};
+use bevy_table_ui::UiInteractSystem;
 
 use super::{
     assets::*, messages::UixUserMessage, resources::*,  systems::*
@@ -22,7 +23,7 @@ impl bevy::app::Plugin for UixPlugin {
             // .add_systems(Startup, (
             //     init_asset ,
             // ))
-            .add_systems(FixedUpdate,(
+            .add_systems(Update,(
                 on_asset_modified_event,
                 (
                     on_asset_modified_reinit,
@@ -30,9 +31,10 @@ impl bevy::app::Plugin for UixPlugin {
                 ).chain().run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
 
                 on_event_listeners,
-            )
-                .chain()
-            )
+            ).chain().after(UiInteractSystem))
+            // .add_systems(Update,(
+            //     on_event_listeners,
+            //  ).chain().after(InputSystems))
         ;
     }
 }

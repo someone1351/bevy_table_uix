@@ -231,7 +231,9 @@ pub fn on_asset_load<'a>(
 
                 {
                     let mut machine = script_lang::Machine::new(&mut gc_scope, &lib_scope, &mut var_scope,  world);
+                    // build.print();
                     // machine.set_debug_print(true);
+                    // machine.set_debug(true);
                     if let Err(e)=machine.run_build(&build) {
                         // eprint!("{}",)
                         e.eprint(None);
@@ -340,6 +342,7 @@ pub fn on_event_listeners<'a>(
                 let mut var_scope = script_lang::VarScope::new();
                 let mut machine = script_lang::Machine::new(&mut gc_scope, &lib_scope, &mut var_scope,  world);
                 // machine.set_debug_print(true);
+                // machine.set_debug(true);
                 //println!("a");
                 if let Err(e)=machine.call_value(listener,&params) {
                     e.eprint(None);

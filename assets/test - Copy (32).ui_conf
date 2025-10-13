@@ -16,27 +16,28 @@ template scroll_widget
 		height 0
 		color grey
 
-		draggable
-		pressable
-
-		script
-			set self.vscroll 0.0
-			var start;
-			self.add_event_listener "press_begin" [fn () { set start self.vscroll }]
-			self.add_event_listener "press_end" [fn () { set start self.vscroll }]
-
-			#self.add_event_listener "click" [fn () {
-			#	set self.vscroll (+ self.vscroll 11)
-			#	println self.vscroll
-			#}]
-			self.add_event_listener "drag_y" [fn (px scale) {
-				set self.vscroll (clamp (+ start scale) 0.0 1.0)
-				#set self.vscroll (- start px)
-				#println "{px} {scale}"
-
-			}]
 		node body
+			draggable
+			pressable
 
+			script
+				set self.vscroll 12
+				var start;
+				self.add_event_listener "press_begin" [fn () { set start self.vscroll }]
+				self.add_event_listener "press_end" [fn () { set start self.vscroll }]
+
+				self.add_event_listener "click" [fn () {
+					set self.vscroll (+ self.vscroll 11)
+					println self.vscroll
+
+				}]
+				self.add_event_listener "drag_y" [fn (px scale) {
+					#set self.vscroll (clamp (+ start px) 0.0 1.0)
+
+					#println px
+
+					#set self.vscroll (+ self.vscroll 1)
+				}]
     node scroll_vbar
         vfill 1.0
 		span 1
@@ -116,11 +117,10 @@ template scroll_widget
 
 
 stub thing
-	script
 
 	node
-		width 100
-		height 100
+		width 50
+		height 50
 		color blue
 node
     template scroll_widget
@@ -131,15 +131,7 @@ node
         gap 10
 
         script
-			var w 20, h 12;
-            for i 0 (* w h) {
-                var e (call stub_thing self)
-
-				var s (abs (cos (float i)))
-				var t (abs (sin (float i)))
-
-				set e.0.color.r (* 0.8 s)
-				set e.0.color.g (* 0.8 s s)
-				set e.0.color.b (* 0.8 (- 1.0 t))
+            for i 0 (* 20 12) {
+                call stub_thing self
             }
 

@@ -1,3 +1,9 @@
+/*
+TODO
+* could provide variadic params to stub func eg fn stub_thing(self params ...){}, so when calling eg call stub_thing self 1 2 3
+
+*/
+
 mod assets;
 mod components;
 mod plugin;
