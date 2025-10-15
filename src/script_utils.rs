@@ -15,51 +15,16 @@ pub fn set_component<T:Component<Mutability = bevy::ecs::component::Mutable>+Def
     func(&mut c);
 }
 
+pub fn script_to_ui_val(v:Value) -> Result<UiVal,MachineError> {
+    (!v.is_nil()).then(||v.as_custom().data_clone()).unwrap_or(Ok(UiVal::None))
+}
+
+
 pub fn self_entity_from_world(world : &mut World,entity:Entity) -> Value {
     world.entity_mut(entity).entry::<UixSelf>().or_insert_with(||UixSelf::new(entity)).get().entity.to_weak().unwrap()
 }
 
 
-pub fn uival_to_script_value(uival:UiVal) -> Value {
-    match uival {
-        UiVal::None => {
-            Value::Nil
-        }
-        UiVal::Px(p) => {
-            Value::int(p as i32)
-        }
-        UiVal::Scale(s) => {
-            Value::float(s)
-        }
-    }
-}
-
-pub fn script_value_to_uival(v:Value) -> Result<UiVal,MachineError> {
-    if v.is_int() {
-        return Ok(UiVal::Px(v.as_float() as f32));
-    }
-
-    if v.is_float() {
-        return Ok(UiVal::Scale(v.as_float() as f32));
-    }
-
-    if v.is_nil() {
-        return Ok(UiVal::None);
-    }
-
-    if v.is_string() {
-        let v=v.as_string();
-        let v= v.trim();
-
-        if v.ends_with("%") {
-            if let Ok(v)=v[0..v.len()-1].parse::<f32>() {
-                return Ok(UiVal::Scale(v*0.01));
-            }
-        }
-    }
-
-    Err(script_lang::MachineError::method("Expected float, int, percent or nil"))
-}
 
 pub fn col_to_script_value(col:Color) -> Value {
     use bevy::prelude::ColorToComponents;
@@ -104,9 +69,6 @@ pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
     val.get_string().ok_or_else(||MachineError::method("expected string")).map(|x|x.to_string())
 }
 
-pub fn get_component<T:Component>(world:&World,entity:Entity) -> Option<&T> {
-    world.entity(entity).get::<T>()
-}
 
 pub fn entity_get_field(field:&str,lib_scope:&mut LibScope<World>,f:fn(Entity,&World)->Value) {
     lib_scope.field_named(field,move|context|{

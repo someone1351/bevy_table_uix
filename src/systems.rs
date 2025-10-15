@@ -8,7 +8,8 @@ use std::collections::HashSet;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
-use script_lang::IntT;
+// use script_lang::IntT;
+use script_lang::Value;
 use table_ui::*;
 use crate::resources::UixGcScope;
 use crate::resources::UixLibScope;
@@ -186,7 +187,7 @@ pub fn on_asset_load<'a>(
             // println!("all_stubs : {:?}",stuff.all_stubs);
             // println!("all_nodes : {:?}",stuff.all_nodes);
 
-            let stuff = script_lang::Value::custom_unmanaged(stuff);
+            let stuff = Value::custom_unmanaged(stuff);
             println!("===\n\n{src}\n====");
 
             // {
@@ -226,7 +227,7 @@ pub fn on_asset_load<'a>(
 
                 let mut var_scope = script_lang::VarScope::new();
                 var_scope.decl("_stubs",Some(stuff)).unwrap();
-                // var_scope.decl("root",Some(script_lang::Value::custom_unmanaged(top_entity))).unwrap();
+                // var_scope.decl("root",Some(Value::custom_unmanaged(top_entity))).unwrap();
                 var_scope.decl("root",Some(top_entity_val)).unwrap();
 
                 {
@@ -282,7 +283,7 @@ pub fn on_event_listeners<'a>(
     //update events
     for (_entity,event_listener) in event_listeners_query.iter() {
         if let Some((_,listeners))=event_listener.event_listeners.get_key_value("update") {
-            let params= vec![script_lang::Value::float(time_elapsed)];
+            let params= vec![Value::float(time_elapsed)];
             bla.push((
                 // ev.entity,k.clone(),
                 params,listeners.clone(),
@@ -296,17 +297,20 @@ pub fn on_event_listeners<'a>(
             // event_listener.event_listeners.contains_key(ev.event_type.name())
             if let Some((_k,listeners))=event_listener.event_listeners.get_key_value(ev.event_type.name()) {
                 let params= match ev.event_type {
-                    UiInteractMessageType::HoverBegin { device } => vec![script_lang::Value::int(device)],
-                    UiInteractMessageType::HoverEnd { device } => vec![script_lang::Value::int(device)],
+                    UiInteractMessageType::HoverBegin { device } => vec![Value::int(device)],
+                    UiInteractMessageType::HoverEnd { device } => vec![Value::int(device)],
                     UiInteractMessageType::PressBegin => vec![],
                     UiInteractMessageType::PressEnd => vec![],
                     UiInteractMessageType::Click => vec![],
-                    UiInteractMessageType::DragX { px, scale } => vec![script_lang::Value::int((px+0.5) as IntT),script_lang::Value::float(scale)],
-                    UiInteractMessageType::DragY { px, scale } => vec![script_lang::Value::int((px+0.5) as IntT),script_lang::Value::float(scale)],
+                    // UiInteractMessageType::DragX { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
+                    // UiInteractMessageType::DragY { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
+
+                    UiInteractMessageType::DragX { px, scale } => vec![Value::float(px),Value::float(scale)],
+                    UiInteractMessageType::DragY { px, scale } => vec![Value::float(px),Value::float(scale)],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
-                    UiInteractMessageType::FocusBegin { group } => vec![script_lang::Value::int(group)],
-                    UiInteractMessageType::FocusEnd { group } => vec![script_lang::Value::int(group)],
+                    UiInteractMessageType::FocusBegin { group } => vec![Value::int(group)],
+                    UiInteractMessageType::FocusEnd { group } => vec![Value::int(group)],
                 };
                 bla.push((
                     // ev.entity,k.clone(),

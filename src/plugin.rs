@@ -1,5 +1,5 @@
 
-use bevy::{input::InputSystems, prelude::*};
+use bevy::prelude::*;
 use bevy_table_ui::UiInteractSystem;
 
 use super::{

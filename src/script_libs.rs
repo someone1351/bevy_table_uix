@@ -1,7 +1,7 @@
 
 #![allow(unused_mut)]
 #![allow(dead_code)]
-#![allow(unused_variables)]
+// #![allow(unused_variables)]
 #![allow(unused_imports)]
 
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
@@ -31,57 +31,93 @@ TODO
 
 
 pub fn register_attribs(lib_scope:&mut LibScope<World>) {
+    //copy ui_val
     lib_scope.method("copy", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
         Ok(Value::custom_unmanaged(val))
+    }).custom_mut_ref::<UiVal>();
+
+    //not ui_val
+    lib_scope.method("not", |context|{
+        Ok(Value::bool(if let UiVal::None=context.param(0).as_custom().data_clone()?{true}else{false}))
     }).custom_ref::<UiVal>();
 
+    //get ui_val.px
     lib_scope.field_named("px", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
         Ok(if let UiVal::Px(val)=val{Value::float(val)} else {Value::Nil})
     }).custom_ref::<UiVal>().end();
 
+    //set ui_val.px
     lib_scope.field_named("px", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
         this.with_data_mut(|data:&mut UiVal|{ *data=UiVal::Px(to as f32); Ok(Value::Void) })
-    }).custom_ref::<UiVal>().float().end();
+    }).custom_mut_ref::<UiVal>().float().end();
 
+    //get ui_val.scale
     lib_scope.field_named("scale", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
         Ok(if let UiVal::Scale(val)=val{Value::float(val)} else {Value::Nil})
     }).custom_ref::<UiVal>().end();
 
+    //set ui_val.scale
     lib_scope.field_named("scale", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
         this.with_data_mut(|data:&mut UiVal|{ *data=UiVal::Scale(to as f32); Ok(Value::Void) })
-    }).custom_ref::<UiVal>().float().end();
+    }).custom_mut_ref::<UiVal>().float().end();
 
     //
     #[derive(Clone)]
     struct NodeComputed(Value);
 
+    //get entity.computed
     lib_scope.field_named("computed", |context|{
         let node=context.param(0);
         Ok(Value::custom_unmanaged(NodeComputed(node)))
     }).custom_ref::<Entity>().end();
 
-    // lib_scope.field_named("inner_width", |context|{
-    //     let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_computed.0.as_custom().data_clone()?;
-    //     let world=context.core();
-    //     let Some(computed)=world.entity(entity).get::<UiLayoutComputed>() else {
-    //         return Ok(Value::Nil);
-    //     };
+    //get computed.inner_size
+    lib_scope.field_named("inner_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|[c.size.x as FloatT,c.size.y as FloatT]).unwrap_or_default();
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>();
 
-    //     Ok(Value::float(computed.size.x))
+    //get computed.padding_size
+    lib_scope.field_named("padding_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.padding_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>();
 
-    // }).custom_ref::<NodeComputed>();
 
-    // // entity_get_field3::<UiLayoutComputed>("computed_width",lib_scope,|c|{
-    // //     Value::float(c.)
-    // // });
+    //get computed.border_size
+    lib_scope.field_named("border_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.border_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>();
+
+    //get computed.margin_size
+    lib_scope.field_named("margin_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.margin_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>();
+
+    //get computed.cell_size
+    lib_scope.field_named("cell_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.cell_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>();
 
     //
     entity_get_field3::<UiCongruent>("row_width_scale",lib_scope,|c|{
@@ -101,52 +137,47 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.padding_left
     lib_scope.field_named("padding_left", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.padding.left).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.padding.left).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.padding_left
     lib_scope.field_named("padding_left", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.padding.left=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-
     //get entity.padding_right
     lib_scope.field_named("padding_right", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.padding.right).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.padding.right).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.padding_right
     lib_scope.field_named("padding_right", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.padding.right=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-
     //get entity.padding_top
     lib_scope.field_named("padding_top", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.padding.top).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.padding.top).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.padding_top
     lib_scope.field_named("padding_top", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.padding.top=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -154,16 +185,15 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.padding_bottom
     lib_scope.field_named("padding_bottom", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.padding.bottom).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.padding.bottom).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.padding_bottom
     lib_scope.field_named("padding_bottom", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.padding.bottom=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -172,52 +202,47 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.margin_left
     lib_scope.field_named("margin_left", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.margin.left).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.margin.left).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.margin_left
     lib_scope.field_named("margin_left", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.margin.left=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-
     //get entity.margin_right
     lib_scope.field_named("margin_right", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.margin.right).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.margin.right).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.margin_right
     lib_scope.field_named("margin_right", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.margin.right=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-
     //get entity.margin_top
     lib_scope.field_named("margin_top", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.margin.top).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.margin.top).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.margin_top
     lib_scope.field_named("margin_top", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.margin.top=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -225,16 +250,15 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.margin_bottom
     lib_scope.field_named("margin_bottom", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.margin.bottom).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.margin.bottom).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.margin_bottom
     lib_scope.field_named("margin_bottom", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.margin.bottom=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -243,34 +267,31 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.border_left
     lib_scope.field_named("border_left", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.border.left).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.border.left).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.border_left
     lib_scope.field_named("border_left", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.border.left=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-
     //get entity.border_right
     lib_scope.field_named("border_right", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.border.right).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.border.right).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.border_right
     lib_scope.field_named("border_right", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.border.right=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -278,16 +299,15 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.border_top
     lib_scope.field_named("border_top", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.border.top).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.border.top).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.border_top
     lib_scope.field_named("border_top", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.border.top=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
@@ -295,79 +315,147 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get entity.border_bottom
     lib_scope.field_named("border_bottom", |context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let edge=get_component2::<UiEdge>(context.core(),entity);
-        let v=edge.map(|edge|edge.border.bottom).map(|v|Value::custom_unmanaged(v)).unwrap_or_default();
-        Ok(v)
+        let c=get_component2::<UiEdge>(context.core(),entity);
+        let v=c.map(|c|c.border.bottom).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
     }).custom_ref::<Entity>().end();
 
     //set entity.border_bottom
     lib_scope.field_named("border_bottom", |mut context|{
         let entity:Entity=context.param(0).as_custom().data_clone()?;
-        let to=context.param(1);
-        let to=to.is_nil().then_some(Ok(UiVal::None)).unwrap_or_else(||to.as_custom().data_clone())?;
+        let to=script_to_ui_val(context.param(1))?;
         set_component::<UiEdge>(context.core_mut(),entity,|c|c.border.bottom=to);
         Ok(Value::Void)
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
     //
-    entity_get_field3::<UiGap>("hgap",lib_scope,|c|{
-        uival_to_script_value(c.hgap)
-    });
-    entity_set_field_mut3::<UiGap>("hgap",lib_scope,|c,v|{
-        c.hgap=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.hgap
+    lib_scope.field_named("hgap", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiGap>(context.core(),entity);
+        let v=c.map(|c|c.hgap).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiGap>("vgap",lib_scope,|c|{
-        uival_to_script_value(c.vgap)
-    });
-    entity_set_field_mut3::<UiGap>("vgap",lib_scope,|c,v|{
-        c.vgap=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.hgap
+    lib_scope.field_named("hgap", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiGap>(context.core_mut(),entity,|c|c.hgap=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-    //
-    entity_get_field3::<UiExpand>("hexpand",lib_scope,|c|{
-        uival_to_script_value(c.hexpand)
-    });
-    entity_set_field_mut3::<UiExpand>("hexpand",lib_scope,|c,v|{
-        c.hexpand=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.vgap
+    lib_scope.field_named("vgap", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiGap>(context.core(),entity);
+        let v=c.map(|c|c.vgap).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiExpand>("vexpand",lib_scope,|c|{
-        uival_to_script_value(c.vexpand)
-    });
-    entity_set_field_mut3::<UiExpand>("vexpand",lib_scope,|c,v|{
-        c.vexpand=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.vgap
+    lib_scope.field_named("vgap", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiGap>(context.core_mut(),entity,|c|c.vgap=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-    //
-    entity_get_field3::<UiFill>("hfill",lib_scope,|c|{
-        uival_to_script_value(c.hfill)
-    });
-    entity_set_field_mut3::<UiFill>("hfill",lib_scope,|c,v|{
-        c.hfill=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.hexpand
+    lib_scope.field_named("hexpand", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiExpand>(context.core(),entity);
+        let v=c.map(|c|c.hexpand).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiFill>("vfill",lib_scope,|c|{
-        uival_to_script_value(c.vfill)
-    });
-    entity_set_field_mut3::<UiFill>("vfill",lib_scope,|c,v|{
-        c.vfill=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.hexpand
+    lib_scope.field_named("hexpand", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiExpand>(context.core_mut(),entity,|c|c.hexpand=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-    //
-    entity_get_field3::<UiScroll>("hscroll",lib_scope,|c|{
-        uival_to_script_value(c.hscroll)
-    });
-    entity_set_field_mut3::<UiScroll>("hscroll",lib_scope,|c,v|{
-        c.hscroll=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.vexpand
+    lib_scope.field_named("vexpand", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiExpand>(context.core(),entity);
+        let v=c.map(|c|c.vexpand).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiScroll>("vscroll",lib_scope,|c|{
-        uival_to_script_value(c.vscroll)
-    });
-    entity_set_field_mut3::<UiScroll>("vscroll",lib_scope,|c,v|{
-        c.vscroll=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.vexpand
+    lib_scope.field_named("vexpand", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiExpand>(context.core_mut(),entity,|c|c.vexpand=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.hfill
+    lib_scope.field_named("hfill", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiFill>(context.core(),entity);
+        let v=c.map(|c|c.hfill).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.hfill
+    lib_scope.field_named("hfill", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiFill>(context.core_mut(),entity,|c|c.hfill=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.vfill
+    lib_scope.field_named("vfill", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiFill>(context.core(),entity);
+        let v=c.map(|c|c.vfill).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.vfill
+    lib_scope.field_named("vfill", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiFill>(context.core_mut(),entity,|c|c.vfill=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.hscroll
+    lib_scope.field_named("hscroll", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiScroll>(context.core(),entity);
+        let v=c.map(|c|c.hscroll).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.hscroll
+    lib_scope.field_named("hscroll", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiScroll>(context.core_mut(),entity,|c|c.hscroll=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.vscroll
+    lib_scope.field_named("vscroll", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiScroll>(context.core(),entity);
+        let v=c.map(|c|c.vscroll).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.vscroll
+    lib_scope.field_named("vscroll", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiScroll>(context.core_mut(),entity,|c|c.vscroll=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
     //
     entity_get_field3::<UiFloat>("float",lib_scope,|c|{
@@ -418,35 +506,69 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     });
 
     //
-    entity_get_field3::<UiAlign>("halign",lib_scope,|c|{
-        uival_to_script_value(c.halign)
-    });
-    entity_set_field_mut3::<UiAlign>("halign",lib_scope,|c,v|{
-        c.halign=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.halign
+    lib_scope.field_named("halign", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiAlign>(context.core(),entity);
+        let v=c.map(|c|c.halign).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiAlign>("valign",lib_scope,|c|{
-        uival_to_script_value(c.valign)
-    });
-    entity_set_field_mut3::<UiAlign>("valign",lib_scope,|c,v|{
-        c.valign=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.halign
+    lib_scope.field_named("halign", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiAlign>(context.core_mut(),entity,|c|c.halign=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
-    //
-    entity_get_field3::<UiSize>("width",lib_scope,|c|{
-        uival_to_script_value(c.width)
-    });
-    entity_set_field_mut3::<UiSize>("width",lib_scope,|c,v|{
-        c.width=script_value_to_uival(v)?; Ok(())
-    });
+    //get entity.valign
+    lib_scope.field_named("valign", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiAlign>(context.core(),entity);
+        let v=c.map(|c|c.valign).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiSize>("height",lib_scope,|c|{
-        // println!("hmm height {:?}",c.height);
-        uival_to_script_value(c.height)
-    });
-    entity_set_field_mut3::<UiSize>("height",lib_scope,|c,v|{
-        c.height=script_value_to_uival(v)?; Ok(())
-    });
+    //set entity.valign
+    lib_scope.field_named("valign", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiAlign>(context.core_mut(),entity,|c|c.valign=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.width
+    lib_scope.field_named("width", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiSize>(context.core(),entity);
+        let v=c.map(|c|c.width).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.width
+    lib_scope.field_named("width", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiSize>(context.core_mut(),entity,|c|c.width=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
+
+    //get entity.height
+    lib_scope.field_named("height", |context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let c=get_component2::<UiSize>(context.core(),entity);
+        let v=c.map(|c|c.height).unwrap_or_default();
+        Ok(Value::custom_unmanaged_mut(v))
+    }).custom_ref::<Entity>().end();
+
+    //set entity.height
+    lib_scope.field_named("height", |mut context|{
+        let entity:Entity=context.param(0).as_custom().data_clone()?;
+        let to=script_to_ui_val(context.param(1))?;
+        set_component::<UiSize>(context.core_mut(),entity,|c|c.height=to);
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
     //
     entity_get_field3::<UiHoverable>("hoverable",lib_scope,|c|{
@@ -760,7 +882,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 }
 
                 //
-                let parent_entity_val=self_entity_from_world(world, parent_entity);
+                // let parent_entity_val=self_entity_from_world(world, parent_entity);
 
                 // let mut pe=world.entity_mut(parent_entity);
                 // let mut env=pe.entry::<UixEnv>().or_default();
@@ -799,7 +921,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
         })
     }).custom_ref::<Stuff>().int().custom_ref::<Entity>().end();
 
-    //
+    //stuff_result.
     lib_scope.field(|mut context|{ //field_no_symbols
         let data=context.param(0).as_custom();
 
@@ -821,7 +943,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
 
         // let ind=context.param(1).as_int().abs() as usize;
 
-        let world=context.core_mut();
+        // let world=context.core_mut();
 
         data.with_data_ref(|data:&StuffResult|{
             // let Some(entity)=data.nodes.get(&ind).cloned() else {
@@ -858,7 +980,7 @@ pub fn register_misc(lib_scope:&mut LibScope<World>) {
 
     //string(entity)
     lib_scope.method("string",|mut context|{
-        let world=context.core_mut();
+        // let world=context.core_mut();
         let entity:Entity = context.param(0).as_custom().data_clone()?;
         Ok(Value::string(format!("{entity}")))
     }).custom_ref::<Entity>().end();
