@@ -6,6 +6,8 @@ template scroll_widget
     width 640
     height 480
     color red
+	script
+		var hthumb, vthumb
 
 	node outer_body
         hfill 1.0
@@ -45,6 +47,9 @@ template scroll_widget
 			color gold
 			hfill 1.0
 			height 20
+			pressable
+			on press
+				color yellow
 
 		node scroll_vbar_inner
 			vexpand 1.0
@@ -60,6 +65,8 @@ template scroll_widget
 				press_always
 
 				script
+
+					set vthumb self
 					set self.valign.s 0.0
 					var start;
 					self.add_event_listener "press_begin" [fn () { set start self.valign.s }]
@@ -72,6 +79,9 @@ template scroll_widget
 			color gold
 			hfill 1.0
 			height 20
+			pressable
+			on press
+				color yellow
 
 	node scroll_hbar
         hfill 1.0
@@ -80,7 +90,25 @@ template scroll_widget
 			color gold
 			vfill 1.0
 			width 20
+			pressable
+			on press
+				color yellow
+			script
+				var held false
 
+				self.add_event_listener "press_begin" [fn () {
+					set held true
+				}]
+
+				self.add_event_listener "press_end" [fn () {
+					set held false
+				}]
+
+				self.add_event_listener "update" [fn (dt) {
+					if held {
+						set hthumb.halign.s (clamp (- hthumb.halign.s (* dt 0.5)) 0.0 1.0)
+					}
+				}]
 		node scroll_hbar_inner
 			hexpand 1.0
 			hfill 1.0
@@ -95,6 +123,7 @@ template scroll_widget
 				press_always
 
 				script
+					set hthumb self
 					set self.halign.s 0.0
 					var start;
 
@@ -111,7 +140,25 @@ template scroll_widget
 			color gold
 			vfill 1.0
 			width 20
+			pressable
+			on press
+				color yellow
+			script
+				var held false
 
+				self.add_event_listener "press_begin" [fn () {
+					set held true
+				}]
+
+				self.add_event_listener "press_end" [fn () {
+					set held false
+				}]
+
+				self.add_event_listener "update" [fn (dt) {
+					if held {
+						set hthumb.halign.s (clamp (+ hthumb.halign.s (* dt 0.5)) 0.0 1.0)
+					}
+				}]
 	node scroll_corner
 		color light_grey
 		hfill 1.0

@@ -14,6 +14,7 @@ use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiLayout
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystems}, prelude::* };
 use bevy_table_uix::UixFromAsset;
 
+
 fn main() {
     println!("Hello, world!");
 
