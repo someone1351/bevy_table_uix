@@ -78,7 +78,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
     //
     #[derive(Clone)]
-    enum NodeEdge { Padding(Value), Border(Value), Margin(Value), }
+    enum NodeEdge { Padding(Value), Border(Value), Margin(Value), Cell(Value),}
 
     //get computed.padding
     lib_scope.field_named("padding", |context|{
@@ -101,10 +101,17 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
     }).custom_ref::<NodeComputed>().end();
 
+    //get computed.cell
+    lib_scope.field_named("cell", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
+    }).custom_ref::<NodeComputed>().end();
+
     //get node_edge.left_size
     lib_scope.field_named("left_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -112,6 +119,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => c.padding_size.left,
                 NodeEdge::Border(_) => c.border_size.left,
                 NodeEdge::Margin(_) => c.margin_size.left,
+                NodeEdge::Cell(_) => c.cell_size.left,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -120,7 +128,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.right_size
     lib_scope.field_named("right_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -128,6 +136,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => c.padding_size.right,
                 NodeEdge::Border(_) => c.border_size.right,
                 NodeEdge::Margin(_) => c.margin_size.right,
+                NodeEdge::Cell(_) => c.margin_size.right,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -136,7 +145,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.top_size
     lib_scope.field_named("top_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -144,6 +153,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => c.padding_size.top,
                 NodeEdge::Border(_) => c.border_size.top,
                 NodeEdge::Margin(_) => c.margin_size.top,
+                NodeEdge::Cell(_) => c.margin_size.top,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -152,7 +162,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.bottom_size
     lib_scope.field_named("bottom_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -160,6 +170,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => c.padding_size.bottom,
                 NodeEdge::Border(_) => c.border_size.bottom,
                 NodeEdge::Margin(_) => c.margin_size.bottom,
+                NodeEdge::Cell(_) => c.margin_size.bottom,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -168,7 +179,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.sum_size
     lib_scope.field_named("sum_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -176,6 +187,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => [c.padding_size.left+c.padding_size.right,c.padding_size.top+c.padding_size.bottom],
                 NodeEdge::Border(_) => [c.border_size.left+c.border_size.right, c.border_size.top+c.border_size.bottom],
                 NodeEdge::Margin(_) => [c.margin_size.left+c.margin_size.right, c.margin_size.top+c.margin_size.bottom],
+                NodeEdge::Cell(_) => [c.cell_size.left+c.cell_size.right, c.cell_size.top+c.cell_size.bottom],
             }
         }).unwrap_or_default().map(|x|x as FloatT);
         Ok(Value::custom_unmanaged(v))
@@ -184,7 +196,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.rect_size
     lib_scope.field_named("rect_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node))=node_edge.clone();
+        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
         let entity:Entity=node.as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
@@ -192,6 +204,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 NodeEdge::Padding(_) => c.padding_rect(),
                 NodeEdge::Border(_) => c.border_rect(),
                 NodeEdge::Margin(_) => c.margin_rect(),
+                NodeEdge::Cell(_) => c.cell_rect(),
             };
             [r.width(),r.height()]
         }).unwrap_or_default().map(|x|x as FloatT);
