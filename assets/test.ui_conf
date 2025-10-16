@@ -64,10 +64,10 @@ template scroll_widget
 					var start;
 					self.add_event_listener "press_begin" [fn () { set start self.valign.s }]
 					self.add_event_listener "press_end" [fn () { set start self.valign.s }]
-					println self.computed.cell_region_sum_size
+					println self.computed.cell.sum_size
 
 					self.add_event_listener "drag_y" [fn (d) {
-						var h self.computed.cell_region_sum_size.y;
+						var h self.computed.cell.sum_size.y;
 						var scale (? (>= h 0.0) (/ d h) 0.0)
 						set self.valign.s (clamp (+ start scale) 0.0 1.0)
 					}]
