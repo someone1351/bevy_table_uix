@@ -20,7 +20,7 @@ template scroll_widget
 		pressable
 
 		script
-			set self.vscroll.px 0.0
+			set self.vscroll.p 0.0
 			var start;
 			self.add_event_listener "press_begin" [fn () { set start self.vscroll }]
 			self.add_event_listener "press_end" [fn () { set start self.vscroll }]
@@ -60,15 +60,16 @@ template scroll_widget
 				press_always
 
 				script
-					set self.valign.scale 0.0
+					set self.valign.s 0.0
 					var start;
-					self.add_event_listener "press_begin" [fn () { set start self.valign.scale }]
-					self.add_event_listener "press_end" [fn () { set start self.valign.scale }]
+					self.add_event_listener "press_begin" [fn () { set start self.valign.s }]
+					self.add_event_listener "press_end" [fn () { set start self.valign.s }]
+					println self.computed.cell_region_sum_size
 
 					self.add_event_listener "drag_y" [fn (d) {
-						var h self.computed.cell_size.y;
-						var scale (? (>= h 0.0) (d/h) 0.0)
-						set self.valign.scale (clamp (+ start scale) 0.0 1.0)
+						var h self.computed.cell_region_sum_size.y;
+						var scale (? (>= h 0.0) (/ d h) 0.0)
+						set self.valign.s (clamp (+ start scale) 0.0 1.0)
 					}]
 		node scroll_vbar_down
 			color gold
@@ -97,7 +98,7 @@ template scroll_widget
 				press_always
 
 				script
-					set self.halign.scale 0.0
+					set self.halign.s 0.0
 					var start;
 					self.add_event_listener "press_begin" [fn () { set start self.halign }]
 					self.add_event_listener "press_end" [fn () { set start self.halign }]

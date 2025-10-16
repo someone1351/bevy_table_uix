@@ -29,13 +29,75 @@ TODO
 */
 
 
+    // //set ui_rect.left
+    // lib_scope.method("left", |context|{
+    //     let rect=context.param(0).as_custom();
+    //     let to=context.param(1).as_float();
+    //     rect.with_data_mut(move|rect:&mut UiRect|rect.left=to as f32)?;
+    //     Ok(Value::Void)
+    // }).custom_mut_ref::<UiRect>().float().end();
 
 pub fn register_attribs(lib_scope:&mut LibScope<World>) {
+
+    //copy ui_rect
+    lib_scope.method("copy", |context|{
+        let val:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::custom_unmanaged_mut(val))
+    }).custom_ref::<UiRect>();
+
+    //get ui_rect.left
+    lib_scope.method("left", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.left))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.right
+    lib_scope.method("right", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.right))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.top
+    lib_scope.method("top", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.top))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.bottom
+    lib_scope.method("bottom", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.bottom))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.hsum
+    lib_scope.method("hsum", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.left+rect.right))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.vsum
+    lib_scope.method("vsum", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.top+rect.bottom))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.hdif
+    lib_scope.method("hdif", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.right-rect.left))
+    }).custom_ref::<UiRect>().end();
+
+    //get ui_rect.vdif
+    lib_scope.method("vdif", |context|{
+        let rect:UiRect=context.param(0).as_custom().data_clone()?;
+        Ok(Value::float(rect.bottom-rect.top))
+    }).custom_ref::<UiRect>().end();
+
     //copy ui_val
     lib_scope.method("copy", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
-        Ok(Value::custom_unmanaged(val))
-    }).custom_mut_ref::<UiVal>();
+        Ok(Value::custom_unmanaged_mut(val))
+    }).custom_ref::<UiVal>();
 
     //not ui_val
     lib_scope.method("not", |context|{
@@ -43,29 +105,29 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<UiVal>();
 
     //get ui_val.px
-    lib_scope.field_named("px", |context|{
+    lib_scope.field_named("p", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
         Ok(if let UiVal::Px(val)=val{Value::float(val)} else {Value::Nil})
     }).custom_ref::<UiVal>().end();
 
     //set ui_val.px
-    lib_scope.field_named("px", |context|{
+    lib_scope.field_named("p", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
-        this.with_data_mut(|data:&mut UiVal|{ *data=UiVal::Px(to as f32); Ok(Value::Void) })
+        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Px(to as f32); Ok(Value::Void) })
     }).custom_mut_ref::<UiVal>().float().end();
 
     //get ui_val.scale
-    lib_scope.field_named("scale", |context|{
+    lib_scope.field_named("s", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
         Ok(if let UiVal::Scale(val)=val{Value::float(val)} else {Value::Nil})
     }).custom_ref::<UiVal>().end();
 
     //set ui_val.scale
-    lib_scope.field_named("scale", |context|{
+    lib_scope.field_named("s", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
-        this.with_data_mut(|data:&mut UiVal|{ *data=UiVal::Scale(to as f32); Ok(Value::Void) })
+        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Scale(to as f32); Ok(Value::Void) })
     }).custom_mut_ref::<UiVal>().float().end();
 
     //
@@ -78,46 +140,79 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         Ok(Value::custom_unmanaged(NodeComputed(node)))
     }).custom_ref::<Entity>().end();
 
-    //get computed.inner_size
-    lib_scope.field_named("inner_size", |context|{
+    //get computed.inner_rect_size
+    lib_scope.field_named("inner_rect_size", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|[c.size.x as FloatT,c.size.y as FloatT]).unwrap_or_default();
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>();
 
-    //get computed.padding_size
-    lib_scope.field_named("padding_size", |context|{
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|{
+            if c.enabled {[c.size.x as FloatT,c.size.y as FloatT]} else {[0.0,0.0]}
+        }).unwrap_or_default();
+
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.padding_rect_size
+    lib_scope.field_named("padding_rect_size", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.padding_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|(c.enabled,c.padding_rect())).map(|(b,r)|{
+             if b { [r.width() as FloatT,r.height() as FloatT] } else { [0.0,0.0] }
+        }).unwrap_or_default();
+
         Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>();
+    }).custom_ref::<NodeComputed>().end();
 
-
-    //get computed.border_size
-    lib_scope.field_named("border_size", |context|{
+    //get computed.border_rect_size
+    lib_scope.field_named("border_rect_size", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.border_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|(c.enabled,c.border_rect())).map(|(b,r)|{
+            if b {
+                [r.width() as FloatT,r.height() as FloatT]
+            } else {
+                [0.0,0.0]
+            }
+        }).unwrap_or_default();
         Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>();
+    }).custom_ref::<NodeComputed>().end();
 
-    //get computed.margin_size
-    lib_scope.field_named("margin_size", |context|{
+    //get computed.margin_rect_size
+    lib_scope.field_named("margin_rect_size", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.margin_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>();
 
-    //get computed.cell_size
-    lib_scope.field_named("cell_size", |context|{
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|(c.enabled,c.margin_rect())).map(|(b,r)|{
+             if b { [r.width() as FloatT,r.height() as FloatT] } else { [0.0,0.0] }
+        }).unwrap_or_default();
+
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.cell_rect_size
+    lib_scope.field_named("cell_rect_size", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|c.cell_rect()).map(|r|[r.width() as FloatT,r.height() as FloatT]).unwrap_or_default();
+
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|(c.enabled,c.cell_rect())).map(|(b,r)|{
+            if b { [r.width() as FloatT,r.height() as FloatT] } else { [0.0,0.0] }
+        }).unwrap_or_default();
+
         Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>();
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.cell_region_sum_size
+    lib_scope.field_named("cell_region_sum_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_computed.0.as_custom().data_clone()?;
+
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|(c.enabled,c.cell_size.sum())).map(|(b,r)|{
+            if b { [r[0] as FloatT,r[1] as FloatT] } else { [0.0,0.0] }
+        }).unwrap_or_default();
+
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>().end();
 
     //
     entity_get_field3::<UiCongruent>("row_width_scale",lib_scope,|c|{
@@ -851,7 +946,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
 
         let world=context.core_mut();
 
-        stuff.with_data_ref(|stuff:&Stuff|{
+        stuff.with_data_ref_ext(|stuff:&Stuff|{
             let mut element_entity_map = HashMap::<usize,Entity>::from_iter([(0,top_entity)]);
             let Some(node_range)=stuff.all_stubs.get(&stub_ind).cloned() else {return Ok(Value::Nil);};
 
@@ -945,7 +1040,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
 
         // let world=context.core_mut();
 
-        data.with_data_ref(|data:&StuffResult|{
+        data.with_data_ref_ext(|data:&StuffResult|{
             // let Some(entity)=data.nodes.get(&ind).cloned() else {
             //     return Ok(Value::Nil);
             // };
@@ -1171,14 +1266,14 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     //len stuff_result_env
     lib_scope.method("len",|mut context|{
         let env=context.param(0);
-        env.as_custom().with_data_ref(|data:&StuffResultEnv|Ok(Value::int(data.by_ind.len())))
+        env.as_custom().with_data_ref_ext(|data:&StuffResultEnv|Ok(Value::int(data.by_ind.len())))
     }).custom_ref::<StuffResultEnv>().end();
 
     //get stuff_result_env.int
     lib_scope.field(|mut context|{
         let env=context.param(0);
 
-        env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+        env.as_custom().with_data_ref_ext(|data:&StuffResultEnv|{
             Ok(context.param(1).as_index(data.by_ind.len()).map(|index|data.by_ind[index].clone()).unwrap_or(Value::Nil))
         })
     }).custom_ref::<StuffResultEnv>().int().end();
@@ -1202,7 +1297,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     lib_scope.method("len",|mut context|{
         let named_env:StuffResultNamedEnv=context.param(0).as_custom().data_clone()?;
 
-        named_env.env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+        named_env.env.as_custom().with_data_ref_ext(|data:&StuffResultEnv|{
             Ok(Value::int(data.by_name.get(&named_env.name).map(|x|x.len()).unwrap_or(0)))
         })
     }).custom_ref::<StuffResultNamedEnv>().end();
@@ -1212,7 +1307,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|mut context|{
         let named_env:StuffResultNamedEnv=context.param(0).as_custom().data_clone()?;
 
-        named_env.env.as_custom().with_data_ref(|data:&StuffResultEnv|{
+        named_env.env.as_custom().with_data_ref_ext(|data:&StuffResultEnv|{
             Ok(data.by_name.get(&named_env.name).and_then(|v|{
                 context.param(1).as_index(v.len()).map(|index|v.get(index).unwrap().clone())
             }).unwrap_or(Value::Nil))
