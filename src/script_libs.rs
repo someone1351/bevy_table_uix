@@ -79,6 +79,12 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //
     #[derive(Clone)]
     enum NodeEdge { Padding(Value), Border(Value), Margin(Value), Cell(Value),}
+    impl NodeEdge {
+        pub fn node(&self) -> Value {
+            let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=self;
+            node.clone()
+        }
+    }
 
     //get computed.padding
     lib_scope.field_named("padding", |context|{
@@ -105,14 +111,13 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     lib_scope.field_named("cell", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
+        Ok(Value::custom_unmanaged(NodeEdge::Cell(node)))
     }).custom_ref::<NodeComputed>().end();
 
     //get node_edge.left_size
     lib_scope.field_named("left_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
@@ -128,15 +133,14 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.right_size
     lib_scope.field_named("right_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
                 NodeEdge::Padding(_) => c.padding_size.right,
                 NodeEdge::Border(_) => c.border_size.right,
                 NodeEdge::Margin(_) => c.margin_size.right,
-                NodeEdge::Cell(_) => c.margin_size.right,
+                NodeEdge::Cell(_) => c.cell_size.right,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -145,15 +149,14 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.top_size
     lib_scope.field_named("top_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
                 NodeEdge::Padding(_) => c.padding_size.top,
                 NodeEdge::Border(_) => c.border_size.top,
                 NodeEdge::Margin(_) => c.margin_size.top,
-                NodeEdge::Cell(_) => c.margin_size.top,
+                NodeEdge::Cell(_) => c.cell_size.top,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -162,15 +165,14 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.bottom_size
     lib_scope.field_named("bottom_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
                 NodeEdge::Padding(_) => c.padding_size.bottom,
                 NodeEdge::Border(_) => c.border_size.bottom,
                 NodeEdge::Margin(_) => c.margin_size.bottom,
-                NodeEdge::Cell(_) => c.margin_size.bottom,
+                NodeEdge::Cell(_) => c.cell_size.bottom,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -179,8 +181,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.sum_size
     lib_scope.field_named("sum_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
@@ -196,8 +197,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     //get node_edge.rect_size
     lib_scope.field_named("rect_size", |context|{
         let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=node_edge.clone();
-        let entity:Entity=node.as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             let r=match node_edge {
@@ -216,9 +216,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_computed.0.as_custom().data_clone()?;
 
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity).map(|c|{
-            if c.enabled {[c.size.x as FloatT,c.size.y as FloatT]} else {[0.0,0.0]}
-        }).unwrap_or_default();
+        let v=get_component2::<UiLayoutComputed>(context.core(),entity)
+            .filter(|&c|c.enabled)
+            .map(|c|[c.size.x,c.size.y])
+            .unwrap_or_default().map(|x|x as FloatT);
 
         Ok(Value::custom_unmanaged(v))
     }).custom_ref::<NodeComputed>().end();
