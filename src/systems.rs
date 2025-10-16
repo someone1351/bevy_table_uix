@@ -305,8 +305,8 @@ pub fn on_event_listeners<'a>(
                     // UiInteractMessageType::DragX { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
                     // UiInteractMessageType::DragY { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
 
-                    UiInteractMessageType::DragX { px, scale } => vec![Value::float(px),Value::float(scale)],
-                    UiInteractMessageType::DragY { px, scale } => vec![Value::float(px),Value::float(scale)],
+                    UiInteractMessageType::DragX { px,  } => vec![Value::float(px),], //Value::float(scale)
+                    UiInteractMessageType::DragY { px,  } => vec![Value::float(px),],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
                     UiInteractMessageType::FocusBegin { group } => vec![Value::int(group)],
