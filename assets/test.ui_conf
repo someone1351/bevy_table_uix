@@ -7,7 +7,7 @@ template scroll_widget
     height 480
     color red
 	script
-		var hthumb, vthumb
+		var hthumb, vthumb, body
 
 	node outer_body
         hfill 1.0

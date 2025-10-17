@@ -31,7 +31,8 @@ impl bevy::app::Plugin for UixPlugin {
                 ).chain().run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
 
                 on_event_listeners,
-            ).chain().after(UiInteractSystem))
+            ).chain()
+            .after(UiInteractSystem))
             // .add_systems(Update,(
             //     on_event_listeners,
             //  ).chain().after(InputSystems))
