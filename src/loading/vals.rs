@@ -15,9 +15,6 @@ use std::path::PathBuf;
 
 // use bevy::platform::collections::HashSet;
 use conf_lang::RecordContainer;
-use bevy_table_ui as table_ui;
-// use ron::de;
-use table_ui::*;
 // use super::script_stuff::{AttribFunc, Stuff};
 use super::super::script_vals::*;
 
@@ -43,6 +40,7 @@ pub enum ElementType<'a> {
     Attrib {
         name : &'a str,
         on_state: Option<UiAffectState>,
+        on_priority:Option<i32>,
         in_template: Option<usize>,
         func : AttribFunc,
         in_node : bool,

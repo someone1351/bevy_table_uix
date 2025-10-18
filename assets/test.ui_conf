@@ -49,7 +49,7 @@ template scroll_widget
 			height 20
 			pressable
 			on press
-				color yellow
+			    color yellow
 
 		node scroll_vbar_inner
 			vexpand 1.0

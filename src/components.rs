@@ -12,6 +12,8 @@ use bevy_table_ui::{UiLayoutComputed, UiRoot, };
 
 // use crate::table_ui::{UiSize, UiVal};
 
+use crate::script_vals::UiAffectState;
+
 use super::{
     // systems::*,
     assets::*,
@@ -20,6 +22,12 @@ use super::{
 };
 
 // use script_lang as script;
+
+#[derive(Component,)]
+#[require(UiLayoutComputed)]
+pub struct UixAffect {
+    // pub states : HashMap<Option<UiAffectState>,>,
+}
 
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]

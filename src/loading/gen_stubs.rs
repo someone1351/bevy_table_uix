@@ -22,7 +22,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_stubs: HashMap<usize, Range<usize>> = HashMap::new(); //[root/stub_element_ind]=(nodes_start,nodes_end)
     // let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
     let mut all_nodes=Vec::new();
-    let mut all_attribs: Vec<AttribFunc>=Vec::new(); //[]=func
+    let mut all_init_attribs: Vec<AttribFuncType>=Vec::new(); //[]=func
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
     //
@@ -69,13 +69,13 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
         for &(node_element_ind,parent_element_ind) in node_parents.iter() {
             //
             let funcs=tmp_attribs.get(&node_element_ind);
-            let attribs_start=all_attribs.len();
+            let attribs_start=all_init_attribs.len();
 
-            if let Some(funcs)=funcs {
-                all_attribs.extend(funcs.iter().map(|x|x.clone()));
+            if let Some((init_funcs,state_funcs))=funcs {
+                all_init_attribs.extend(init_funcs.iter().map(|x|x.clone()));
             }
 
-            let attribs_end=all_attribs.len();
+            let attribs_end=all_init_attribs.len();
 
             let node_element=elements.get(node_element_ind).unwrap();
             let ElementType::Node { names, ..}=&node_element.element_type else {panic!("");};
@@ -111,5 +111,5 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
     }
 
-    Stuff{  all_stubs, all_nodes, all_attribs, all_names, all_envs }
+    Stuff{  all_stubs, all_nodes, all_attribs: all_init_attribs, all_names, all_envs }
 }

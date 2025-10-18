@@ -808,46 +808,46 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     });
 
     //
-    entity_get_field3::<UiAffect>("color",lib_scope,|c|{
-        col_to_script_value(c.back_color.get(&None).cloned().unwrap_or(Color::NONE))
+    entity_get_field3::<UiColor>("color",lib_scope,|c|{
+        col_to_script_value(c.back)
     });
-    entity_set_field_mut3::<UiAffect>("color",lib_scope,|c,v|{
-        *c.back_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
-    });
-
-    entity_get_field3::<UiAffect>("padding_color",lib_scope,|c|{
-        col_to_script_value(c.padding_color.get(&None).cloned().unwrap_or(Color::NONE))
-    });
-    entity_set_field_mut3::<UiAffect>("padding_color",lib_scope,|c,v|{
-        *c.padding_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    entity_set_field_mut3::<UiColor>("color",lib_scope,|c,v|{
+        c.back=script_value_to_col(v)?; Ok(())
     });
 
-    entity_get_field3::<UiAffect>("margin_color",lib_scope,|c|{
-        col_to_script_value(c.margin_color.get(&None).cloned().unwrap_or(Color::NONE))
+    entity_get_field3::<UiColor>("padding_color",lib_scope,|c|{
+        col_to_script_value(c.padding)
     });
-    entity_set_field_mut3::<UiAffect>("margin_color",lib_scope,|c,v|{
-        *c.margin_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
-    });
-
-    entity_get_field3::<UiAffect>("border_color",lib_scope,|c|{
-        col_to_script_value(c.border_color.get(&None).cloned().unwrap_or(Color::NONE))
-    });
-    entity_set_field_mut3::<UiAffect>("border_color",lib_scope,|c,v|{
-        *c.border_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    entity_set_field_mut3::<UiColor>("padding_color",lib_scope,|c,v|{
+        c.padding=script_value_to_col(v)?; Ok(())
     });
 
-    entity_get_field3::<UiAffect>("cell_color",lib_scope,|c|{
-        col_to_script_value(c.cell_color.get(&None).cloned().unwrap_or(Color::NONE))
+    entity_get_field3::<UiColor>("margin_color",lib_scope,|c|{
+        col_to_script_value(c.margin)
     });
-    entity_set_field_mut3::<UiAffect>("cell_color",lib_scope,|c,v|{
-        *c.cell_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    entity_set_field_mut3::<UiColor>("margin_color",lib_scope,|c,v|{
+        c.margin=script_value_to_col(v)?; Ok(())
     });
 
-    entity_get_field3::<UiAffect>("text_color",lib_scope,|c|{
-        col_to_script_value(c.text_color.get(&None).cloned().unwrap_or(Color::NONE))
+    entity_get_field3::<UiColor>("border_color",lib_scope,|c|{
+        col_to_script_value(c.border)
     });
-    entity_set_field_mut3::<UiAffect>("text_color",lib_scope,|c,v|{
-        *c.text_color.entry(None).or_default()=script_value_to_col(v)?; Ok(())
+    entity_set_field_mut3::<UiColor>("border_color",lib_scope,|c,v|{
+        c.border=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiColor>("cell_color",lib_scope,|c|{
+        col_to_script_value(c.cell)
+    });
+    entity_set_field_mut3::<UiColor>("cell_color",lib_scope,|c,v|{
+        c.cell=script_value_to_col(v)?; Ok(())
+    });
+
+    entity_get_field3::<UiText>("text_color",lib_scope,|c|{
+        col_to_script_value(c.color)
+    });
+    entity_set_field_mut3::<UiText>("text_color",lib_scope,|c,v|{
+        c.color=script_value_to_col(v)?; Ok(())
     });
 
     //
@@ -982,7 +982,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
 
                 //
                 for attrib_ind in stuff_node.attribs.clone() {
-                    let attrib=stuff.all_attribs.get(attrib_ind).unwrap().0.clone();
+                    let attrib=stuff.all_attribs.get(attrib_ind).unwrap().clone();
                     attrib(entity,world);
                 }
 

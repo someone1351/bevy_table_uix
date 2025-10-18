@@ -28,6 +28,17 @@ TODO
 ** so that script and applies added under template_use can make use of has_script/has_self_script/has_apply_script/has_env_script
 *** does it need has_env_script? could give it env that would of otherwise be given to the template_decl
 
+TODO
+* allow the state of one node, to set an attrib of another node
+** how to specify other node? just allow on ancestors eg
+    on state priority .     #self
+    on state priority ..    #parent
+    on state priority ...   #grandparent
+    on state priority ....  #greatgrandparent
+*** let priority be none or i32?
+*** allow "on state priority src", "on state", "on state priority", "on state src"
+*** what about when in applies/templates/stubs? don't allow on ancestors nodes not declared inside
+*** what about allowing on descendents? same problem as allowing on others
 
 */
 use std::{collections::HashSet, path::PathBuf};
@@ -36,7 +47,9 @@ use bevy::{asset::{io::Reader, AssetLoader, Handle, LoadContext}, color::Color, 
 use conf_lang::Conf;
 
 use bevy_table_ui as table_ui;
-use table_ui::{UiAffectState, UiTextHAlign, UiTextVAlign, UiVal};
+use table_ui::{ UiTextHAlign, UiTextVAlign, UiVal};
+
+use crate::script_vals::UiAffectState;
 
 // use crate::libs::conf_lang;
 // use crate::{input::Mapping, libs::input_map};

@@ -2,8 +2,6 @@
 use std::collections::{HashMap, HashSet};
 // use std::collections::BTreeSet;
 
-use bevy_table_ui as table_ui;
-use table_ui::*;
 
 use super::super::script_vals::*;
 use super::vals::*;
