@@ -1,4 +1,8 @@
+/*
+TODO
+* add component that stores local vars on entities
 
+*/
 // use std::collections::HashSet;
 
 use std::collections::{HashMap, HashSet};
@@ -12,7 +16,7 @@ use bevy_table_ui::{UiLayoutComputed, UiRoot, };
 
 // use crate::table_ui::{UiSize, UiVal};
 
-use crate::script_vals::UiAffectState;
+use crate::script_vals::{AttribFuncType, UiAffectState};
 
 use super::{
     // systems::*,
@@ -26,6 +30,7 @@ use super::{
 #[derive(Component,)]
 #[require(UiLayoutComputed)]
 pub struct UixAffect {
+    pub states : HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>,
     // pub states : HashMap<Option<UiAffectState>,>,
 }
 

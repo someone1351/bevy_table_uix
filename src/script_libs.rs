@@ -981,6 +981,13 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 }
 
                 //
+                if let Some(x)=stuff.all_state_attribs.get(&stuff_node.element_ind) {
+                    world.entity_mut(entity).insert(UixAffect{
+                        states: x.clone(),
+                    });
+                }
+
+                //
                 for attrib_ind in stuff_node.attribs.clone() {
                     let attrib=stuff.all_attribs.get(attrib_ind).unwrap().clone();
                     attrib(entity,world);

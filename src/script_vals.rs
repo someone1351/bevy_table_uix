@@ -44,6 +44,8 @@ pub struct StuffNode {
     pub all_attribs:Vec<AttribFuncType>, //[]=func
     pub all_names : Vec<StringT>,
     pub all_envs : HashMap<usize, HashMap<usize, StuffEnv>>, //[root/stub_element_ind][element_ind]=env
+
+    pub all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //[element_ind][state]=(func,priority)
 }
 
 pub struct StuffResultEnv {

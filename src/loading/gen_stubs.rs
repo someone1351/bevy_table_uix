@@ -25,7 +25,9 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_init_attribs: Vec<AttribFuncType>=Vec::new(); //[]=func
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
-    //
+
+    let mut all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>> = HashMap::new(); //[element_ind][state]=(func,priority)
+
 
     let tmp_envs=calc_envs2(elements,);
     let all_envs = tmp_envs.iter().map(|(&stub_element_ind,stub_envs)|{
@@ -68,11 +70,18 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
         //
         for &(node_element_ind,parent_element_ind) in node_parents.iter() {
             //
-            let funcs=tmp_attribs.get(&node_element_ind);
+            let funcs:Option<&(Vec<AttribFuncType>,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>)>=tmp_attribs.get(&node_element_ind);
             let attribs_start=all_init_attribs.len();
 
-            if let Some((init_funcs,state_funcs))=funcs {
-                all_init_attribs.extend(init_funcs.iter().map(|x|x.clone()));
+            if let Some((init_funcs,state_funcs))=funcs { //necessary?
+                if !init_funcs.is_empty() { //necessary?
+                    all_init_attribs.extend(init_funcs.iter().map(|x|x.clone()));
+                }
+
+                if !all_state_attribs.is_empty() {
+                    all_state_attribs.entry(node_element_ind).or_default()
+                        .extend(state_funcs.iter().map(|(x,(y,z))|(x.clone(),(y.clone(),z.clone()))));
+                }
             }
 
             let attribs_end=all_init_attribs.len();
@@ -111,5 +120,5 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
     }
 
-    Stuff{  all_stubs, all_nodes, all_attribs: all_init_attribs, all_names, all_envs }
+    Stuff{  all_stubs, all_nodes, all_attribs: all_init_attribs, all_names, all_envs, all_state_attribs }
 }
