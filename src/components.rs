@@ -11,6 +11,7 @@ use std::collections::{HashMap, HashSet};
 use bevy::{ecs::prelude::*,  };
 use bevy::asset::prelude::*;
 use bevy_table_ui::{UiLayoutComputed, UiRoot, };
+use script_lang::{StringT, Value};
 
 // use std::collections::{BTreeSet, HashMap};
 
@@ -28,7 +29,12 @@ use super::{
 // use script_lang as script;
 
 #[derive(Component,Default)]
-#[require(UiLayoutComputed)]
+pub struct UixData {
+    pub data:HashMap<StringT,Value>,
+}
+
+#[derive(Component,Default)]
+// #[require(UiLayoutComputed)]
 pub struct UixAffect {
     // pub attribs : HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>, //[state][attrib_ind]=(func,priority)
     // pub attribs2 : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //attrib_ind][state]=(func,priority)

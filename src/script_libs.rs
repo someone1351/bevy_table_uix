@@ -1097,6 +1097,50 @@ pub fn register_misc(lib_scope:&mut LibScope<World>) {
         let entity:Entity = context.param(0).as_custom().data_clone()?;
         Ok(Value::string(format!("{entity}")))
     }).custom_ref::<Entity>().end();
+
+    //
+    #[derive(Clone)]
+    struct NodeData(Value);
+
+    //get node.data
+    lib_scope.field_named("data", |mut context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let world=context.core_mut();
+        let node=self_entity_from_world(world, entity);
+        Ok(Value::custom_unmanaged(NodeData(node)))
+    }).custom_ref::<Entity>().end();
+
+    //get node_data.field
+    lib_scope.field(|context|{
+        let node_data:NodeData=context.param(0).as_custom().data_clone()?;
+        let entity:Entity = node_data.0.as_custom().data_clone()?;
+        let field = context.param(1).get_string().unwrap();
+        let world=context.core();
+
+        let v=world.entity(entity).get::<UixData>()
+            .and_then(|data|data.data.get(&field))
+            .map(|v|v.clone_leaf())
+            .unwrap_or(Value::Nil);
+
+        Ok(v)
+    }).custom_ref::<NodeData>().str().end();
+
+    //set node_data.field
+    lib_scope.field(|mut context|{
+        let node_data:NodeData=context.param(0).as_custom().data_clone()?;
+        let entity:Entity = node_data.0.as_custom().data_clone()?;
+        let field = context.param(1).get_string().unwrap();
+        let to=context.param(2);
+
+        let world=context.core_mut();
+
+        let mut entity_mut=world.entity_mut(entity);
+        let mut data=entity_mut.entry::<UixData>().or_default();
+        let mut data=data.get_mut();
+        data.data.insert(field, to.clone_root());
+
+        Ok(Value::Void)
+    }).custom_ref::<NodeData>().str().any().end();
 }
 
 pub fn register_events(lib_scope:&mut LibScope<World>) {

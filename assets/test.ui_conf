@@ -144,6 +144,9 @@ template scroll_widget
 			on press
 				color yellow
 			script
+				set self.data.abc 4;
+				println "self abc is {}" self.data.abc
+
 				var held false
 
 				self.add_event_listener "press_begin" [fn () {
