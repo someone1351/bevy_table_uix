@@ -26,19 +26,20 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
 
-    let mut all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>> = HashMap::new(); //[element_ind][state]=(func,priority)
+    let mut all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind](default_func,[state]=(func,priority))
 
 
-    let tmp_envs=calc_envs2(elements,);
-    let all_envs = tmp_envs.iter().map(|(&stub_element_ind,stub_envs)|{
+    let calcd_creates=calc_node_creates(elements); //[root/stub][node]=parent
+    let calcd_attribs=calc_attribs(elements); //[element_ind]=attribs
+    let calcd_envs=calc_envs2(elements,);
+
+    let all_envs = calcd_envs.iter().map(|(&stub_element_ind,stub_envs)|{
         (stub_element_ind,stub_envs.iter().map(|(&element_ind,(by_ind,by_name))|(element_ind,StuffEnv{
             by_ind: by_ind.clone(),
             by_name: by_name.iter().map(|(&name,v)|(name.into(), v.clone())).collect(),
         })).collect())
     }).collect();
 
-    let tmp_creates=calc_node_creates(elements); //[root/stub][node]=parent
-    let tmp_attribs=calc_attribs(elements); //[element_ind]=attribs
 
 
             //env
@@ -62,26 +63,26 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     //nodes[ind]=(node_element_ind,parent_ind,attribs_start,attribs_end)
     //attribs[ind]=attrib_func
 
-    for (&stub_element_ind,node_parents) in tmp_creates.iter() {
+    for (&stub_element_ind,node_parents) in calcd_creates.iter() {
         let nodes_start=all_nodes.len();
 
 
         // println!("{node_parents:?}");
         //
         for &(node_element_ind,parent_element_ind) in node_parents.iter() {
-            //
-            let funcs:Option<&(Vec<AttribFuncType>,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>)>=tmp_attribs.get(&node_element_ind);
+            //:Option<&(Vec<AttribFuncType>,HashMap<UiAffectState,Vec<(AttribFuncType,i32)>>)>
+            let funcs: Option<&Vec<(AttribFuncType, HashMap<UiAffectState, (AttribFuncType, i32)>)>>=calcd_attribs.get(&node_element_ind);
             let attribs_start=all_init_attribs.len();
 
-            if let Some((init_funcs,state_funcs))=funcs { //necessary?
-                if !init_funcs.is_empty() { //necessary?
-                    all_init_attribs.extend(init_funcs.iter().map(|x|x.clone()));
+            if let Some(funcs)=funcs {
+                all_init_attribs.extend(funcs.iter().map(|x|x.0.clone()));
+
+                let state_attribs=funcs.iter().filter_map(|(x,y)|(!y.is_empty()).then(||(x.clone(),y.clone()))).collect::<Vec<_>>();
+
+                if !state_attribs.is_empty() {
+                    *all_state_attribs.entry(node_element_ind).or_default()=state_attribs;
                 }
 
-                if !all_state_attribs.is_empty() {
-                    all_state_attribs.entry(node_element_ind).or_default()
-                        .extend(state_funcs.iter().map(|(x,(y,z))|(x.clone(),(y.clone(),z.clone()))));
-                }
             }
 
             let attribs_end=all_init_attribs.len();

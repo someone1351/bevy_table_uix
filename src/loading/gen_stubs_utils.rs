@@ -62,13 +62,25 @@ pub fn calc_envs2<'a>(elements:& Vec<Element<'a>>, ) -> HashMap<usize, HashMap<u
 }
 
 
-pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,(Vec<AttribFuncType>,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>)> {
+pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>
+// HashMap<usize,(
+//     Vec<AttribFuncType>,
+//     // HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>,
+//     Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>,
+// )>
+{
     let default_attribs=get_default_attribs();
 
     let mut work_stk=vec![Work{ element_ind: 0, parent_element_ind:None,stub_element_ind:None,}];
 
 
-    let mut tmp_state_attribs:HashMap<usize,HashMap<&str,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>> = HashMap::new(); //[element_ind][name][state]=(func,priority)
+    let mut state_attribs:HashMap<usize,
+        HashMap<&str,HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>
+    > = HashMap::new(); //[element_ind][name][state]=(func,priority)
+
+    // let mut tmp_state_attribs:HashMap<usize,
+    //     HashMap<&str,(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>
+    // > = HashMap::new(); //[element_ind][attrib_name]=(func,[state]=(func,priority))
 
     while let Some(cur_work)=work_stk.pop() {
         let cur_element=elements.get(cur_work.element_ind).unwrap();
@@ -77,12 +89,13 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,(Vec<Attri
         //
         match &cur_element.element_type {
             ElementType::Attrib{name, func, calcd,on_state,on_priority,..} if calcd.used => {
+                let on_priority=on_priority.unwrap_or(0);
                 // tmp_attribs.entry(cur_work.parent_element_ind.unwrap()).or_default().push(func.clone());
 
-                tmp_state_attribs
+                state_attribs
                     .entry(cur_work.parent_element_ind.unwrap()).or_default()
                     .entry(name).or_default()
-                    .entry(on_state.clone()).or_insert((func.0.clone(),on_priority.clone()))
+                    .entry(on_state.clone()).or_insert((func.0.clone(),on_priority))
                     ;
             }
             _=>{}
@@ -111,39 +124,41 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,(Vec<Attri
         }
     }
 
+    //HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>
+    //
+    // let mut tmp_attribs:HashMap<usize,(
+    //     Vec<AttribFuncType>,
+    //     Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>,
+    // )> = HashMap::new(); //[element_ind]([attrib_ind]=attribs), [state]=(func,priority))
 
-    let mut tmp_attribs:HashMap<usize,(Vec<AttribFuncType>,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>)> = HashMap::new(); //[element_ind]=(attribs, [state]=(func,priority))
+    let mut out_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind]=(func,state_funcs) //state_funcs[state]=(func,priority)
 
-    for (element_ind,attribs) in tmp_state_attribs {
-        let mut out_state_attribs:HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)> = HashMap::new();
-        let mut out_init_attribs:Vec<AttribFuncType> = Vec::new();
+    for (element_ind,attribs) in state_attribs {
+        // let mut tmp_state_attribs:Vec<HashMap<UiAffectState,(AttribFuncType,i32)>> = HashMap::new();
+        // let mut tmp_init_attribs:Vec<AttribFuncType> = Vec::new();
+
+        // let cur_out_attribs=out_attribs.entry(element_ind).or_default();
+        let mut cur_out_attribs = Vec::new();
 
         for (name,states) in attribs {
+            let default_func=states.get(&None).cloned().map(|x|x.0).unwrap_or_else(||default_attribs.get(name).unwrap().clone());
 
+            let mut out_state_attribs:HashMap<UiAffectState,(AttribFuncType,i32)> = HashMap::new();
 
-            if states.contains_key(&None) && states.len()==1 {
-                let x=states.get(&None).unwrap();
-                out_init_attribs.push(x.0.clone());
-            } else {
-                if !states.contains_key(&None){
-                    let x=default_attribs.get(name).unwrap();
-                    out_init_attribs.push(x.clone());
-                    out_state_attribs.insert(None, (x.clone(),None));
-                } else {
-                    let x=states.get(&None).unwrap();
-                    out_init_attribs.push(x.0.clone());
-                }
-
-                for (state,v) in states.iter() {
+            for (state,v) in states.iter() {
+                if let Some(state)=state {
                     out_state_attribs.insert(state.clone(), v.clone());
+
                 }
             }
+
+            cur_out_attribs.push((default_func,out_state_attribs));
         }
 
-        tmp_attribs.insert(element_ind, (out_init_attribs,out_state_attribs));
+        out_attribs.insert(element_ind, cur_out_attribs);
 
     }
-    tmp_attribs
+    out_attribs
 
 }
 

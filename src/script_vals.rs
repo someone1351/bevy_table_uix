@@ -45,7 +45,17 @@ pub struct StuffNode {
     pub all_names : Vec<StringT>,
     pub all_envs : HashMap<usize, HashMap<usize, StuffEnv>>, //[root/stub_element_ind][element_ind]=env
 
-    pub all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //[element_ind][state]=(func,priority)
+    // pub all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>>, //[element_ind][state][attrib_ind]=(func,priority)
+    // pub all_state_attribs:HashMap<usize,Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>>, //[element_ind][attrib_ind][state]=(func,priority)
+    pub all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>, //[element_ind][attrib_ind]=(default_func,[state]=(func,priority))
+    /*
+
+    * could replace all_attribs with all_state_attribs
+    ** store all_state_attribs like all_attribs currently is
+    ** replace state hashmap with vec?
+
+    */
+
 }
 
 pub struct StuffResultEnv {

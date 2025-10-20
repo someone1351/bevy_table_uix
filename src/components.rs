@@ -27,11 +27,16 @@ use super::{
 
 // use script_lang as script;
 
-#[derive(Component,)]
+#[derive(Component,Default)]
 #[require(UiLayoutComputed)]
 pub struct UixAffect {
-    pub states : HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>,
+    // pub attribs : HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>, //[state][attrib_ind]=(func,priority)
+    // pub attribs2 : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //attrib_ind][state]=(func,priority)
+    // pub attribs : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>, //[attrib_ind][state]=(func,priority)
+    pub attribs : Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>, //[attrib_ind](default_func,[state]=(func,priority))
     // pub states : HashMap<Option<UiAffectState>,>,
+    pub states : HashSet<UiAffectState>,
+    // pub remove_states : BTreeSet<UiAffectState>,
 }
 
 #[derive(Component,Default)]

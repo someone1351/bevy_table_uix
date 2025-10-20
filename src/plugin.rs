@@ -30,6 +30,7 @@ impl bevy::app::Plugin for UixPlugin {
                     on_asset_load,
                 ).chain().run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
 
+                on_affects,
                 on_event_listeners,
             ).chain()
             .after(UiInteractSystem))

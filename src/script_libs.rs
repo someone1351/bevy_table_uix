@@ -983,7 +983,8 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 //
                 if let Some(x)=stuff.all_state_attribs.get(&stuff_node.element_ind) {
                     world.entity_mut(entity).insert(UixAffect{
-                        states: x.clone(),
+                        attribs: x.clone(),
+                        ..Default::default()
                     });
                 }
 
