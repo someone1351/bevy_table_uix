@@ -419,12 +419,12 @@ pub fn on_event_listeners<'a>(
                     // UiInteractMessageType::DragX { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
                     // UiInteractMessageType::DragY { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
 
-                    UiInteractMessageType::DragX { dist, delta } => vec![Value::float(dist),Value::float(delta)],
-                    UiInteractMessageType::DragY { dist, delta  } => vec![Value::float(dist),Value::float(delta)],
+                    UiInteractMessageType::DragX { dist, delta, device, button } => vec![Value::float(dist),Value::float(delta)],
+                    UiInteractMessageType::DragY { dist, delta, device, button  } => vec![Value::float(dist),Value::float(delta)],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
-                    UiInteractMessageType::FocusBegin { group } => vec![Value::int(group)],
-                    UiInteractMessageType::FocusEnd { group } => vec![Value::int(group)],
+                    UiInteractMessageType::FocusBegin { group, device } => vec![Value::int(group)],
+                    UiInteractMessageType::FocusEnd { group, device } => vec![Value::int(group)],
                 };
                 bla.push((
                     // ev.entity,k.clone(),

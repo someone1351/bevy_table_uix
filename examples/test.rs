@@ -7,7 +7,7 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiLayoutComputed, UiRoot
+use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiRoot
     //UiColor, UiSize, UiVal
 };
 
@@ -165,7 +165,7 @@ pub fn run_input(
     mut windows: Query<&mut Window>,
     mut prev_cursor : Local<Option<Vec2>>,
     mut ui_interact_input_event_writer: MessageWriter<UiInteractInputMessage>,
-    ui_root_query : Query<Entity,(With<UiLayoutComputed>,Without<ChildOf>)>,
+    ui_root_query : Query<Entity,With<UiRoot>>,
 
     mut key_events: MessageReader<KeyboardInput>,
     mut mouse_button_events : MessageReader<MouseButtonInput>,
@@ -195,10 +195,10 @@ pub fn run_input(
                             ui_interact_input_event_writer.write(UiInteractInputMessage::FocusDown { root_entity, group });
                         }
                         KeyCode::KeyA|KeyCode::ArrowLeft => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusRight { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusLeft { root_entity, group });
                         }
                         KeyCode::KeyD|KeyCode::ArrowRight => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusLeft { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusRight { root_entity, group });
                         }
                         KeyCode::Tab|KeyCode::KeyE => {
                             ui_interact_input_event_writer.write(UiInteractInputMessage::FocusNext { root_entity, group });
@@ -207,10 +207,10 @@ pub fn run_input(
                             ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPrev { root_entity, group });
                         }
                         KeyCode::Space|KeyCode::Enter => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressBegin{root_entity, group, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressBegin{root_entity, group, device, button: 0 });
                         }
                         KeyCode::Escape => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressCancel{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressCancel{root_entity, device, button: 0 });
                         }
                         _ => {}
                     }
@@ -222,7 +222,7 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.key_code {
                         KeyCode::Space|KeyCode::Enter => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressEnd{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressEnd{root_entity, device, button: 0 });
                         }
                         _ => {}
                     }
@@ -239,10 +239,22 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.button {
                         MouseButton::Left => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressBegin{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressBegin{root_entity, device, button: 0 });
+
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 1 });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 2 });
                         }
                         MouseButton::Right => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressBegin{root_entity, device, button: 2 });
+
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 0 });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 1 });
+                        }
+                        MouseButton::Middle => {
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressBegin{root_entity, device, button: 1 });
+
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 0 });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressCancel{root_entity, device, button: 2 });
                         }
                         MouseButton::Forward => {
                         }
@@ -256,7 +268,13 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.button {
                         MouseButton::Left => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressEnd {root_entity, device});
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressEnd {root_entity, device, button: 0 });
+                        }
+                        MouseButton::Right => {
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressEnd {root_entity, device, button: 2 });
+                        }
+                        MouseButton::Middle => {
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::CursorPressEnd {root_entity, device, button: 1 });
                         }
                         _ => {}
                     }
