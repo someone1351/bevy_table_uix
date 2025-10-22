@@ -744,12 +744,12 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         c.enable=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focused",lib_scope,|c|{
-        Value::bool(c.focused)
-    });
-    entity_set_field_mut3::<UiFocusable>("focused",lib_scope,|c,v|{
-        c.focused=script_value_to_bool(v)?; Ok(())
-    });
+    // entity_get_field3::<UiFocusable>("focused",lib_scope,|c|{
+    //     Value::bool(c.focused)
+    // });
+    // entity_set_field_mut3::<UiFocusable>("focused",lib_scope,|c,v|{
+    //     c.focused=script_value_to_bool(v)?; Ok(())
+    // });
 
     entity_get_field3::<UiFocusable>("focus_group",lib_scope,|c|{
         Value::int(c.group)
@@ -793,19 +793,19 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         c.vdir_wrap=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focus_hdir_press",lib_scope,|c|{
-        Value::bool(c.hdir_press)
-    });
-    entity_set_field_mut3::<UiFocusable>("focus_hdir_press",lib_scope,|c,v|{
-        c.hdir_press=script_value_to_bool(v)?; Ok(())
-    });
+    // entity_get_field3::<UiFocusable>("focus_hdir_press",lib_scope,|c|{
+    //     Value::bool(c.hdir_press)
+    // });
+    // entity_set_field_mut3::<UiFocusable>("focus_hdir_press",lib_scope,|c,v|{
+    //     c.hdir_press=script_value_to_bool(v)?; Ok(())
+    // });
 
-    entity_get_field3::<UiFocusable>("focus_vdir_press",lib_scope,|c|{
-        Value::bool(c.vdir_press)
-    });
-    entity_set_field_mut3::<UiFocusable>("focus_vdir_press",lib_scope,|c,v|{
-        c.vdir_press=script_value_to_bool(v)?; Ok(())
-    });
+    // entity_get_field3::<UiFocusable>("focus_vdir_press",lib_scope,|c|{
+    //     Value::bool(c.vdir_press)
+    // });
+    // entity_set_field_mut3::<UiFocusable>("focus_vdir_press",lib_scope,|c,v|{
+    //     c.vdir_press=script_value_to_bool(v)?; Ok(())
+    // });
 
     //
     entity_get_field3::<UiColor>("color",lib_scope,|c|{

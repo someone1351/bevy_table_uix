@@ -534,10 +534,10 @@ fn do_attribs<'a>(
             attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.physical=v;})));
         }
 
-        "focused" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.focused=v;})));
-        }
+        // "focused" => {
+        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.focused=v;})));
+        // }
         "focus_group" => {
             let v: i32 = walk.record().value(0).get_parsed().unwrap();
             attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.group=v;})));
@@ -562,14 +562,14 @@ fn do_attribs<'a>(
             let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_wrap=v;})));
         }
-        "focus_hdir_press" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hdir_press=v;})));
-        }
-        "focus_vdir_press" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_press=v;})));
-        }
+        // "focus_hdir_press" => {
+        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hdir_press=v;})));
+        // }
+        // "focus_vdir_press" => {
+        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_press=v;})));
+        // }
 
         "selected" => {
             let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
@@ -844,15 +844,15 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("focusable", make_attrib_default_func::<UiFocusable>(|c,d|{c.enable=d.enable;}));
     output.insert("press_always", make_attrib_default_func::<UiPressable>(|c,d|{c.always=d.always;}));
     output.insert("press_physical", make_attrib_default_func::<UiPressable>(|c,d|{c.physical=d.physical;}));
-    output.insert("focused", make_attrib_default_func::<UiFocusable>(|c,d|{c.focused=d.focused;}));
+    // output.insert("focused", make_attrib_default_func::<UiFocusable>(|c,d|{c.focused=d.focused;}));
     output.insert("focus_group", make_attrib_default_func::<UiFocusable>(|c,d|{c.group=d.group;}));
     output.insert("focus_tab_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.tab_exit=d.tab_exit;}));
     output.insert("focus_hdir_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_exit=d.hdir_exit;}));
     output.insert("focus_vdir_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_exit=d.vdir_exit;}));
     output.insert("focus_hdir_wrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_wrap=d.hdir_wrap;}));
     output.insert("focus_vdir_wrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_wrap=d.vdir_wrap;}));
-    output.insert("focus_hdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_press=d.hdir_press;}));
-    output.insert("focus_vdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_press=d.vdir_press;}));
+    // output.insert("focus_hdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_press=d.hdir_press;}));
+    // output.insert("focus_vdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_press=d.vdir_press;}));
     output.insert("selected", make_attrib_default_func::<UiSelectable>(|c,d|{c.selected=d.selected;}));
     output.insert("select_group", make_attrib_default_func::<UiSelectable>(|c,d|{c.group=d.group;}));
 

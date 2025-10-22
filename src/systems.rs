@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 /*
 Problems
 * on asset modified, error reporting twice
@@ -257,6 +258,9 @@ pub fn on_affects<'a>(
     mut commands: Commands,
 
     mut interact_event_reader: MessageReader<UiInteractEvent>,
+
+
+    // mut bla:Local<HashMap<Entity,u32>>,
 ) {
     // //if pressed and released in a single frame, need affect state to stay set for atleast one frame
     // for mut affect_computed in affect_computed_query.iter_mut() {
@@ -266,7 +270,7 @@ pub fn on_affects<'a>(
     // }
 
     // //
-    // let mut new_states=BTreeSet::<UiAffectState>::new();
+    let mut new_states: HashMap<Entity,HashSet<UiAffectState>>=Default::default();
 
     //
     for ev in interact_event_reader.read() {
@@ -275,7 +279,7 @@ pub fn on_affects<'a>(
         match &ev.event_type {
             UiInteractMessageType::FocusBegin { .. } => {
                 affect_computed.states.insert(UiAffectState::Focus);
-                // new_states.insert(UiAffectState::Focus);
+                new_states.entry(ev.entity).or_default().insert(UiAffectState::Focus);
             }
             UiInteractMessageType::FocusEnd { .. } => {
                 // if new_states.contains(&UiAffectState::Focus) {
@@ -295,11 +299,11 @@ pub fn on_affects<'a>(
             //         affect_computed.states.remove(&UiAffectState::Drag);
             //     }
             // }
-            UiInteractMessageType::PressBegin => {
+            UiInteractMessageType::PressBegin{..} => {
                 affect_computed.states.insert(UiAffectState::Press);
-                // new_states.insert(UiAffectState::Press);
+                new_states.entry(ev.entity).or_default().insert(UiAffectState::Press);
             }
-            UiInteractMessageType::PressEnd => {
+            UiInteractMessageType::PressEnd{..} => {
                 // if new_states.contains(&UiAffectState::Press) {
                 //     affect_computed.remove_states.insert(UiAffectState::Press);
                 // } else {
@@ -308,7 +312,7 @@ pub fn on_affects<'a>(
             }
             UiInteractMessageType::SelectBegin => {
                 affect_computed.states.insert(UiAffectState::Select);
-                // new_states.insert(UiAffectState::Select);
+                new_states.entry(ev.entity).or_default().insert(UiAffectState::Select);
             }
             UiInteractMessageType::SelectEnd => {
                 // if new_states.contains(&UiAffectState::Select) {
@@ -319,7 +323,7 @@ pub fn on_affects<'a>(
             }
             UiInteractMessageType::HoverBegin{..} => {
                 affect_computed.states.insert(UiAffectState::Hover);
-                // new_states.insert(UiAffectState::Hover);
+                new_states.entry(ev.entity).or_default().insert(UiAffectState::Hover);
             }
             UiInteractMessageType::HoverEnd{..} => {
                 // if new_states.contains(&UiAffectState::Hover) {
@@ -328,7 +332,7 @@ pub fn on_affects<'a>(
                     affect_computed.states.remove(&UiAffectState::Hover);
                 // }
             }
-            UiInteractMessageType::Click => {}
+            UiInteractMessageType::Click{..}=> {}
             UiInteractMessageType::DragX{..} => {}
             UiInteractMessageType::DragY{..} => {}
             // UiInteractEventType::DragMove { .. } =>{}
@@ -343,7 +347,10 @@ pub fn on_affects<'a>(
         for (default_func,attrib_states) in affect.attribs.iter() {
             let mut last: Option<(AttribFuncType, i32)> = None;
 
-            for &state in affect.states.iter() {
+            let mut states=new_states.get(&entity).cloned().unwrap_or_default();
+            states.extend(affect.states.iter());
+
+            for state in states {
                 if let Some((func,priority))=attrib_states.get(&state).cloned() {
                     if last.as_ref().is_none() || priority > last.as_ref().unwrap().1 {
                         last=Some((func,priority));
@@ -356,12 +363,7 @@ pub fn on_affects<'a>(
             commands.queue(move|world:&mut World|{
                 func(entity,world);
             });
-            // for (state,(func,priority)) in attrib_states.iter() {
-            //     // if affect.states.contains(state)
-            // }
-
         }
-        // let mut attribs=affect.attribs3.get(k)
     }
 }
 pub fn on_event_listeners<'a>(
@@ -413,9 +415,9 @@ pub fn on_event_listeners<'a>(
                 let params= match ev.event_type {
                     UiInteractMessageType::HoverBegin { device } => vec![Value::int(device)],
                     UiInteractMessageType::HoverEnd { device } => vec![Value::int(device)],
-                    UiInteractMessageType::PressBegin => vec![],
-                    UiInteractMessageType::PressEnd => vec![],
-                    UiInteractMessageType::Click => vec![],
+                    UiInteractMessageType::PressBegin{..} => vec![],
+                    UiInteractMessageType::PressEnd{..} => vec![],
+                    UiInteractMessageType::Click{..} => vec![],
                     // UiInteractMessageType::DragX { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
                     // UiInteractMessageType::DragY { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
 
