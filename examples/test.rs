@@ -189,22 +189,22 @@ pub fn run_input(
                 for root_entity in ui_root_query.iter() {
                     match ev.key_code {
                         KeyCode::KeyW|KeyCode::ArrowUp => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusUp { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusUp { root_entity, group, device });
                         }
                         KeyCode::KeyS|KeyCode::ArrowDown => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusDown { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusDown { root_entity, group, device });
                         }
                         KeyCode::KeyA|KeyCode::ArrowLeft => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusLeft { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusLeft { root_entity, group, device });
                         }
                         KeyCode::KeyD|KeyCode::ArrowRight => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusRight { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusRight { root_entity, group, device });
                         }
                         KeyCode::Tab|KeyCode::KeyE => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusNext { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusNext { root_entity, group, device });
                         }
                         KeyCode::KeyQ => {
-                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPrev { root_entity, group });
+                            ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPrev { root_entity, group, device });
                         }
                         KeyCode::Space|KeyCode::Enter => {
                             ui_interact_input_event_writer.write(UiInteractInputMessage::FocusPressBegin{root_entity, group, device, button: 0 });
