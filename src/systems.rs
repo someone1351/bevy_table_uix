@@ -262,6 +262,7 @@ pub fn on_affects<'a>(
 
     // mut bla:Local<HashMap<Entity,u32>>,
 ) {
+    //todo: have color lerp in
     // //if pressed and released in a single frame, need affect state to stay set for atleast one frame
     // for mut affect_computed in affect_computed_query.iter_mut() {
     //     let removes=affect_computed.remove_states.clone();
@@ -270,22 +271,31 @@ pub fn on_affects<'a>(
     // }
 
     // //
-    let mut new_states: HashMap<Entity,HashSet<UiAffectState>>=Default::default();
+    // let mut new_states: HashMap<Entity,HashSet<UiAffectState>>=Default::default();
 
+    let mut new_states: HashMap<Entity,HashMap<UiAffectState,HashSet<DeviceType>>>=Default::default(); //[entity][state][device]
+
+    use super::components::DeviceType;
     //
     for ev in interact_event_reader.read() {
         let Ok((_,mut affect_computed))=affect_query.get_mut(ev.entity) else {continue;};
 
-        match &ev.event_type {
-            UiInteractMessageType::FocusBegin { .. } => {
-                affect_computed.states.insert(UiAffectState::Focus);
-                new_states.entry(ev.entity).or_default().insert(UiAffectState::Focus);
+        match ev.event_type {
+            UiInteractMessageType::FocusBegin {device, .. } => {
+                // affect_computed.states.insert(UiAffectState::Focus);
+                affect_computed.states.entry(UiAffectState::Focus).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Focus).or_default().insert(DeviceType::Focus(device));
             }
-            UiInteractMessageType::FocusEnd { .. } => {
+            UiInteractMessageType::FocusEnd { device,.. } => {
                 // if new_states.contains(&UiAffectState::Focus) {
                 //     affect_computed.remove_states.insert(UiAffectState::Focus);
                 // } else {
-                    affect_computed.states.remove(&UiAffectState::Focus);
+                affect_computed.states.get_mut(&UiAffectState::Focus).map(|x|x.remove(&DeviceType::Focus(device)));
+
+                // new_states.entry(ev.entity).or_default().entry(UiAffectState::Focus).or_default().remove(&DeviceType::Focus(device));
+                // new_states.get_mut(&ev.entity)
+                //     .and_then(|x|x.get_mut(&UiAffectState::Focus))
+                //     .map(|x|x.remove(&DeviceType::Focus(device)));
                 // }
             }
             // UiInteractEventType::DragBegin => {
@@ -299,37 +309,46 @@ pub fn on_affects<'a>(
             //         affect_computed.states.remove(&UiAffectState::Drag);
             //     }
             // }
-            UiInteractMessageType::PressBegin{..} => {
-                affect_computed.states.insert(UiAffectState::Press);
-                new_states.entry(ev.entity).or_default().insert(UiAffectState::Press);
+            UiInteractMessageType::PressBegin{device,..} => {
+                // affect_computed.states.insert(UiAffectState::Press);
+                // new_states.entry(ev.entity).or_default().insert(UiAffectState::Press);
+
+                affect_computed.states.entry(UiAffectState::Press).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
             }
-            UiInteractMessageType::PressEnd{..} => {
+            UiInteractMessageType::PressEnd{device,..} => {
                 // if new_states.contains(&UiAffectState::Press) {
                 //     affect_computed.remove_states.insert(UiAffectState::Press);
                 // } else {
-                    affect_computed.states.remove(&UiAffectState::Press);
+                    // affect_computed.states.remove(&UiAffectState::Press);
+                affect_computed.states.get_mut(&UiAffectState::Press).map(|x|x.remove(&DeviceType::Cursor(device)));
                 // }
             }
             UiInteractMessageType::SelectBegin => {
-                affect_computed.states.insert(UiAffectState::Select);
-                new_states.entry(ev.entity).or_default().insert(UiAffectState::Select);
+                // affect_computed.states.insert(UiAffectState::Select);
+
+                affect_computed.states.entry(UiAffectState::Select).or_default().insert(DeviceType::None);
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Select).or_default().insert(DeviceType::None);
             }
             UiInteractMessageType::SelectEnd => {
                 // if new_states.contains(&UiAffectState::Select) {
                 //     affect_computed.remove_states.insert(UiAffectState::Select);
                 // } else {
-                    affect_computed.states.remove(&UiAffectState::Select);
+                    // affect_computed.states.remove(&UiAffectState::Select);
+                affect_computed.states.get_mut(&UiAffectState::Select).map(|x|x.remove(&DeviceType::None));
                 // }
             }
-            UiInteractMessageType::HoverBegin{..} => {
-                affect_computed.states.insert(UiAffectState::Hover);
-                new_states.entry(ev.entity).or_default().insert(UiAffectState::Hover);
+            UiInteractMessageType::HoverBegin{device,..} => {
+                // affect_computed.states.insert(UiAffectState::Hover);
+                affect_computed.states.entry(UiAffectState::Hover).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Hover).or_default().insert(DeviceType::Focus(device));
             }
             UiInteractMessageType::HoverEnd{..} => {
                 // if new_states.contains(&UiAffectState::Hover) {
                     // affect_computed.remove_states.insert(UiAffectState::Hover);
                 // } else {
-                    affect_computed.states.remove(&UiAffectState::Hover);
+                    // affect_computed.states.remove(&UiAffectState::Hover);
+                affect_computed.states.get_mut(&UiAffectState::Hover).map(|x|x.remove(&DeviceType::None));
                 // }
             }
             UiInteractMessageType::Click{..}=> {}
@@ -347,8 +366,11 @@ pub fn on_affects<'a>(
         for (default_func,attrib_states) in affect.attribs.iter() {
             let mut last: Option<(AttribFuncType, i32)> = None;
 
-            let mut states=new_states.get(&entity).cloned().unwrap_or_default();
-            states.extend(affect.states.iter());
+            let mut states :HashSet<UiAffectState>=Default::default();
+            states.extend(affect.states.iter().filter_map(|(&k,v)|(v.is_empty()).then_some(k)));
+            states.extend(new_states.get(&entity).map(|x|x.iter()).unwrap_or_default().filter_map(|(&k,v)|(v.is_empty()).then_some(k)));
+
+
 
             for state in states {
                 if let Some((func,priority))=attrib_states.get(&state).cloned() {

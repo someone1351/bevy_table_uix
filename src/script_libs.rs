@@ -698,12 +698,12 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         c.always=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiPressable>("press_physical",lib_scope,|c|{
-        Value::bool(c.physical)
-    });
-    entity_set_field_mut3::<UiPressable>("press_physical",lib_scope,|c,v|{
-        c.physical=script_value_to_bool(v)?; Ok(())
-    });
+    // entity_get_field3::<UiPressable>("press_physical",lib_scope,|c|{
+    //     Value::bool(c.physical)
+    // });
+    // entity_set_field_mut3::<UiPressable>("press_physical",lib_scope,|c,v|{
+    //     c.physical=script_value_to_bool(v)?; Ok(())
+    // });
 
     //
     entity_get_field3::<UiDraggable>("draggable",lib_scope,|c|{

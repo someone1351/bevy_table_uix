@@ -529,10 +529,10 @@ fn do_attribs<'a>(
             let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.always=v;})));
         }
-        "press_physical" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.physical=v;})));
-        }
+        // "press_physical" => {
+        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.physical=v;})));
+        // }
 
         // "focused" => {
         //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
@@ -843,7 +843,7 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("selectable", make_attrib_default_func::<UiSelectable>(|c,d|{c.enable=d.enable;}));
     output.insert("focusable", make_attrib_default_func::<UiFocusable>(|c,d|{c.enable=d.enable;}));
     output.insert("press_always", make_attrib_default_func::<UiPressable>(|c,d|{c.always=d.always;}));
-    output.insert("press_physical", make_attrib_default_func::<UiPressable>(|c,d|{c.physical=d.physical;}));
+    // output.insert("press_physical", make_attrib_default_func::<UiPressable>(|c,d|{c.physical=d.physical;}));
     // output.insert("focused", make_attrib_default_func::<UiFocusable>(|c,d|{c.focused=d.focused;}));
     output.insert("focus_group", make_attrib_default_func::<UiFocusable>(|c,d|{c.group=d.group;}));
     output.insert("focus_tab_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.tab_exit=d.tab_exit;}));

@@ -464,7 +464,7 @@ fn input_def() -> conf_lang::Def {
                     .param_parse::<i32>()
             .tags([
                 "hoverable","pressable","draggable","selectable","focusable",
-                "press_always","press_physical",// "press_released",
+                "press_always", //"press_physical",// "press_released",
                 "disabled","hidden","floating","locked","selected",
                 "focused",
                 "focus_tab_exit","focus_hdir_exit","focus_vdir_exit",

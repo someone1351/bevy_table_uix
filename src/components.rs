@@ -33,6 +33,9 @@ pub struct UixData {
     pub data:HashMap<StringT,Value>,
 }
 
+#[derive(PartialEq,Eq,Hash)]
+pub enum DeviceType{None,Cursor(i32),Focus(i32),}
+
 #[derive(Component,Default)]
 // #[require(UiLayoutComputed)]
 pub struct UixAffect {
@@ -41,7 +44,9 @@ pub struct UixAffect {
     // pub attribs : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>, //[attrib_ind][state]=(func,priority)
     pub attribs : Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>, //[attrib_ind](default_func,[state]=(func,priority))
     // pub states : HashMap<Option<UiAffectState>,>,
-    pub states : HashSet<UiAffectState>,
+    // pub states : HashSet<UiAffectState>,
+    pub states : HashMap<UiAffectState,HashSet<DeviceType>>, //[state][device]
+
     // pub remove_states : BTreeSet<UiAffectState>,
 }
 
