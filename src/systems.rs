@@ -313,7 +313,7 @@ pub fn on_affects<'a>(
                 // affect_computed.states.insert(UiAffectState::Press);
                 // new_states.entry(ev.entity).or_default().insert(UiAffectState::Press);
 
-                affect_computed.states.entry(UiAffectState::Press).or_default().insert(DeviceType::Focus(device));
+                affect_computed.states.entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
                 new_states.entry(ev.entity).or_default().entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
             }
             UiInteractMessageType::PressEnd{device,..} => {
@@ -363,16 +363,16 @@ pub fn on_affects<'a>(
     //
 
     for (entity, affect) in affect_query.iter() {
+
+        let states:HashSet<UiAffectState>=affect.states.iter().chain(new_states.get(&entity).map(|x|x.iter()).unwrap_or_default())
+            .filter_map(|(&k,v)|(!v.is_empty()).then_some(k))
+            .collect();
+
+
         for (default_func,attrib_states) in affect.attribs.iter() {
             let mut last: Option<(AttribFuncType, i32)> = None;
 
-            let mut states :HashSet<UiAffectState>=Default::default();
-            states.extend(affect.states.iter().filter_map(|(&k,v)|(v.is_empty()).then_some(k)));
-            states.extend(new_states.get(&entity).map(|x|x.iter()).unwrap_or_default().filter_map(|(&k,v)|(v.is_empty()).then_some(k)));
-
-
-
-            for state in states {
+            for &state in states.iter() {
                 if let Some((func,priority))=attrib_states.get(&state).cloned() {
                     if last.as_ref().is_none() || priority > last.as_ref().unwrap().1 {
                         last=Some((func,priority));
