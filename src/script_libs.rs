@@ -676,27 +676,44 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     }).custom_ref::<Entity>().custom_ref::<UiVal>().or_nil().end();
 
     //
-    entity_get_field3::<UiHoverable>("hoverable",lib_scope,|c|{
-        Value::bool(c.enable)
+    entity_get_field3::<UiCursorable>("hoverable",lib_scope,|c|{
+        Value::bool(c.hoverable)
     });
-    entity_set_field_mut3::<UiHoverable>("hoverable",lib_scope,|c,v|{
-        c.enable=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiCursorable>("hoverable",lib_scope,|c,v|{
+        c.hoverable=script_value_to_bool(v)?; Ok(())
     });
 
     //
-    entity_get_field3::<UiPressable>("pressable",lib_scope,|c|{
-        Value::bool(c.enable)
-    });
-    entity_set_field_mut3::<UiPressable>("pressable",lib_scope,|c,v|{
-        c.enable=script_value_to_bool(v)?; Ok(())
-    });
+    // entity_get_field3::<UiPressable>("pressable",lib_scope,|c|{
+    //     Value::bool(c.enable)
+    // });
+    // entity_set_field_mut3::<UiPressable>("pressable",lib_scope,|c,v|{
+    //     c.enable=script_value_to_bool(v)?; Ok(())
+    // });
+    lib_scope.field_named("pressable",|context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let world=context.core();
+        let e=world.entity(entity);
+        let p1=e.get::<UiCursorable>().cloned().unwrap_or_default().pressable;
+        let p2=e.get::<UiFocusable>().cloned().unwrap_or_default().pressable;
+        Ok((p1 && p2).into())
+    }).custom_ref::<Entity>().end();
 
-    entity_get_field3::<UiPressable>("press_always",lib_scope,|c|{
-        Value::bool(c.always)
-    });
-    entity_set_field_mut3::<UiPressable>("press_always",lib_scope,|c,v|{
-        c.always=script_value_to_bool(v)?; Ok(())
-    });
+    lib_scope.field_named("pressable",|mut context|{
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+        let to_val=context.param(1).as_bool();
+        let world=context.core_mut();
+        let mut e=world.entity_mut(entity);
+        e.entry::<UiCursorable>().or_default().get_mut().pressable=to_val;
+        e.entry::<UiFocusable>().or_default().get_mut().pressable=to_val;
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().bool().end();
+    // entity_get_field3::<UiPressable>("press_always",lib_scope,|c|{
+    //     Value::bool(c.always)
+    // });
+    // entity_set_field_mut3::<UiPressable>("press_always",lib_scope,|c,v|{
+    //     c.always=script_value_to_bool(v)?; Ok(())
+    // });
 
     // entity_get_field3::<UiPressable>("press_physical",lib_scope,|c|{
     //     Value::bool(c.physical)
@@ -706,11 +723,11 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     // });
 
     //
-    entity_get_field3::<UiDraggable>("draggable",lib_scope,|c|{
-        Value::bool(c.enable)
+    entity_get_field3::<UiCursorable>("draggable",lib_scope,|c|{
+        Value::bool(c.draggable)
     });
-    entity_set_field_mut3::<UiDraggable>("draggable",lib_scope,|c,v|{
-        c.enable=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiCursorable>("draggable",lib_scope,|c,v|{
+        c.draggable=script_value_to_bool(v)?; Ok(())
     });
 
     //
@@ -758,39 +775,39 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         c.group=script_value_to_int(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focus_tab_exit",lib_scope,|c|{
-        Value::bool(c.tab_exit)
+    // entity_get_field3::<UiFocusable>("focus_tab_exit",lib_scope,|c|{
+    //     Value::bool(c.tab_exit)
+    // });
+    // entity_set_field_mut3::<UiFocusable>("focus_tab_exit",lib_scope,|c,v|{
+    //     c.tab_exit=script_value_to_bool(v)?; Ok(())
+    // });
+
+    entity_get_field3::<UiFocusable>("focus_hexit",lib_scope,|c|{
+        Value::bool(c.hexit)
     });
-    entity_set_field_mut3::<UiFocusable>("focus_tab_exit",lib_scope,|c,v|{
-        c.tab_exit=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiFocusable>("focus_hexit",lib_scope,|c,v|{
+        c.hexit=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focus_hdir_exit",lib_scope,|c|{
-        Value::bool(c.hdir_exit)
+    entity_get_field3::<UiFocusable>("focus_vexit",lib_scope,|c|{
+        Value::bool(c.vexit)
     });
-    entity_set_field_mut3::<UiFocusable>("focus_hdir_exit",lib_scope,|c,v|{
-        c.hdir_exit=script_value_to_bool(v)?; Ok(())
-    });
-
-    entity_get_field3::<UiFocusable>("focus_vdir_exit",lib_scope,|c|{
-        Value::bool(c.vdir_exit)
-    });
-    entity_set_field_mut3::<UiFocusable>("focus_vdir_exit",lib_scope,|c,v|{
-        c.vdir_exit=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiFocusable>("focus_vexit",lib_scope,|c,v|{
+        c.vexit=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focus_hdir_wrap",lib_scope,|c|{
-        Value::bool(c.hdir_wrap)
+    entity_get_field3::<UiFocusable>("focus_hwrap",lib_scope,|c|{
+        Value::bool(c.hwrap)
     });
-    entity_set_field_mut3::<UiFocusable>("focus_hdir_wrap",lib_scope,|c,v|{
-        c.hdir_wrap=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiFocusable>("focus_hwrap",lib_scope,|c,v|{
+        c.hwrap=script_value_to_bool(v)?; Ok(())
     });
 
-    entity_get_field3::<UiFocusable>("focus_vdir_wrap",lib_scope,|c|{
-        Value::bool(c.vdir_wrap)
+    entity_get_field3::<UiFocusable>("focus_vwrap",lib_scope,|c|{
+        Value::bool(c.vwrap)
     });
-    entity_set_field_mut3::<UiFocusable>("focus_vdir_wrap",lib_scope,|c,v|{
-        c.vdir_wrap=script_value_to_bool(v)?; Ok(())
+    entity_set_field_mut3::<UiFocusable>("focus_vwrap",lib_scope,|c,v|{
+        c.vwrap=script_value_to_bool(v)?; Ok(())
     });
 
     // entity_get_field3::<UiFocusable>("focus_hdir_press",lib_scope,|c|{
@@ -1165,7 +1182,7 @@ pub fn register_events(lib_scope:&mut LibScope<World>) {
         let mut e=world.entity_mut(entity);
         e.entry::<UixEventListener>().or_default().get_mut()
             .event_listeners.entry(event).or_default()
-            .push(listener.clone_root());
+            .push((listener.clone_root(),false));
 
         Ok(Value::Void)
     }).custom_ref::<Entity>().str().func().end();

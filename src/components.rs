@@ -53,7 +53,7 @@ pub struct UixAffect {
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]
 pub struct UixEventListener {
-    pub event_listeners : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
+    pub event_listeners : HashMap<script_lang::StringT,Vec<(script_lang::Value,bool)>>, //[event_name][ind]=(func,has_err)
 }
 
 #[derive(Component,Default)]

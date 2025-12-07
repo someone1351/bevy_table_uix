@@ -9,6 +9,7 @@ use std::collections::HashSet;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 use bevy_table_ui as table_ui;
+use script_lang::StringT;
 // use script_lang::IntT;
 use script_lang::Value;
 use table_ui::*;
@@ -309,20 +310,19 @@ pub fn on_affects<'a>(
             //         affect_computed.states.remove(&UiAffectState::Drag);
             //     }
             // }
-            UiInteractMessageType::PressBegin{device,..} => {
-                // affect_computed.states.insert(UiAffectState::Press);
-                // new_states.entry(ev.entity).or_default().insert(UiAffectState::Press);
-
+            UiInteractMessageType::CursorPressBegin{device,..} => {
                 affect_computed.states.entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
                 new_states.entry(ev.entity).or_default().entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
             }
-            UiInteractMessageType::PressEnd{device,..} => {
-                // if new_states.contains(&UiAffectState::Press) {
-                //     affect_computed.remove_states.insert(UiAffectState::Press);
-                // } else {
-                    // affect_computed.states.remove(&UiAffectState::Press);
+            UiInteractMessageType::FocusPressBegin{device,..} => {
+                affect_computed.states.entry(UiAffectState::Press).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Press).or_default().insert(DeviceType::Cursor(device));
+            }
+            UiInteractMessageType::CursorPressEnd{device,..} => {
                 affect_computed.states.get_mut(&UiAffectState::Press).map(|x|x.remove(&DeviceType::Cursor(device)));
-                // }
+            }
+            UiInteractMessageType::FocusPressEnd{device,..} => {
+                affect_computed.states.get_mut(&UiAffectState::Press).map(|x|x.remove(&DeviceType::Focus(device)));
             }
             UiInteractMessageType::SelectBegin => {
                 // affect_computed.states.insert(UiAffectState::Select);
@@ -338,22 +338,28 @@ pub fn on_affects<'a>(
                 affect_computed.states.get_mut(&UiAffectState::Select).map(|x|x.remove(&DeviceType::None));
                 // }
             }
-            UiInteractMessageType::HoverBegin{device,..} => {
-                // affect_computed.states.insert(UiAffectState::Hover);
+            UiInteractMessageType::CursorHoverBegin{device,..} => {
                 affect_computed.states.entry(UiAffectState::Hover).or_default().insert(DeviceType::Focus(device));
-                new_states.entry(ev.entity).or_default().entry(UiAffectState::Hover).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Hover).or_default().insert(DeviceType::Cursor(device));
             }
-            UiInteractMessageType::HoverEnd{..} => {
-                // if new_states.contains(&UiAffectState::Hover) {
-                    // affect_computed.remove_states.insert(UiAffectState::Hover);
-                // } else {
-                    // affect_computed.states.remove(&UiAffectState::Hover);
-                affect_computed.states.get_mut(&UiAffectState::Hover).map(|x|x.remove(&DeviceType::None));
-                // }
+            UiInteractMessageType::CursorHoverEnd{device,..} => {
+                affect_computed.states.get_mut(&UiAffectState::Hover).map(|x|x.remove(&DeviceType::Cursor(device)));
             }
-            UiInteractMessageType::Click{..}=> {}
-            UiInteractMessageType::DragX{..} => {}
-            UiInteractMessageType::DragY{..} => {}
+
+            UiInteractMessageType::CursorDragBegin { device, .. } => {
+                affect_computed.states.entry(UiAffectState::Drag).or_default().insert(DeviceType::Focus(device));
+                new_states.entry(ev.entity).or_default().entry(UiAffectState::Hover).or_default().insert(DeviceType::Cursor(device));
+
+            }
+            UiInteractMessageType::CursorDragEnd { device, .. } => {
+                affect_computed.states.get_mut(&UiAffectState::Drag).map(|x|x.remove(&DeviceType::Cursor(device)));
+
+            }
+            UiInteractMessageType::FocusClick{..}=> {}
+            UiInteractMessageType::CursorClick{..}=> {}
+            UiInteractMessageType::CursorDragX{..} => {}
+            UiInteractMessageType::CursorDragY{..} => {}
+            UiInteractMessageType::CursorScroll{..} => {}
             // UiInteractEventType::DragMove { .. } =>{}
             // _ =>{}
         }
@@ -416,15 +422,18 @@ pub fn on_event_listeners<'a>(
     let time_elapsed=time.delta_secs();
 
     //
-    let mut bla = Vec::new();
+    let mut output_events: Vec<(Entity,StringT, Vec<Value>)> = Vec::new(); //(entity,event_name,params)
 
     //update events
-    for (_entity,event_listener) in event_listeners_query.iter() {
-        if let Some((_,listeners))=event_listener.event_listeners.get_key_value("update") {
+    for (entity,event_listener) in event_listeners_query.iter() {
+        if let Some((key,_))=event_listener.event_listeners.get_key_value("update") {
             let params= vec![Value::float(time_elapsed)];
-            bla.push((
+            output_events.push((
                 // ev.entity,k.clone(),
-                params,listeners.clone(),
+                entity,
+                key.clone(),
+                params,
+                // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
             ));
         }
     }
@@ -432,27 +441,63 @@ pub fn on_event_listeners<'a>(
     //interact events
     for ev in interact_event_reader.read() {
         if let Ok((_,event_listener))=event_listeners_query.get(ev.entity) {
-            // event_listener.event_listeners.contains_key(ev.event_type.name())
-            if let Some((_k,listeners))=event_listener.event_listeners.get_key_value(ev.event_type.name()) {
-                let params= match ev.event_type {
-                    UiInteractMessageType::HoverBegin { device } => vec![Value::int(device)],
-                    UiInteractMessageType::HoverEnd { device } => vec![Value::int(device)],
-                    UiInteractMessageType::PressBegin{..} => vec![],
-                    UiInteractMessageType::PressEnd{..} => vec![],
-                    UiInteractMessageType::Click{..} => vec![],
-                    // UiInteractMessageType::DragX { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
-                    // UiInteractMessageType::DragY { px, scale } => vec![Value::int((px+0.5) as IntT),Value::float(scale)],
+            // event_listsssener.event_listeners.contains_key(ev.event_type.name())
+            let name=match ev.event_type {
+                UiInteractMessageType::CursorHoverBegin{..} => "hover_begin",
+                UiInteractMessageType::CursorHoverEnd{..} => "hover_end",
+                UiInteractMessageType::CursorPressBegin{..} => "press_begin",
+                UiInteractMessageType::CursorPressEnd{..} => "press_end",
+                UiInteractMessageType::CursorClick{..} => "click",
 
-                    UiInteractMessageType::DragX { dist, delta, device, button } => vec![Value::float(dist),Value::float(delta)],
-                    UiInteractMessageType::DragY { dist, delta, device, button  } => vec![Value::float(dist),Value::float(delta)],
+                UiInteractMessageType::CursorScroll{..} => "scroll",
+                UiInteractMessageType::CursorDragBegin{..} => "drag_begin",
+                UiInteractMessageType::CursorDragEnd{..} => "drag_end",
+                UiInteractMessageType::CursorDragX { .. } => "drag_x",
+                UiInteractMessageType::CursorDragY { .. } => "drag_y",
+                UiInteractMessageType::SelectBegin => "select_begin",
+                UiInteractMessageType::SelectEnd => "select_end",
+                UiInteractMessageType::FocusBegin{..} => "focus_begin",
+                UiInteractMessageType::FocusEnd{..} => "focus_end",
+
+                UiInteractMessageType::FocusPressBegin {.. } => "press_begin",
+                UiInteractMessageType::FocusPressEnd {.. } => "press_end",
+                UiInteractMessageType::FocusClick {.. } => "click",
+
+            };
+            if let Some((key,_))=event_listener.event_listeners.get_key_value(name) {
+                let params:Vec<(&str,Value)>= match ev.event_type {
+                    UiInteractMessageType::CursorHoverBegin { device } => vec![("device",device.into())],
+                    UiInteractMessageType::CursorHoverEnd { device } => vec![("device",device.into())],
+                    UiInteractMessageType::CursorPressBegin{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
+                    UiInteractMessageType::CursorPressEnd{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
+                    UiInteractMessageType::FocusPressBegin{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
+                    UiInteractMessageType::FocusPressEnd{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
+                    UiInteractMessageType::CursorClick{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
+                    UiInteractMessageType::FocusClick{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
+                    UiInteractMessageType::CursorDragX { dist, delta, device, button } => vec![
+                        ("device",device.into()),("button",button.into()),
+                        ("dist",dist.into()),("delta",delta.into()),
+                    ],
+                    UiInteractMessageType::CursorDragY { dist, delta, device, button  } => vec![
+                        ("device",device.into()),("button",button.into()),
+                        ("dist",dist.into()),("delta",delta.into()),
+                    ],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
-                    UiInteractMessageType::FocusBegin { group, device } => vec![Value::int(group)],
-                    UiInteractMessageType::FocusEnd { group, device } => vec![Value::int(group)],
+                    UiInteractMessageType::FocusBegin { group, device } => vec![("device",device.into()),("group",group.into()),],
+                    UiInteractMessageType::FocusEnd { group, device } => vec![("device",device.into()),("group",group.into()),],
+                    UiInteractMessageType::CursorDragBegin { device, button } => vec![("device",device.into()),("button",button.into()),],
+                    UiInteractMessageType::CursorDragEnd { device, button } => vec![("device",device.into()),("button",button.into()),],
+                    UiInteractMessageType::CursorScroll { scroll, device, axis } => vec![("device",device.into()),("scroll",scroll.into()),("axis",axis.into())],
                 };
-                bla.push((
+                let params:HashMap<&str,Value>=params.into_iter().collect();
+
+                output_events.push((
                     // ev.entity,k.clone(),
-                    params,listeners.clone(),
+                    ev.entity,
+                    key.clone(),
+                    vec![Value::custom_unmanaged(params)],
+                    // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
                 ));
             }
         }
@@ -462,11 +507,14 @@ pub fn on_event_listeners<'a>(
     for ev in user_event_reader.read() {
         if let Ok((_,event_listener))=event_listeners_query.get(ev.entity) {
             // event_listener.event_listeners.contains_key(ev.event_type.name())
-            if let Some((_k,listeners))=event_listener.event_listeners.get_key_value(ev.event.as_str()) {
+            if let Some((key,_))=event_listener.event_listeners.get_key_value(ev.event.as_str()) {
                 let params= ev.params.clone();
-                bla.push((
+                output_events.push((
                     // ev.entity,k.clone(),
-                    params,listeners.clone(),
+                    ev.entity,
+                    key.clone(),
+                    params,
+                    // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
                 ));
             }
         }
@@ -479,15 +527,38 @@ pub fn on_event_listeners<'a>(
         let gc_scope = world.resource::<UixGcScope>().0.clone();
         let mut gc_scope=gc_scope.try_lock().unwrap();
 
-        for (params,listeners) in bla {
-            for listener in listeners {
+        for (entity,key,params,) in output_events {
+            let e=world.entity(entity);
+            let Some(c)=e.get::<UixEventListener>() else {continue;};
+            let Some(listeners)=c.event_listeners.get(&key) else {continue;};
+            let listeners=listeners.clone();
+
+            let mut found_errs=HashSet::<usize>::new();
+
+            // let listeners = ;
+            for (i,(listener,has_err)) in listeners.iter().enumerate() {
+                if *has_err {continue;}
+
                 let mut var_scope = script_lang::VarScope::new();
                 let mut machine = script_lang::Machine::new(&mut gc_scope, &lib_scope, &mut var_scope,  world);
                 // machine.set_debug_print(true);
                 // machine.set_debug(true);
                 //println!("a");
-                if let Err(e)=machine.call_value(listener,&params) {
+                if let Err(e)=machine.call_value(listener.clone(),&params) {
                     e.eprint(None);
+                    found_errs.insert(i);
+                }
+            }
+
+            if !found_errs.is_empty() {
+                let mut e=world.entity_mut(entity);
+                let Some(mut c)=e.get_mut::<UixEventListener>() else {continue;};
+                let Some(listeners)=c.event_listeners.get_mut(&key) else {continue;};
+
+                for i in found_errs {
+                    if let Some((_,has_err))=listeners.get_mut(i) {
+                        *has_err=true;
+                    }
                 }
             }
         }

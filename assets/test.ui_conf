@@ -62,7 +62,7 @@ template scroll_widget
 				height 20
 				draggable
 				pressable
-				press_always
+
 
 				script
 
@@ -120,7 +120,6 @@ template scroll_widget
 				height 20
 				draggable
 				pressable
-				press_always
 
 				script
 					set hthumb self

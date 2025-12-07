@@ -505,74 +505,93 @@ fn do_attribs<'a>(
             }
         }
         "hoverable" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiHoverable>(move|c|{c.enable=v;})));
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiCursorable>(move|c|{c.hoverable=v;})));
         }
         "pressable" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.enable=v;})));
+            let v : bool = walk.record().value(0).parsed_or(true);
+            // // let v : bool = walk.record().value(0).parsed_or(true);
+            // // attrib_funcs.push((x,make_attrib_func::<(UiCursorable,UiFocusable)>(move|c|{
+            // //     c.0.pressable=v;
+            // //     c.1.pressable=v;
+            // // })));
+            // // attrib_funcs.push((x,make_attrib_func::<UiCursorable>(move|c|{c.pressable=v;})));
+            // let f1=make_attrib_func::<UiCursorable>(move|c|{c.pressable=v;});
+            // let f2=make_attrib_func::<UiFocusable>(move|c|{c.pressable=v;});
+
+            // attrib_funcs.push((x,Arc::new(move|entity:Entity, world:&mut World|{
+            //     f1(entity,world);
+            //     f2(entity,world);
+            // }) ));
+
+            attrib_funcs.push((x,Arc::new(move|entity,world|{
+                let mut e=world.entity_mut(entity);
+                e.entry::<UiCursorable>().or_default().get_mut().pressable=v;
+                e.entry::<UiFocusable>().or_default().get_mut().pressable=v;
+            }) ));
+
         }
         "draggable" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiDraggable>(move|c|{c.enable=v;})));
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiCursorable>(move|c|{c.draggable=v;})));
         }
         "selectable" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{c.enable=v;})));
         }
         "focusable" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.enable=v;})));
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{ c.enable=v; })));
         }
 
-        "press_always"=> {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.always=v;})));
-        }
+        // "press_always"=> {
+        //     let v : bool = walk.record().value(0).parsed_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.always=v;})));
+        // }
         // "press_physical" => {
-        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     let v : bool = walk.record().value(0).parsed_or(true);
         //     attrib_funcs.push((x,make_attrib_func::<UiPressable>(move|c|{c.physical=v;})));
         // }
 
         // "focused" => {
-        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     let v : bool = walk.record().value(0).parsed_or(true);
         //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.focused=v;})));
         // }
         "focus_group" => {
             let v: i32 = walk.record().value(0).get_parsed().unwrap();
             attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.group=v;})));
         }
-        "focus_tab_exit" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.tab_exit=v;})));
+        // "focus_tab_exit" => {
+        //     let v : bool = walk.record().value(0).parsed_or(true);
+        //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.tab_exit=v;})));
+        // }
+        "focus_hexit" => {
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hexit=v;})));
         }
-        "focus_hdir_exit" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hdir_exit=v;})));
+        "focus_vexit" => {
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vexit=v;})));
         }
-        "focus_vdir_exit" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_exit=v;})));
+        "focus_hwrap" => {
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hwrap=v;})));
         }
-        "focus_hdir_wrap" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hdir_wrap=v;})));
-        }
-        "focus_vdir_wrap" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
-            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_wrap=v;})));
+        "focus_vwrap" => {
+            let v : bool = walk.record().value(0).parsed_or(true);
+            attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vwrap=v;})));
         }
         // "focus_hdir_press" => {
-        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     let v : bool = walk.record().value(0).parsed_or(true);
         //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.hdir_press=v;})));
         // }
         // "focus_vdir_press" => {
-        //     let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+        //     let v : bool = walk.record().value(0).parsed_or(true);
         //     attrib_funcs.push((x,make_attrib_func::<UiFocusable>(move|c|{c.vdir_press=v;})));
         // }
 
         "selected" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiSelectable>(move|c|{c.selected=v;})));
         }
         "select_group" => {
@@ -744,19 +763,19 @@ fn do_attribs<'a>(
         }
 
         "disabled" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiDisable>(move|c|{c.disable=v;})));
         }
         "hidden" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiHide>(move|c|{c.hide=v;})));
         }
         "floating" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiFloat>(move|c|{c.float=v;})));
         }
         "locked" => {
-            let v : bool = walk.record().get_value(0).map(|x|x.get_parsed().unwrap()).unwrap_or(true);
+            let v : bool = walk.record().value(0).parsed_or(true);
             attrib_funcs.push((x,make_attrib_func::<UiLock>(move|c|{c.lock=v;})));
         }
 
@@ -837,20 +856,25 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("margin_color", make_attrib_default_func::<UiColor>(|c,d|{c.margin=d.margin;}));
     output.insert("cell_color", make_attrib_default_func::<UiColor>(|c,d|{c.cell=d.cell;}));
     output.insert("text_color", make_attrib_default_func::<UiText>(|c,d|{c.color=d.color;}));
-    output.insert("hoverable", make_attrib_default_func::<UiHoverable>(|c,d|{c.enable=d.enable;}));
-    output.insert("pressable", make_attrib_default_func::<UiPressable>(|c,d|{c.enable=d.enable;}));
-    output.insert("draggable", make_attrib_default_func::<UiDraggable>(|c,d|{c.enable=d.enable;}));
+    output.insert("hoverable", make_attrib_default_func::<UiCursorable>(|c,d|{c.hoverable=d.hoverable;}));
+    // output.insert("pressable", make_attrib_default_func::<UiPressable>(|c,d|{c.enable=d.enable;}));
+    output.insert("pressable", Arc::new(|entity,world|{
+        let mut e=world.entity_mut(entity);
+        e.entry::<UiCursorable>().or_default().get_mut().pressable=false;
+        e.entry::<UiFocusable>().or_default().get_mut().pressable=false;
+    }));
+    output.insert("draggable", make_attrib_default_func::<UiCursorable>(|c,d|{c.draggable=d.draggable;}));
     output.insert("selectable", make_attrib_default_func::<UiSelectable>(|c,d|{c.enable=d.enable;}));
     output.insert("focusable", make_attrib_default_func::<UiFocusable>(|c,d|{c.enable=d.enable;}));
-    output.insert("press_always", make_attrib_default_func::<UiPressable>(|c,d|{c.always=d.always;}));
+    // output.insert("press_always", make_attrib_default_func::<UiPressable>(|c,d|{c.always=d.always;}));
     // output.insert("press_physical", make_attrib_default_func::<UiPressable>(|c,d|{c.physical=d.physical;}));
     // output.insert("focused", make_attrib_default_func::<UiFocusable>(|c,d|{c.focused=d.focused;}));
     output.insert("focus_group", make_attrib_default_func::<UiFocusable>(|c,d|{c.group=d.group;}));
-    output.insert("focus_tab_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.tab_exit=d.tab_exit;}));
-    output.insert("focus_hdir_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_exit=d.hdir_exit;}));
-    output.insert("focus_vdir_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_exit=d.vdir_exit;}));
-    output.insert("focus_hdir_wrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_wrap=d.hdir_wrap;}));
-    output.insert("focus_vdir_wrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_wrap=d.vdir_wrap;}));
+    // output.insert("focus_tab_exit", make_attrib_default_func::<UiFocusable>(|c,d|{c.tab_exit=d.tab_exit;}));
+    output.insert("focus_hexit", make_attrib_default_func::<UiFocusable>(|c,d|{c.hexit=d.hexit;}));
+    output.insert("focus_vexit", make_attrib_default_func::<UiFocusable>(|c,d|{c.vexit=d.vexit;}));
+    output.insert("focus_hwrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.hwrap=d.hwrap;}));
+    output.insert("focus_vwrap", make_attrib_default_func::<UiFocusable>(|c,d|{c.vwrap=d.vwrap;}));
     // output.insert("focus_hdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.hdir_press=d.hdir_press;}));
     // output.insert("focus_vdir_press", make_attrib_default_func::<UiFocusable>(|c,d|{c.vdir_press=d.vdir_press;}));
     output.insert("selected", make_attrib_default_func::<UiSelectable>(|c,d|{c.selected=d.selected;}));

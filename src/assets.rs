@@ -464,12 +464,13 @@ fn input_def() -> conf_lang::Def {
                     .param_parse::<i32>()
             .tags([
                 "hoverable","pressable","draggable","selectable","focusable",
-                "press_always", //"press_physical",// "press_released",
+                // "press_always", //"press_physical",// "press_released",
                 "disabled","hidden","floating","locked","selected",
                 "focused",
-                "focus_tab_exit","focus_hdir_exit","focus_vdir_exit",
-                "focus_hdir_wrap","focus_vdir_wrap",
-                "focus_hdir_press","focus_vdir_press",
+                // "focus_tab_exit",
+                "focus_hexit","focus_vexit",
+                "focus_hwrap","focus_vwrap",
+                // "focus_hdir_press","focus_vdir_press",
             ])
                 .entry()
                     .param_optional()
