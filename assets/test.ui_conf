@@ -31,7 +31,7 @@ template scroll_widget
 			#	set self.vscroll (+ self.vscroll 11)
 			#	println self.vscroll
 			#}]
-			self.add_event_listener "drag_y" [fn (px scale) {
+			self.add_event_listener "drag_y" [fn (d) {
 				#set self.vscroll (clamp (+ start scale) 0.0 1.0)
 				#set self.vscroll (- start px)
 				#println "{px} {scale}"
@@ -71,9 +71,10 @@ template scroll_widget
 					var start;
 					self.add_event_listener "press_begin" [fn () { set start self.valign.s }]
 
-					self.add_event_listener "drag_y" [fn (d) {
+					self.add_event_listener "drag_y" [fn (e) {
 						var h self.computed.cell.sum_size.y;
-						set self.valign.s (clamp (+ start (? (> h 0.0) (/ d h) 0.0)) 0.0 1.0)
+						#println "is_custom_alive {e} {}" (is_custom_alive e)
+						set self.valign.s (clamp (+ start (? (> h 0.0) (/ e.delta h) 0.0)) 0.0 1.0)
 					}]
 		node scroll_vbar_down
 			color gold
@@ -130,9 +131,9 @@ template scroll_widget
 						set start self.halign.s
 					}]
 
-					self.add_event_listener "drag_x" [fn (d) {
+					self.add_event_listener "drag_x" [fn (e) {
 						var w self.computed.cell.sum_size.x;
-						set self.halign.s (clamp (+ start (? (> w 0.0) (/ d w) 0.0)) 0.0 1.0)
+						set self.halign.s (clamp (+ start (? (> w 0.0) (/ e.delta w) 0.0)) 0.0 1.0)
 					}]
 
 		node scroll_hbar_right
