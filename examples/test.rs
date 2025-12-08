@@ -12,7 +12,7 @@ use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiRoot
 };
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystems}, prelude::* };
-use bevy_table_uix::UixFromAsset;
+use bevy_table_uix::{UixFromAsset, UixUserMessage};
 
 
 fn main() {
@@ -121,12 +121,16 @@ fn setup_fps(
 fn show_fps(
     diagnostics: Res<DiagnosticsStore>,
     mut marker_query: Query< &mut TextSpan,With<FpsText>>,
+    mut ui_user_message_writer: MessageWriter<UixUserMessage>,
+    root_query: Query<Entity, With<UiRoot>,>,
+
 ) {
-    if let Ok(mut text)=marker_query.single_mut() {
-        let v=diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS);
-        let fps = v.and_then(|x|x.value()).map(|x|x.round()).unwrap_or_default();
-        let avg = v.and_then(|x|x.average()).unwrap_or_default();
-        text.0 =format!("{fps:.0} {avg:.0}");
+    let diag=diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS);
+    let fps = diag.and_then(|x|x.value()).map(|x|x.floor()).unwrap_or_default();
+    let avg = diag.and_then(|x|x.average()).unwrap_or_default();
+
+    for root_entity in root_query {
+        ui_user_message_writer.write(UixUserMessage { entity: root_entity, event: "fps".into(), params: vec![fps.into(),avg.into()] });
     }
 }
 
