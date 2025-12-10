@@ -3,7 +3,9 @@ node
     font "fonts/FiraMono-Medium.ttf"
     text_size 50
     text_color red
-    
+    #text_hlen 20
+    #text_vlen 1
+
     color green
-    #width 100
-    height 200
+    #width 55
+    #height 46
