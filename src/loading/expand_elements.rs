@@ -55,7 +55,7 @@ pub fn expand_elements(elements:&mut Vec<Element>) {
     }];
 
     let mut things: Vec<Thing>=vec![]; //stack of elements, (cur element and its ancestors?) + info
-    let mut node_stk_attribs: Vec<HashMap<(&str,Option<UiAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
+    let mut node_stk_attribs: Vec<HashMap<(&str,Option<UixAffectState>),(Option<usize>,Option<usize>,bool,AttribFunc,usize)>> = Vec::new(); //[node_depth][(name,state)]=(in_template,in_apply.in_node,func,element_ind)
 
     // let mut count=0;
     while let Some(cur_work)=work_stk.pop() {

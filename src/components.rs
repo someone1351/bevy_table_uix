@@ -6,6 +6,7 @@ TODO
 // use std::collections::HashSet;
 
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 // use bevy::platform::collections::HashSet;
 use bevy::{ecs::prelude::*,  };
@@ -17,7 +18,7 @@ use script_lang::{StringT, Value};
 
 // use crate::table_ui::{UiSize, UiVal};
 
-use crate::script_vals::{AttribFuncType, UiAffectState};
+use crate::script_vals::UixAffectState;
 
 use super::{
     // systems::*,
@@ -37,18 +38,33 @@ pub struct UixData {
 pub enum DeviceType{None,Cursor(i32),Focus(i32),}
 
 #[derive(Component,Default)]
-// #[require(UiLayoutComputed)]
-pub struct UixAffect {
-    // pub attribs : HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>, //[state][attrib_ind]=(func,priority)
-    // pub attribs2 : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //attrib_ind][state]=(func,priority)
-    // pub attribs : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>, //[attrib_ind][state]=(func,priority)
-    pub attribs : Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>, //[attrib_ind](default_func,[state]=(func,priority))
-    // pub states : HashMap<Option<UiAffectState>,>,
-    // pub states : HashSet<UiAffectState>,
-    pub states : HashMap<UiAffectState,HashSet<DeviceType>>, //[state][device]
-
-    // pub remove_states : BTreeSet<UiAffectState>,
+pub struct UixAffectComputed {
+    pub states : HashMap<UixAffectState,HashSet<DeviceType>>, //[state][device]
+    pub cur_attrib_inds:HashMap<usize,usize>, //[attrib_ind]=cur_ind
 }
+
+// type UixAffectAttribFunc = Arc<dyn Fn(&mut World,Entity,usize) + Sync+Send>;
+
+pub struct UixAffectAttrib {
+    // func : UixAffectAttribFunc,
+    pub funcs:Vec<Arc<dyn Fn(Entity,&mut World,) + Sync+Send>>,
+    pub states:HashMap<UixAffectState,usize>,//[state]=val_ind
+}
+#[derive(Component,Default)]
+// #[require(UiLayoutComputed)]
+#[require(UixAffectComputed)]
+pub struct UixAffect(pub Vec<UixAffectAttrib>); //[attrib_ind]=
+// pub struct UixAffect {
+//     // pub attribs : HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>, //[state][attrib_ind]=(func,priority)
+//     // pub attribs2 : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,Option<i32>)>>, //attrib_ind][state]=(func,priority)
+//     // pub attribs : Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>, //[attrib_ind][state]=(func,priority)
+//     pub attribs : Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>, //[attrib_ind](default_func,[state]=(func,priority))
+//     // pub states : HashMap<Option<UiAffectState>,>,
+//     // pub states : HashSet<UiAffectState>,
+//     pub states : HashMap<UiAffectState,HashSet<DeviceType>>, //[state][device]
+
+//     // pub remove_states : BTreeSet<UiAffectState>,
+// }
 
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]

@@ -49,7 +49,7 @@ use conf_lang::Conf;
 use bevy_table_ui as table_ui;
 use table_ui::{ UiTextHAlign, UiTextVAlign, UiVal};
 
-use crate::script_vals::UiAffectState;
+use crate::script_vals::UixAffectState;
 
 // use crate::libs::conf_lang;
 // use crate::{input::Mapping, libs::input_map};
@@ -112,13 +112,13 @@ pub fn parse_valign(s:&str) -> Option<UiVal> {
     })
 }
 
-pub fn parse_affect_state(s:&str) -> Option<UiAffectState> {
+pub fn parse_affect_state(s:&str) -> Option<UixAffectState> {
     match s {
-        "select" => Some(UiAffectState::Select),
-        "hover" => Some(UiAffectState::Hover),
-        "focus" => Some(UiAffectState::Focus),
-        "drag" => Some(UiAffectState::Drag),
-        "press" => Some(UiAffectState::Press),
+        "select" => Some(UixAffectState::Select),
+        "hover" => Some(UixAffectState::Hover),
+        "focus" => Some(UixAffectState::Focus),
+        "drag" => Some(UixAffectState::Drag),
+        "press" => Some(UixAffectState::Press(0)),
         _ => None
     }
 }
@@ -466,7 +466,7 @@ fn input_def() -> conf_lang::Def {
                 "hoverable","pressable","draggable","selectable","focusable",
                 // "press_always", //"press_physical",// "press_released",
                 "disabled","hidden","floating","locked","selected",
-                "focused",
+                // "focused",
                 // "focus_tab_exit",
                 "focus_hexit","focus_vexit",
                 "focus_hwrap","focus_vwrap",
@@ -481,6 +481,8 @@ fn input_def() -> conf_lang::Def {
             .tags(["focus_group"])
                 .entry()
                     .param_parse::<i32>()
+        .branch("attribs2_branch").include(["attribs3_branch"])
+
             .tags([
                 "width","height","hgap","vgap",
                 "hpadding","vpadding","hborder","vborder","hmargin","vmargin",
@@ -536,7 +538,7 @@ fn input_def() -> conf_lang::Def {
                     .param_optional()
                     .param_func(parse_uival)
 
-        .branch("attribs2_branch")
+        .branch("attribs3_branch")
             .tags([
                 "color","border_color","padding_color",
                 "margin_color","cell_color","text_color",

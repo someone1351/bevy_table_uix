@@ -5,13 +5,13 @@ use script_lang::{StringT, Value};
 
 
 #[derive(Debug,Hash,PartialEq,Eq,Copy,Clone,PartialOrd, Ord)]
-pub enum UiAffectState {
+pub enum UixAffectState {
     // None,
     Select,
     Hover,
     Focus,
+    Press(i32),
     Drag,
-    Press,
 }
 pub type AttribFuncType = Arc<dyn Fn(Entity,&mut World)+Send+Sync>;
 #[derive(Clone)]
@@ -47,7 +47,7 @@ pub struct StuffNode {
 
     // pub all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>>, //[element_ind][state][attrib_ind]=(func,priority)
     // pub all_state_attribs:HashMap<usize,Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>>, //[element_ind][attrib_ind][state]=(func,priority)
-    pub all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>, //[element_ind][attrib_ind]=(default_func,[state]=(func,priority))
+    pub all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UixAffectState,(AttribFuncType,i32)>)>>, //[element_ind][attrib_ind]=(default_func,[state]=(func,priority))
     /*
 
     * could replace all_attribs with all_state_attribs

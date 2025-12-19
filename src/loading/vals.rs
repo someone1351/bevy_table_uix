@@ -39,7 +39,7 @@ pub enum ElementType<'a> {
     },
     Attrib {
         name : &'a str,
-        on_state: Option<UiAffectState>,
+        on_state: Option<UixAffectState>,
         on_priority:Option<i32>,
         in_template: Option<usize>,
         func : AttribFunc,

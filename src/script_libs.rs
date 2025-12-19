@@ -998,11 +998,29 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                 }
 
                 //
-                if let Some(x)=stuff.all_state_attribs.get(&stuff_node.element_ind) {
-                    world.entity_mut(entity).insert(UixAffect{
-                        attribs: x.clone(),
-                        ..Default::default()
-                    });
+                if let Some(attrib_funcs)=stuff.all_state_attribs.get(&stuff_node.element_ind) {
+                    let mut out_affect_attribs=Vec::new();
+
+                    for (default_func,state_funcs) in attrib_funcs {
+                        //
+                        let mut state_funcs=state_funcs.iter().map(|(state,(func,priority))|(state,func,priority)).collect::<Vec<_>>();
+                        state_funcs.sort_by(|x,y|x.2.cmp(&y.2));
+
+                        //
+                        let mut out_funcs=vec![default_func.clone()];
+                        let mut out_states=HashMap::new(); //states:HashMap<UixAffectState,usize>
+
+                        //
+                        for (i,&(&state,func,_priority)) in state_funcs.iter().enumerate() {
+                            out_funcs.push(func.clone());
+                            out_states.insert(state, i+1);
+                        }
+
+                        out_affect_attribs.push(UixAffectAttrib{ funcs: out_funcs, states: out_states });
+
+                    }
+
+                    world.entity_mut(entity).insert(UixAffect(out_affect_attribs));
                 }
 
                 //

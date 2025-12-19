@@ -333,7 +333,7 @@ pub fn load_elements<'a>(
 
             "on" => {
                 walk.do_exit();
-                let affect_state=walk.record().value(0).get_parsed::<UiAffectState>().unwrap();
+                let affect_state=walk.record().value(0).get_parsed::<UixAffectState>().unwrap();
                 let priority=walk.record().value(1).get_parsed::<i32>();
 
                 walk.set_named_note("on",affect_state);
@@ -380,7 +380,7 @@ pub fn load_elements<'a>(
                 last_element_stk.pop().unwrap();
             }
             x => {
-                let on_state: Option<UiAffectState>=walk.find_named_note("on").cloned();
+                let on_state: Option<UixAffectState>=walk.find_named_note("on").cloned();
                 let on_priority:Option<i32>=walk.find_named_note("priority").cloned();
 
                 let in_node: bool=walk.find_named_note("in_node").cloned().unwrap_or_default();
