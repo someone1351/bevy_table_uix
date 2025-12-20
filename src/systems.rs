@@ -328,8 +328,8 @@ pub fn on_event_listeners<'a>(
                 let params:Vec<(&str,Value)>= match ev.event_type {
                     UiInteractMessageType::CursorHoverBegin { device } => vec![("device",device.into())],
                     UiInteractMessageType::CursorHoverEnd { device } => vec![("device",device.into())],
-                    UiInteractMessageType::CursorPressBegin{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
-                    UiInteractMessageType::CursorPressEnd{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
+                    UiInteractMessageType::CursorPressBegin{device,button,first,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into()),("first",first.into())],
+                    UiInteractMessageType::CursorPressEnd{device,button,last,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into()),("last",last.into())],
                     UiInteractMessageType::FocusPressBegin{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
                     UiInteractMessageType::FocusPressEnd{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
                     UiInteractMessageType::CursorClick{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
