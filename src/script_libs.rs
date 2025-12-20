@@ -12,6 +12,8 @@ use script_lang::*;
 
 // use crate::UixSelf;
 
+use crate::affect::{UixAffect, UixAffectAttrib};
+
 use super::components::*;
 use super::messages::*;
 use super::script_vals::*;

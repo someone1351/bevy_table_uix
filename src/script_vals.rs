@@ -1,19 +1,11 @@
-use std::{ collections::HashMap, ops::Range, sync::Arc};
+use std::{ collections::HashMap, ops::Range};
 
-use bevy::{ecs::{entity::Entity, world::World},  };
+// use bevy::{ecs::{entity::Entity, world::World},  };
 use script_lang::{StringT, Value};
 
+use crate::affect::{AttribFuncType, UixAffectState};
 
-#[derive(Debug,Hash,PartialEq,Eq,Copy,Clone,PartialOrd, Ord)]
-pub enum UixAffectState {
-    // None,
-    Select,
-    Hover,
-    Focus,
-    Press(i32),
-    Drag,
-}
-pub type AttribFuncType = Arc<dyn Fn(Entity,&mut World)+Send+Sync>;
+
 #[derive(Clone)]
 pub struct AttribFunc(pub AttribFuncType);
 impl std::fmt::Debug for AttribFunc {

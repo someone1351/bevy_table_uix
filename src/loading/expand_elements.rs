@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 // use std::collections::BTreeSet;
 
 
+use crate::affect::UixAffectState;
+
 use super::super::script_vals::*;
 use super::vals::*;
 

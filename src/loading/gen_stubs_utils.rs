@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 
 
 
-use crate::{loading::get_default_attribs, script_vals::{AttribFuncType, UixAffectState}};
+use crate::{affect::{AttribFuncType, UixAffectState}, loading::get_default_attribs };
 
 use super::vals::*;
 

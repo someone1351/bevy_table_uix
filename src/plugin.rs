@@ -2,6 +2,8 @@
 use bevy::prelude::*;
 use bevy_table_ui::UiInteractSystem;
 
+use crate::affect::UixAffectPlugin;
+
 use super::{
     assets::*, messages::UixUserMessage, resources::*,  systems::*
 };
@@ -13,6 +15,9 @@ pub struct UixPlugin;
 impl bevy::app::Plugin for UixPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
+            .add_plugins((
+                UixAffectPlugin,
+            ))
             .init_asset::<UiAsset>()
             .init_asset_loader::<UiAssetLoader>()
 
@@ -30,7 +35,7 @@ impl bevy::app::Plugin for UixPlugin {
                     on_asset_load,
                 ).chain().run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
 
-                on_affects,
+                // on_affects,
                 on_event_listeners,
             ).chain()
             .after(UiInteractSystem))

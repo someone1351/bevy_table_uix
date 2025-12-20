@@ -15,6 +15,8 @@ use std::path::PathBuf;
 
 // use bevy::platform::collections::HashSet;
 use conf_lang::RecordContainer;
+use crate::affect::UixAffectState;
+
 // use super::script_stuff::{AttribFunc, Stuff};
 use super::super::script_vals::*;
 

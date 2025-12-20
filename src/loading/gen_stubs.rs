@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 
+use crate::affect::{AttribFuncType, UixAffectState};
 use crate::loading::{calc_attribs, calc_envs2, calc_node_creates};
 
 use super::super::script_vals::*;

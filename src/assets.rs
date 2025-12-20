@@ -49,7 +49,9 @@ use conf_lang::Conf;
 use bevy_table_ui as table_ui;
 use table_ui::{ UiTextHAlign, UiTextVAlign, UiVal};
 
-use crate::script_vals::UixAffectState;
+use crate::affect::UixAffectState;
+
+// use crate::script_vals::UixAffectState;
 
 // use crate::libs::conf_lang;
 // use crate::{input::Mapping, libs::input_map};

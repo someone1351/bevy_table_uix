@@ -10,6 +10,8 @@ use bevy::asset::prelude::*;
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
 use table_ui::*;
+use crate::affect::{AttribFuncType, UixAffectState};
+
 use super::super::script_vals::*;
 
 use super::super::assets::*;
