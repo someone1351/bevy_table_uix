@@ -1,0 +1,31 @@
+apply text
+    text aAaab
+    font "fonts/FiraMono-subset.ttf"
+    #font "fonts/FiraMono-Medium.ttf"
+    text_size 50
+    text_color yellow
+    text_hlen 20
+    #text_vlen 2
+
+node
+    span 2
+    node text
+        color red
+        pressable
+        hoverable
+        text ccc
+        on press
+            text bbbzbbbca
+        script
+            self.add_event_listener "press_begin" [fn () {
+                #set self.text "bbbbbbbca"
+            }]
+            self.add_event_listener "press_end" [fn () {
+                #set self.text "aAaab"
+            }]
+    node text
+        color green
+    node text
+        color blue
+    node text
+        color orange

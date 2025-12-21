@@ -1,31 +1,32 @@
-apply text
+template text
     text aAaab
-    font "fonts/FiraMono-subset.ttf"
-    #font "fonts/FiraMono-Medium.ttf"
+    #font "fonts/FiraMono-subset.ttf"
+    font "fonts/FiraMono-Medium.ttf"
     text_size 50
     text_color yellow
-    text_hlen 20
-    #text_vlen 2
 
+apply x
+    template text
+    color green
 node
+    gap 4
     span 2
-    node text
-        color red
-        pressable
-        hoverable
-        text ccc
-        on press
-            text bbbbbbbca
-        script
-            self.add_event_listener "press_begin" [fn () {
-                #set self.text "bbbbbbbca"
-            }]
-            self.add_event_listener "press_end" [fn () {
-                #set self.text "aAaab"
-            }]
-    node text
-        color green
-    node text
-        color blue
-    node text
-        color orange
+    node x body
+        hfill 1.0
+        vfill 1.0
+        hexpand 1.0
+        vexpand 1.0
+        text "body\123\n456 "
+    node x
+        hfill 1.0
+        vfill 1.0
+        text v
+    node x
+        hfill 1.0
+        vfill 1.0
+        text h
+    node x
+        hfill 1.0
+        vfill 1.0
+        #text ""
+        text "z"

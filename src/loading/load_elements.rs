@@ -728,6 +728,37 @@ fn do_attribs<'a>(
         }
         "text" => {
             let v = walk.record().value(0).get_str().unwrap().to_string(); //v can't move from func's capture
+
+            let v=if v.contains("\\") {
+                let cs=v.chars().collect::<Vec<_>>();
+                let mut out=String::new();
+
+                let mut i=0;
+                while i<cs.len() {
+                    if cs[i]=='\\' {
+                        let x=match cs[i+1] {
+                            '\r' if cs.get(i+2).cloned()==Some('\n') => (vec![' '],2),
+                            '\n' => (vec![' '],1),
+                            'n' => (vec!['\n'],1),
+                            'r' => (vec!['\r'],1),
+                            's' => (vec![' '],1),
+                            't' => (vec!['\t'],1),
+                            _ => (cs[i..i+1].to_vec(),1),
+                        };
+
+                        out.extend(x.0);
+                        i+=x.1;
+
+                    } else {
+                        out.push(cs[i]);
+                        i+=1;
+                    }
+                }
+                out
+            } else {
+                v
+            };
+
             attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.value=v.clone(); c.update=true;})));
         }
         "text_halign" => {
