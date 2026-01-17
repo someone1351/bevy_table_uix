@@ -1,43 +1,6 @@
-template text
-    text xx
-    #font "fonts/FiraMono-subset.ttf"
-    font "fonts/FiraMono-Medium.ttf"
-    text_size 53
-    text_color yellow
-
-apply x
-    template text
-    color green
-    
-apply scroll_area body
-    text "body\123\n456a "
-    
-apply scroll_area vbar
+node
     color red
-    span 1
-
-apply scroll_area
-
-    gap 4
-    span 2
-    node x body
-        hfill 1.0
-        vfill 1.0
-        hexpand 1.0
-        vexpand 1.0
-    node x vbar
-        #hfill 1.0
-        vfill 1.0
-        text v
-    node x hbar
-        hfill 1.0
-        #vfill 1.0
-        text h
-    node x
-        hfill 1.0
-        vfill 1.0
-        #text ""
-        text "z"
-
-
-node scroll_area
+    text abcd
+    font fonts/montserrat.regular.ttf
+    text_size 22
+    text_color white

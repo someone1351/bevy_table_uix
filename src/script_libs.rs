@@ -6,7 +6,7 @@
 
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef},  prelude::{ ChildOf, Children, Entity, Resource, World}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef},  prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
 use bevy_table_ui::*;
 use script_lang::*;
 
@@ -123,10 +123,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.left,
-                NodeEdge::Border(_) => c.border_size.left,
-                NodeEdge::Margin(_) => c.margin_size.left,
-                NodeEdge::Cell(_) => c.cell_size.left,
+                NodeEdge::Padding(_) => c.padding_size.min.x,
+                NodeEdge::Border(_) => c.border_size.min.x,
+                NodeEdge::Margin(_) => c.margin_size.min.x,
+                NodeEdge::Cell(_) => c.cell_size.min.x,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -139,10 +139,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.right,
-                NodeEdge::Border(_) => c.border_size.right,
-                NodeEdge::Margin(_) => c.margin_size.right,
-                NodeEdge::Cell(_) => c.cell_size.right,
+                NodeEdge::Padding(_) => c.padding_size.max.x,
+                NodeEdge::Border(_) => c.border_size.max.x,
+                NodeEdge::Margin(_) => c.margin_size.max.x,
+                NodeEdge::Cell(_) => c.cell_size.max.x,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -155,10 +155,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.top,
-                NodeEdge::Border(_) => c.border_size.top,
-                NodeEdge::Margin(_) => c.margin_size.top,
-                NodeEdge::Cell(_) => c.cell_size.top,
+                NodeEdge::Padding(_) => c.padding_size.min.y,
+                NodeEdge::Border(_) => c.border_size.min.y,
+                NodeEdge::Margin(_) => c.margin_size.min.y,
+                NodeEdge::Cell(_) => c.cell_size.min.y,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -171,10 +171,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.bottom,
-                NodeEdge::Border(_) => c.border_size.bottom,
-                NodeEdge::Margin(_) => c.margin_size.bottom,
-                NodeEdge::Cell(_) => c.cell_size.bottom,
+                NodeEdge::Padding(_) => c.padding_size.max.y,
+                NodeEdge::Border(_) => c.border_size.max.y,
+                NodeEdge::Margin(_) => c.margin_size.max.y,
+                NodeEdge::Cell(_) => c.cell_size.max.y,
             }
         }).unwrap_or_default();
         Ok(Value::float(v))
@@ -187,10 +187,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => [c.padding_size.left+c.padding_size.right,c.padding_size.top+c.padding_size.bottom],
-                NodeEdge::Border(_) => [c.border_size.left+c.border_size.right, c.border_size.top+c.border_size.bottom],
-                NodeEdge::Margin(_) => [c.margin_size.left+c.margin_size.right, c.margin_size.top+c.margin_size.bottom],
-                NodeEdge::Cell(_) => [c.cell_size.left+c.cell_size.right, c.cell_size.top+c.cell_size.bottom],
+                NodeEdge::Padding(_) => [c.padding_size.min.x+c.padding_size.max.x,c.padding_size.min.y+c.padding_size.max.y],
+                NodeEdge::Border(_) => [c.border_size.min.x+c.border_size.max.x, c.border_size.min.y+c.border_size.max.y],
+                NodeEdge::Margin(_) => [c.margin_size.min.x+c.margin_size.max.x, c.margin_size.min.y+c.margin_size.max.y],
+                NodeEdge::Cell(_) => [c.cell_size.min.x+c.cell_size.max.x, c.cell_size.min.y+c.cell_size.max.y],
             }
         }).unwrap_or_default().map(|x|x as FloatT);
         Ok(Value::custom_unmanaged(v))
@@ -862,11 +862,11 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         c.cell=script_value_to_col(v)?; Ok(())
     });
 
-    entity_get_field3::<UiText>("text_color",lib_scope,|c|{
-        col_to_script_value(c.color)
+    entity_get_field3::<TextColor>("text_color",lib_scope,|c|{
+        col_to_script_value(c.0)
     });
-    entity_set_field_mut3::<UiText>("text_color",lib_scope,|c,v|{
-        c.color=script_value_to_col(v)?; Ok(())
+    entity_set_field_mut3::<TextColor>("text_color",lib_scope,|c,v|{
+        c.0=script_value_to_col(v)?; Ok(())
     });
 
     //
@@ -893,47 +893,71 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
     //
     entity_get_field3::<UiText>("text",lib_scope,|c|{
-        Value::string(&c.value)
+        Value::string(&c.0)
     });
     entity_set_field_mut3::<UiText>("text",lib_scope,|c,v|{
-        c.value=script_value_to_string(v)?; c.update=true; Ok(())
+        c.0=script_value_to_string(v)?; Ok(())
     });
 
-    entity_get_field3::<UiText>("font_size",lib_scope,|c|{
+    entity_get_field3::<TextFont>("font_size",lib_scope,|c|{
         Value::float(c.font_size)
     });
-    entity_set_field_mut3::<UiText>("font_size",lib_scope,|c,v|{
-        c.font_size=script_value_to_float(v)?; c.update=true; Ok(())
+    entity_set_field_mut3::<TextFont>("font_size",lib_scope,|c,v|{
+        c.font_size=script_value_to_float(v)?; Ok(())
     });
 
-    entity_get_field3::<UiText>("text_hlen",lib_scope,|c|{
-        Value::int(c.hlen)
+    // entity_get_field3::<UiText>("text_hlen",lib_scope,|c|{
+    //     Value::int(c.hlen)
+    // });
+    // entity_set_field_mut3::<UiText>("text_hlen",lib_scope,|c,v|{
+    //     c.hlen=script_value_to_uint(v)?; c.update=true; Ok(())
+    // });
+
+    // entity_get_field3::<UiText>("text_vlen",lib_scope,|c|{
+    //     Value::int(c.vlen)
+    // });
+    // entity_set_field_mut3::<UiText>("text_vlen",lib_scope,|c,v|{
+    //     c.vlen=script_value_to_uint(v)?; c.update=true; Ok(())
+    // });
+
+    entity_get_field3::<TextLayout>("text_halign",lib_scope,|c|{
+        Value::string(match c.justify {
+            Justify::Left => "left",
+            Justify::Center => "center",
+            Justify::Right => "right",
+            Justify::Justified => "justified",
+        })
     });
-    entity_set_field_mut3::<UiText>("text_hlen",lib_scope,|c,v|{
-        c.hlen=script_value_to_uint(v)?; c.update=true; Ok(())
+    entity_set_field_mut3::<TextLayout>("text_halign",lib_scope,|c,v|{
+        // let v=v.get_string().and_then(|v|v.as_str().parse().ok()).ok_or_else(||MachineError::method("expected halign"))?;
+        let v=v.get_string().and_then(|v|match v.as_str() {
+            "left" => Some(Justify::Left),
+            "center" => Some(Justify::Center),
+            "right" => Some(Justify::Right),
+            "justified" => Some(Justify::Justified),
+            _ => None,
+        }).ok_or_else(||MachineError::method("expected halign"))?;
+        c.justify=v;
+        Ok(())
     });
 
-    entity_get_field3::<UiText>("text_vlen",lib_scope,|c|{
-        Value::int(c.vlen)
+    entity_get_field3::<UiTextVAlign>("text_valign",lib_scope,|c|{
+        Value::string(match c {
+            UiTextVAlign::Center => "center",
+            UiTextVAlign::Top => "top",
+            UiTextVAlign::Bottom => "bottom",
+        })
     });
-    entity_set_field_mut3::<UiText>("text_vlen",lib_scope,|c,v|{
-        c.vlen=script_value_to_uint(v)?; c.update=true; Ok(())
-    });
-
-    entity_get_field3::<UiText>("text_halign",lib_scope,|c|{
-        Value::string(c.halign.as_str())
-    });
-    entity_set_field_mut3::<UiText>("text_halign",lib_scope,|c,v|{
-        let v=v.get_string().and_then(|v|v.as_str().parse().ok()).ok_or_else(||MachineError::method("expected halign"))?;
-        c.halign=v; c.update=true; Ok(())
-    });
-
-    entity_get_field3::<UiText>("text_valign",lib_scope,|c|{
-        Value::string(c.valign.as_str())
-    });
-    entity_set_field_mut3::<UiText>("text_valign",lib_scope,|c,v|{
-        let v=v.get_string().and_then(|v|v.as_str().parse().ok()).ok_or_else(||MachineError::method("expected valign"))?;
-        c.valign=v; c.update=true; Ok(())
+    entity_set_field_mut3::<UiTextVAlign>("text_valign",lib_scope,|c,v|{
+        // v.as_str().parse().ok()
+        let v=v.get_string().and_then(|v|match v.as_str() {
+            "top" => Some(UiTextVAlign::Top),
+            "center" => Some(UiTextVAlign::Center),
+            "bottom" => Some(UiTextVAlign::Bottom),
+            _ => None,
+        }).ok_or_else(||MachineError::method("expected valign"))?;
+        *c=v;
+        Ok(())
     });
 
     //
@@ -949,10 +973,11 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     entity_set_field_mut("font",lib_scope,|entity,val,world|{
         let handle=world.resource::<AssetServer>().load(PathBuf::from(script_value_to_string(val)?));
         let mut e=world.entity_mut(entity);
-        let mut c=e.entry::<UiText>().or_default();
+        let mut c=e.entry::<TextFont>().or_default();
         let mut c=c.get_mut();
 
-        c.font=handle; c.update=true; Ok(())
+        c.font=handle;
+        Ok(())
     });
 
     //

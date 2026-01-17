@@ -43,11 +43,11 @@ TODO
 */
 use std::{collections::HashSet, path::PathBuf};
 
-use bevy::{asset::{io::Reader, AssetLoader, Handle, LoadContext}, color::Color, prelude::Asset, reflect::TypePath};
+use bevy::{asset::{io::Reader, AssetLoader, Handle, LoadContext}, color::Color, prelude::Asset, reflect::TypePath, text::Justify};
 use conf_lang::Conf;
 
 use bevy_table_ui as table_ui;
-use table_ui::{ UiTextHAlign, UiTextVAlign, UiVal};
+use table_ui::{ UiTextVAlign, UiVal};
 
 use crate::affect::UixAffectState;
 
@@ -98,7 +98,7 @@ pub fn parse_halign(s:&str) -> Option<UiVal> {
     parse_uival(s).or_else(||match s {
         "left" => Some(UiVal::Scale(0.0)),
         "center" => Some(UiVal::Scale(0.5)),
-        "right" => Some(UiVal::Scale(0.0)),
+        "right" => Some(UiVal::Scale(1.0)),
         _ => None,
     })
 }
@@ -109,9 +109,26 @@ pub fn parse_valign(s:&str) -> Option<UiVal> {
     parse_uival(s).or_else(||match s {
         "top" => Some(UiVal::Scale(0.0)),
         "center" => Some(UiVal::Scale(0.5)),
-        "bottom" => Some(UiVal::Scale(0.0)),
+        "bottom" => Some(UiVal::Scale(1.0)),
         _ => None,
     })
+}
+
+pub fn parse_text_halign(s:&str) -> Option<Justify> {
+    match s.trim() {
+        "left" => Some(Justify::Left),
+        "center" => Some(Justify::Center),
+        "right" => Some(Justify::Right),
+        _ => None,
+    }
+}
+pub fn parse_text_valign(s:&str) -> Option<UiTextVAlign> {
+    match s.trim() {
+        "top" => Some(UiTextVAlign::Top),
+        "center" => Some(UiTextVAlign::Center),
+        "bottom" => Some(UiTextVAlign::Bottom),
+        _ => None,
+    }
 }
 
 pub fn parse_affect_state(s:&str) -> Option<UixAffectState> {
@@ -350,7 +367,7 @@ pub enum UiAssetLoaderError {
     LoadDirectError(#[from] bevy::asset::LoadDirectError),
 }
 
-#[derive(Default)]
+#[derive(Default,TypePath)]
 pub struct UiAssetLoader;
 
 impl AssetLoader for UiAssetLoader {
@@ -386,7 +403,7 @@ impl AssetLoader for UiAssetLoader {
         let def = input_def();
 
         //
-        match def.get_root_branch().parse(src,true,Some(path)) {
+        match def.get_root_branch().parse(src,true,Some(path.path())) {
             Ok(conf) => {
                 let mut custom_asset = UiAsset {conf,dependencies:Default::default()}; //
                 let includes=walk_includes(&custom_asset.conf);
@@ -509,19 +526,20 @@ fn input_def() -> conf_lang::Def {
                     .param_func(parse_valign)
             .tags(["text_halign"])
                 .entry()
-                    .param_parse::<UiTextHAlign>()
+                    .param_func(parse_text_halign)
             .tags(["text_valign"])
                 .entry()
-                    .param_parse::<UiTextVAlign>()
+                    .param_func(parse_text_valign)
+
             .tags(["text","font","image"])
                 .entry()
                     .param_any()
             .tags(["text_size"])
                 .entry()
                     .param_parse::<f32>()
-            .tags(["text_hlen","text_vlen"])
-                .entry()
-                    .param_parse::<u32>()
+            // .tags(["text_hlen","text_vlen"])
+            //     .entry()
+            //         .param_parse::<u32>()
             .tags(["span"])
                 .entry()
                     .param_parse::<u32>()

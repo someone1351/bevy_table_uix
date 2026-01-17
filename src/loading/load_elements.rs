@@ -7,6 +7,7 @@ use std::sync::Arc;
 use bevy::color::Color;
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
+use bevy::text::{Justify, TextColor, TextFont, TextLayout};
 use conf_lang::RecordContainer;
 use bevy_table_ui as table_ui;
 use table_ui::*;
@@ -33,13 +34,73 @@ fn make_attrib_func<T:Component<Mutability = bevy::ecs::component::Mutable>+Defa
     })
 }
 
+fn make_attrib_func2<X:Component+Default,T:Component<Mutability = bevy::ecs::component::Mutable>+Default,>(func : impl Fn(&mut T)+Send+Sync+'static) -> AttribFuncType {
+    Arc::new(move |entity:Entity,world: &mut World| {
+        let mut e=world.entity_mut(entity);
+        let mut c=e.entry::<T>().or_default();
+        let mut c=c.get_mut();
+        func(&mut c);
+
+        e.entry::<X>().or_default();
+
+    })
+}
+
 //only used for on_state attribs, that don't have a default attrib_setter, bit of a messy way of doing things though
 //  could instead provide default attribs for all attribs for all nodes? wasteful?
 //  could just have a hashmap of default attribs ...
+fn make_attrib_default_func_alt<T,R>(func : impl Fn(&mut T)->&mut R+Send+Sync+'static) -> AttribFuncType
+where
+    T:Component<Mutability = bevy::ecs::component::Mutable>+Default,
+    R:Default+Clone,
+
+{
+    make_attrib_func::<T>(move|c|{
+        let d= func(&mut T::default()).clone();
+        let v=func(c);
+        *v=d;
+    })
+}
+// trait AttribDefaultFunc<T:Component<Mutability = bevy::ecs::component::Mutable>+Default,R:Default+Clone>=Fn(&mut T)->&mut R+Send+Sync+'static
+
+// ;
+// fn make_attrib_default_func_alt<T,R,F>(func : F) -> AttribFuncType
+// where
+//     T:Component<Mutability = bevy::ecs::component::Mutable>+Default,
+//     R:Default+Clone,
+//     F: Fn(&mut T)->&mut R+Send+Sync+'static,
+// {
+//     make_attrib_func::<T>(move|c|{
+//         let d= func(&mut T::default()).clone();
+//         let v=func(c);
+//         *v=d;
+//     })
+// }
+// fn make_attrib_default_func_altx<T,R:Default+Clone>(func : impl Fn(&mut T)->&mut (impl Component)+Send+Sync+'static) -> AttribFuncType
+// where
+//     T:Component<Mutability = bevy::ecs::component::Mutable>+Default,
+
+// {
+//     make_attrib_default_func_alt::<T,_,_>(func)
+// }
+fn make_attrib_default_func_alt2<X,T,R>(func : impl Fn(&mut T)->&mut R+Send+Sync+'static) -> AttribFuncType
+where
+    X:Component+Default,
+    T:Component<Mutability = bevy::ecs::component::Mutable>+Default,
+    R:Default+Clone,
+{
+    make_attrib_func2::<X,T>(move|c|{
+        let d= func(&mut T::default()).clone();
+        let v=func(c);
+        *v=d;
+    })
+}
 fn make_attrib_default_func<T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(func : impl Fn(&mut T,T)+Send+Sync+'static) -> AttribFuncType {
     make_attrib_func::<T>(move|c|func(c,T::default()))
 }
-
+fn make_attrib_default_func2<X:Component+Default,T:Component<Mutability = bevy::ecs::component::Mutable>+Default>(func : impl Fn(&mut T,T)+Send+Sync+'static) -> AttribFuncType {
+    make_attrib_func2::<X,T>(move|c|func(c,T::default()))
+}
 
 pub fn load_elements<'a>(
     ui_assets: &'a Assets<UiAsset>,
@@ -501,7 +562,8 @@ fn do_attribs<'a>(
                     attrib_funcs.push((x,make_attrib_func::<UiColor>(move|c|{c.cell=color;})));
                 }
                 "text_color" => {
-                    attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.color=color;})));
+                    // attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.color=color;})));
+                    attrib_funcs.push((x,make_attrib_func2::<UiText,TextColor,>(move|c|{c.0=color;})));
                 }
                 _=>{panic!("");}
             }
@@ -715,7 +777,8 @@ fn do_attribs<'a>(
             let v = walk.record().value(0).get_str().unwrap();
             let handle=asset_server.load(PathBuf::from(v)).clone();
 
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.font=handle.clone();c.update=true;})));
+            // attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.font=handle.clone();c.update=true;})));
+            attrib_funcs.push((x,make_attrib_func2::<UiText,TextFont>(move|c|c.font=handle.clone())));
 
             // attrib_funcs.push(("inner_size",make_attrib_func::<UiInnerSize>(move|_|{})));
             // attrib_funcs.push(("text_computed",make_attrib_func::<UiTextComputed>(move|_|{})));
@@ -760,28 +823,28 @@ fn do_attribs<'a>(
                 v
             };
 
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.value=v.clone(); c.update=true;})));
+            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|c.0=v.clone())));
         }
         "text_halign" => {
-            let v: UiTextHAlign = walk.record().value(0).get_parsed().unwrap();
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.halign=v;c.update=true;})));
+            let v: Justify = walk.record().value(0).get_parsed().unwrap();
+            attrib_funcs.push((x,make_attrib_func2::<UiText,TextLayout>(move|c|c.justify=v)));
         }
         "text_valign" => {
             let v: UiTextVAlign = walk.record().value(0).get_parsed().unwrap();
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.valign=v;c.update=true;})));
+            attrib_funcs.push((x,make_attrib_func::<UiTextVAlign>(move|c|*c=v)));
         }
         "text_size" => {
             let v = walk.record().value(0).get_parsed::<f32>().unwrap().abs();
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.font_size=v;c.update=true;})));
+            attrib_funcs.push((x,make_attrib_func2::<UiText,TextFont>(move|c|{c.font_size=v;})));
         }
-        "text_hlen" => {
-            let v: u32 = walk.record().value(0).get_parsed().unwrap();
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.hlen=v;c.update=true;})));
-        }
-        "text_vlen" => {
-            let v: u32 = walk.record().value(0).get_parsed().unwrap();
-            attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.vlen=v;c.update=true;})));
-        }
+        // "text_hlen" => {
+        //     let v: u32 = walk.record().value(0).get_parsed().unwrap();
+        //     attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.hlen=v;c.update=true;})));
+        // }
+        // "text_vlen" => {
+        //     let v: u32 = walk.record().value(0).get_parsed().unwrap();
+        //     attrib_funcs.push((x,make_attrib_func::<UiText>(move|c|{c.vlen=v;c.update=true;})));
+        // }
 
         "image" => {
             let v = walk.record().value(0).get_str().unwrap();
@@ -889,7 +952,7 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("padding_color", make_attrib_default_func::<UiColor>(|c,d|{c.padding=d.padding;}));
     output.insert("margin_color", make_attrib_default_func::<UiColor>(|c,d|{c.margin=d.margin;}));
     output.insert("cell_color", make_attrib_default_func::<UiColor>(|c,d|{c.cell=d.cell;}));
-    output.insert("text_color", make_attrib_default_func::<UiText>(|c,d|{c.color=d.color;}));
+    output.insert("text_color", make_attrib_default_func2::<UiText,TextColor>(|c,d|c.0=d.0));
     output.insert("hoverable", make_attrib_default_func::<UiCursorable>(|c,d|{c.hoverable=d.hoverable;}));
     // output.insert("pressable", make_attrib_default_func::<UiPressable>(|c,d|{c.enable=d.enable;}));
     output.insert("pressable", Arc::new(|entity,world|{
@@ -929,13 +992,13 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("margin_top", make_attrib_default_func::<UiEdge>(|c,d|{c.margin.top=d.margin.top;}));
     output.insert("margin_bottom", make_attrib_default_func::<UiEdge>(|c,d|{c.margin.bottom=d.margin.bottom;}));
 
-    output.insert("font", make_attrib_default_func::<UiText>(|c,d|{c.font=d.font;c.update=true;}));
-    output.insert("text", make_attrib_default_func::<UiText>(|c,d|{c.value=d.value;c.update=true;}));
-    output.insert("text_halign", make_attrib_default_func::<UiText>(|c,d|{c.halign=d.halign;c.update=true;}));
-    output.insert("text_valign", make_attrib_default_func::<UiText>(|c,d|{c.valign=d.valign;c.update=true;}));
-    output.insert("text_size", make_attrib_default_func::<UiText>(|c,d|{c.font_size=d.font_size;c.update=true;}));
-    output.insert("text_hlen", make_attrib_default_func::<UiText>(|c,d|{c.hlen=d.hlen;c.update=true;}));
-    output.insert("text_vlen", make_attrib_default_func::<UiText>(|c,d|{c.vlen=d.vlen;c.update=true;}));
+    output.insert("font", make_attrib_default_func2::<UiText,TextFont>(|c,d|c.font=d.font));
+    output.insert("text", make_attrib_default_func::<UiText>(|c,d|c.0=d.0));
+    output.insert("text_halign", make_attrib_default_func::<TextLayout>(|c,d|c.justify=d.justify));
+    output.insert("text_valign", make_attrib_default_func::<UiTextVAlign>(|c,d|*c=d));
+    output.insert("text_size", make_attrib_default_func2::<UiText,TextFont>(|c,d|c.font_size=d.font_size));
+    // output.insert("text_hlen", make_attrib_default_func::<UiText>(|c,d|{c.hlen=d.hlen;c.update=true;}));
+    // output.insert("text_vlen", make_attrib_default_func::<UiText>(|c,d|{c.vlen=d.vlen;c.update=true;}));
 
 
     output.insert("image", make_attrib_default_func::<UiImage>(|c,d|{c.handle=d.handle;}));
@@ -962,6 +1025,8 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("valign", make_attrib_default_func::<UiAlign>(|c,d|{c.valign=d.valign;}));
 
     output.insert("span", make_attrib_default_func::<UiSpan>(|c,d|{c.span=d.span;}));
+    output.insert("span", make_attrib_default_func_alt::<UiSpan,_>(|c|{&mut c.span}));
+    output.insert("span", make_attrib_default_func_alt(|c: &mut UiSpan|{&mut c.span}));
 
     output
 }
