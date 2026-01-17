@@ -533,7 +533,7 @@ fn input_def() -> conf_lang::Def {
             .tags(["text","font","image"])
                 .entry()
                     .param_any()
-            .tags(["text_size"])
+            .tags(["font_size"])
                 .entry()
                     .param_parse::<f32>()
             // .tags(["text_hlen","text_vlen"])

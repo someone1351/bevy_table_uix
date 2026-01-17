@@ -2,5 +2,5 @@ node
     color red
     text abcd
     font fonts/montserrat.regular.ttf
-    text_size 22
+    font_size 22
     text_color white

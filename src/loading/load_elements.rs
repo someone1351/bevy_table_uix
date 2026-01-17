@@ -832,7 +832,7 @@ fn do_attribs<'a>(
             let v: UiTextVAlign = walk.record().value(0).get_parsed().unwrap();
             attrib_funcs.push((x,make_attrib_func::<UiTextVAlign>(move|c|*c=v)));
         }
-        "text_size" => {
+        "font_size" => {
             let v = walk.record().value(0).get_parsed::<f32>().unwrap().abs();
             attrib_funcs.push((x,make_attrib_func2::<UiText,TextFont>(move|c|{c.font_size=v;})));
         }
@@ -995,7 +995,7 @@ pub fn get_default_attribs<'a>() -> HashMap<&'a str,AttribFuncType> {
     output.insert("text", make_attrib_default_func::<UiText>(|c,d|c.0=d.0));
     output.insert("text_halign", make_attrib_default_func::<TextLayout>(|c,d|c.justify=d.justify));
     output.insert("text_valign", make_attrib_default_func::<UiTextVAlign>(|c,d|*c=d));
-    output.insert("text_size", make_attrib_default_func2::<UiText,TextFont>(|c,d|c.font_size=d.font_size));
+    output.insert("font_size", make_attrib_default_func2::<UiText,TextFont>(|c,d|c.font_size=d.font_size));
     // output.insert("text_hlen", make_attrib_default_func::<UiText>(|c,d|{c.hlen=d.hlen;c.update=true;}));
     // output.insert("text_vlen", make_attrib_default_func::<UiText>(|c,d|{c.vlen=d.vlen;c.update=true;}));
 
