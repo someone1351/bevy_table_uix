@@ -1,9 +1,9 @@
 use std::{ collections::HashMap, ops::Range};
 
+use bevy_table_ui::{AttribFuncType, UiAffectState};
 // use bevy::{ecs::{entity::Entity, world::World},  };
 use script_lang::{StringT, Value};
 
-use crate::affect::{AttribFuncType, UixAffectState};
 
 
 #[derive(Clone)]
@@ -39,7 +39,7 @@ pub struct StuffNode {
 
     // pub all_state_attribs:HashMap<usize,HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>>, //[element_ind][state][attrib_ind]=(func,priority)
     // pub all_state_attribs:HashMap<usize,Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>>, //[element_ind][attrib_ind][state]=(func,priority)
-    pub all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UixAffectState,(AttribFuncType,i32)>)>>, //[element_ind][attrib_ind]=(default_func,[state]=(func,priority))
+    pub all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>, //[element_ind][attrib_ind]=(default_func,[state]=(func,priority))
     /*
 
     * could replace all_attribs with all_state_attribs

@@ -4,7 +4,8 @@ use std::collections::{HashMap, HashSet};
 use std::ops::Range;
 
 
-use crate::affect::{AttribFuncType, UixAffectState};
+use bevy_table_ui::{AttribFuncType, UiAffectState};
+
 use crate::loading::{calc_attribs, calc_envs2, calc_node_creates};
 
 use super::super::script_vals::*;
@@ -27,7 +28,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let mut all_names: Vec<script_lang::StringT>=Vec::new();
     let mut all_names_map = HashSet::<script_lang::StringT>::new();
 
-    let mut all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UixAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind](default_func,[state]=(func,priority))
+    let mut all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind](default_func,[state]=(func,priority))
 
 
     let calcd_creates=calc_node_creates(elements); //[root/stub][node]=parent
@@ -72,7 +73,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
         //
         for &(node_element_ind,parent_element_ind) in node_parents.iter() {
             //:Option<&(Vec<AttribFuncType>,HashMap<UiAffectState,Vec<(AttribFuncType,i32)>>)>
-            let funcs: Option<&Vec<(AttribFuncType, HashMap<UixAffectState, (AttribFuncType, i32)>)>>=calcd_attribs.get(&node_element_ind);
+            let funcs: Option<&Vec<(AttribFuncType, HashMap<UiAffectState, (AttribFuncType, i32)>)>>=calcd_attribs.get(&node_element_ind);
             let attribs_start=all_init_attribs.len();
 
             if let Some(funcs)=funcs {

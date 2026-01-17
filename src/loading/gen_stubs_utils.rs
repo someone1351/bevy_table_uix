@@ -3,7 +3,9 @@ use std::collections::{BTreeMap, HashMap};
 
 
 
-use crate::{affect::{AttribFuncType, UixAffectState}, loading::get_default_attribs };
+use bevy_table_ui::{AttribFuncType, UiAffectState};
+
+use crate::loading::get_default_attribs;
 
 use super::vals::*;
 
@@ -62,7 +64,7 @@ pub fn calc_envs2<'a>(elements:& Vec<Element<'a>>, ) -> HashMap<usize, HashMap<u
 }
 
 
-pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(AttribFuncType,HashMap<UixAffectState,(AttribFuncType,i32)>)>>
+pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>>
 // HashMap<usize,(
 //     Vec<AttribFuncType>,
 //     // HashMap<Option<UiAffectState>,Vec<(AttribFuncType,Option<i32>)>>,
@@ -75,7 +77,7 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(Attri
 
 
     let mut state_attribs:HashMap<usize,
-        HashMap<&str,HashMap<Option<UixAffectState>,(AttribFuncType,i32)>>
+        HashMap<&str,HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>
     > = HashMap::new(); //[element_ind][name][state]=(func,priority)
 
     // let mut tmp_state_attribs:HashMap<usize,
@@ -131,7 +133,7 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(Attri
     //     Vec<HashMap<Option<UiAffectState>,(AttribFuncType,i32)>>,
     // )> = HashMap::new(); //[element_ind]([attrib_ind]=attribs), [state]=(func,priority))
 
-    let mut out_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UixAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind]=(func,state_funcs) //state_funcs[state]=(func,priority)
+    let mut out_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind]=(func,state_funcs) //state_funcs[state]=(func,priority)
 
     for (element_ind,attribs) in state_attribs {
         // let mut tmp_state_attribs:Vec<HashMap<UiAffectState,(AttribFuncType,i32)>> = HashMap::new();
@@ -143,7 +145,7 @@ pub fn calc_attribs<'a>(elements:& Vec<Element<'a>>) -> HashMap<usize,Vec<(Attri
         for (name,states) in attribs {
             let default_func=states.get(&None).cloned().map(|x|x.0).unwrap_or_else(||default_attribs.get(name).unwrap().clone());
 
-            let mut out_state_attribs:HashMap<UixAffectState,(AttribFuncType,i32)> = HashMap::new();
+            let mut out_state_attribs:HashMap<UiAffectState,(AttribFuncType,i32)> = HashMap::new();
 
             for (state,v) in states.iter() {
                 if let Some(state)=state {

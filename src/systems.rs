@@ -16,7 +16,7 @@ use table_ui::*;
 use crate::resources::UixGcScope;
 use crate::resources::UixLibScope;
 // use crate::script_vals::AttribFuncType;
-// use crate::script_vals::UixAffectState;
+// use crate::script_vals::UiAffectState;
 // use crate::script_stuff::self_entity_from_world;
 
 

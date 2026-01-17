@@ -13,9 +13,9 @@ use std::fmt::Debug;
 use std::fmt::Display;
 use std::path::PathBuf;
 
+use bevy_table_ui::UiAffectState;
 // use bevy::platform::collections::HashSet;
 use conf_lang::RecordContainer;
-use crate::affect::UixAffectState;
 
 // use super::script_stuff::{AttribFunc, Stuff};
 use super::super::script_vals::*;
@@ -41,7 +41,7 @@ pub enum ElementType<'a> {
     },
     Attrib {
         name : &'a str,
-        on_state: Option<UixAffectState>,
+        on_state: Option<UiAffectState>,
         on_priority:Option<i32>,
         in_template: Option<usize>,
         func : AttribFunc,

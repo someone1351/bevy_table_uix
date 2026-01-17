@@ -12,7 +12,6 @@ use script_lang::*;
 
 // use crate::UixSelf;
 
-use crate::affect::{UixAffect, UixAffectAttrib};
 
 use super::components::*;
 use super::messages::*;
@@ -1035,7 +1034,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
 
                         //
                         let mut out_funcs=vec![default_func.clone()];
-                        let mut out_states=HashMap::new(); //states:HashMap<UixAffectState,usize>
+                        let mut out_states=HashMap::new(); //states:HashMap<UiAffectState,usize>
 
                         //
                         for (i,&(&state,func,_priority)) in state_funcs.iter().enumerate() {
@@ -1043,11 +1042,11 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
                             out_states.insert(state, i+1);
                         }
 
-                        out_affect_attribs.push(UixAffectAttrib{ funcs: out_funcs, states: out_states });
+                        out_affect_attribs.push(UiAffectAttrib{ funcs: out_funcs, states: out_states });
 
                     }
 
-                    world.entity_mut(entity).insert(UixAffect(out_affect_attribs));
+                    world.entity_mut(entity).insert(UiAffect(out_affect_attribs));
                 }
 
                 //

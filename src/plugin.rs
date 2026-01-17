@@ -1,8 +1,7 @@
 
 use bevy::prelude::*;
-use bevy_table_ui::UiInteractSystem;
+use bevy_table_ui::{UiAffectPlugin, UiInteractSystem};
 
-use crate::affect::UixAffectPlugin;
 
 use super::{
     assets::*, messages::UixUserMessage, resources::*,  systems::*
@@ -16,7 +15,7 @@ impl bevy::app::Plugin for UixPlugin {
     fn build(&self, app: &mut bevy::app::App) {
         app
             .add_plugins((
-                UixAffectPlugin,
+                UiAffectPlugin,
             ))
             .init_asset::<UiAsset>()
             .init_asset_loader::<UiAssetLoader>()

@@ -46,12 +46,11 @@ use std::{collections::HashSet, path::PathBuf};
 use bevy::{asset::{io::Reader, AssetLoader, Handle, LoadContext}, color::Color, prelude::Asset, reflect::TypePath, text::Justify};
 use conf_lang::Conf;
 
-use bevy_table_ui as table_ui;
+use bevy_table_ui::{self as table_ui, UiAffectState};
 use table_ui::{ UiTextVAlign, UiVal};
 
-use crate::affect::UixAffectState;
 
-// use crate::script_vals::UixAffectState;
+// use crate::script_vals::UiAffectState;
 
 // use crate::libs::conf_lang;
 // use crate::{input::Mapping, libs::input_map};
@@ -131,13 +130,13 @@ pub fn parse_text_valign(s:&str) -> Option<UiTextVAlign> {
     }
 }
 
-pub fn parse_affect_state(s:&str) -> Option<UixAffectState> {
+pub fn parse_affect_state(s:&str) -> Option<UiAffectState> {
     match s {
-        "select" => Some(UixAffectState::Select),
-        "hover" => Some(UixAffectState::Hover),
-        "focus" => Some(UixAffectState::Focus),
-        "drag" => Some(UixAffectState::Drag),
-        "press" => Some(UixAffectState::Press(0)),
+        "select" => Some(UiAffectState::Select),
+        "hover" => Some(UiAffectState::Hover),
+        "focus" => Some(UiAffectState::Focus),
+        "drag" => Some(UiAffectState::Drag),
+        "press" => Some(UiAffectState::Press(0)),
         _ => None
     }
 }

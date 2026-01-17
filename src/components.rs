@@ -18,7 +18,7 @@ use script_lang::{StringT, Value};
 
 // use crate::table_ui::{UiSize, UiVal};
 
-// use crate::script_vals::UixAffectState;
+// use crate::script_vals::UiAffectState;
 
 use super::{
     // systems::*,

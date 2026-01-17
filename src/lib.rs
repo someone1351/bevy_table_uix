@@ -18,7 +18,6 @@ mod script_vals;
 
 mod script_utils;
 
-mod affect;
 
 pub use plugin::*;
 pub use assets::*;
