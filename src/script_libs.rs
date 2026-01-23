@@ -894,9 +894,26 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     entity_get_field3::<UiText>("text",lib_scope,|c|{
         Value::string(&c.0)
     });
-    entity_set_field_mut3::<UiText>("text",lib_scope,|c,v|{
-        c.0=script_value_to_string(v)?; Ok(())
-    });
+    lib_scope.field_named("text", |mut context|{
+        let v=context.param(1).clone();
+        let s=context.value_to_string(&v)?;
+
+        let entity:Entity = context.param(0).as_custom().data_clone()?;
+
+        let world=context.core_mut();
+        let mut e=world.entity_mut(entity);
+        let mut c= e.entry::<UiText>().or_default();
+        let mut c=c.get_mut();
+
+        c.0=s;
+        Ok(Value::Void)
+    }).custom_ref::<Entity>().any().end();
+
+    // entity_set_field_mut3::<UiText>("text",lib_scope,|c,v|{
+    //     lib_scope.get_method(n, params)
+    //     c.0=script_value_to_string(v)?;
+    //     Ok(())
+    // });
 
     entity_get_field3::<TextFont>("font_size",lib_scope,|c|{
         Value::float(c.font_size)

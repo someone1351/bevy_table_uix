@@ -254,6 +254,17 @@ pub fn on_asset_load<'a>(
 }
 
 
+// pub fn on_event_listeners2<'a>(
+//     aaa:Query<Ref<UiText>>,
+// ) {
+
+//     // for x in aaa.iter() {
+//     //     if x.is_changed() {
+//     //         println!("a '{}'",x.0);
+//     //     }
+//     // }
+// }
+
 pub fn on_event_listeners<'a>(
     // ui_assets: Res<Assets<UiAsset>>,
     event_listeners_query: Query<(Entity,&UixEventListener)>,
@@ -269,7 +280,14 @@ pub fn on_event_listeners<'a>(
     mut user_event_reader: MessageReader<UixUserMessage>,
     time: Res<bevy::time::Time>,
     // mut gc_sope:GcS
+    // aaa:Query<Ref<UiText>>,
 ) {
+
+    // for x in aaa.iter() {
+    //     if x.is_changed() {
+    //         println!("'{}'",x.0);
+    //     }
+    // }
     //todo update
     // for (entity,event_listener) in event_listeners_query.iter() {
     // }

@@ -1,6 +1,30 @@
+template scroll_template
+    node body
+        text xx
+        color red
+        hfill 1.0
+        vfill 1.0
+        hexpand 1.0
+    node bar
+        text x
+        color green
+        hfill 1.0
+        vfill 1.0
+        hexpand 1.0
+
 node
-    color red
-    text abcd
-    font fonts/montserrat.regular.ttf
-    font_size 22
-    text_color white
+    template scroll_template
+    width 0.8
+    height 0.8
+
+node
+    #width 50
+    #height 50
+    color blue
+    floating
+    halign right
+    valign top
+    script
+        root.add_event_listener "fps" [fn (fps) {
+            set self.text fps;
+        }]

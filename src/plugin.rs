@@ -38,6 +38,15 @@ impl bevy::app::Plugin for UixPlugin {
                 on_event_listeners,
             ).chain()
             .after(UiInteractSystem))
+            // .add_systems(PostUpdate, (
+            //     on_event_listeners2,
+            //     )
+            //     .after(bevy_table_ui::layout::ui_init_computeds)
+            //     .before(bevy_table_ui::layout::ui_calc_rows_cols)
+            //     .after(bevy::text::free_unused_font_atlases_system)
+            // )
+
+
             // .add_systems(Update,(
             //     on_event_listeners,
             //  ).chain().after(InputSystems))

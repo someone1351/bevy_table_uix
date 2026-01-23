@@ -23,6 +23,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "png",
     "debug","trace",
     "dynamic_linking",
+    "default_font",
 ]}
 
 [[example]]

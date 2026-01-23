@@ -7,7 +7,7 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiRoot, UiSize, UiVal
+use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiRoot, UiSize,
     //UiColor, UiSize, UiVal
 };
 
@@ -57,7 +57,7 @@ fn main() {
         ))
         .add_systems(Update, (
             update_ui_roots,
-            show_fps.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(300))),
+            show_fps.run_if(bevy::time::common_conditions::on_timer(std::time::Duration::from_millis(250))),
         ))
         .add_systems(PreUpdate,(
             run_input,
@@ -157,8 +157,8 @@ pub fn setup_ui(
 ) {
     let root=commands.spawn((
         UixFromAsset::new(asset_server.load("test.ui_conf")),
-        bevy_table_ui::UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),cell:Color::srgba(0.01,0.3,0.6,0.8),..Default::default()},
-        UiSize{width:UiVal::Scale(1.0),height:UiVal::Scale(1.0)},
+        // bevy_table_ui::UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),cell:Color::srgba(0.01,0.3,0.6,0.8),..Default::default()},
+        UiSize::max(),
     )).id();
 
 

@@ -66,6 +66,7 @@ pub fn script_value_to_uint(val:Value) -> Result<u32,MachineError> {
 }
 
 pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {
+
     val.get_string().ok_or_else(||MachineError::method("expected string")).map(|x|x.to_string())
 }
 
