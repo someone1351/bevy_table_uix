@@ -7,12 +7,10 @@
 // #[allow(unused_parens)]
 
 use std::collections::HashSet;
-use bevy_table_ui::{self as table_ui, CameraUi, UiInteractInputMessage, UiRoot, UiSize,
-    //UiColor, UiSize, UiVal
-};
+use bevy_table_ui::*;
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState, InputSystems}, prelude::* };
-use bevy_table_uix::{UixFromAsset, UixUserMessage};
+use bevy_table_uix::*;
 
 
 fn main() {
@@ -43,10 +41,10 @@ fn main() {
 
             //
             // assets::CustomAssetsPlugin,
-            table_ui::UiLayoutPlugin,
-            table_ui::UiInteractPlugin,
-            table_ui::UiDisplayPlugin,
-            bevy_table_uix::UixPlugin,
+            UiLayoutPlugin,
+            UiInteractPlugin,
+            UiDisplayPlugin,
+            UixPlugin,
 
         ))
 
@@ -141,23 +139,22 @@ pub fn update_ui_roots(
     mut root_query: Query<&mut UiRoot,>,
     mut key_events: MessageReader<bevy::input::keyboard::KeyboardInput>,
 ) {
-
-    let window_size=windows.single()
-        .and_then(|window|Ok((window.width(),window.height())))
-        .unwrap_or_default();
-
-    for mut x in root_query.iter_mut() {
-        x.width=window_size.0;
-        x.height=window_size.1;
+    if let Ok(window)=windows.single() {
+        for mut ui_root in root_query.iter_mut() {
+            ui_root.width=window.width();
+            ui_root.height=window.height();
+            // ui_root.scaling=window.resolution.base_scale_factor();
+        }
     }
 }
+
 pub fn setup_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
     let root=commands.spawn((
         UixFromAsset::new(asset_server.load("test.ui_conf")),
-        // bevy_table_ui::UiColor{back:Color::srgba(0.01,0.3,0.1,0.8),cell:Color::srgba(0.01,0.3,0.6,0.8),..Default::default()},
+        UiColor{back:Color::srgba(0.1,0.1,0.1,0.8),cell:Color::srgba(0.01,0.3,0.6,0.8),..Default::default()},
         UiSize::max(),
     )).id();
 

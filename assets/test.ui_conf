@@ -1,30 +1,100 @@
-template scroll_template
-    node body
-        text xx
-        color red
-        hfill 1.0
-        vfill 1.0
-        hexpand 1.0
-    node bar
-        text x
-        color green
-        hfill 1.0
-        vfill 1.0
-        hexpand 1.0
+apply scroll_hbar
+    color green
+    hfill 1.0
+    vfill 1.0
+    span 1
 
-node
-    template scroll_template
+    node
+        text -
+        color blue
+    node
+        vfill 1.0
+        vexpand 1.0
+
+        node
+            text =
+            color red
+
+            draggable
+            #pressable
+
+            script
+                set self.vscroll.p 0.0
+
+                self.add_event_listener "drag_begin" [fn () {
+                    println "drag_begin"
+                }]
+                self.add_event_listener "drag_end" [fn () {
+                    println "drag_end"
+                }]
+                self.add_event_listener "drag_y" [fn () {
+                    println "drag_y"
+                }]
+    node
+        text +
+        color blue
+
+apply scroll_body
+    text xx
+    color 50 50 50
+    hfill 1.0
+    vfill 1.0
+    hexpand 1.0
+	width 0
+	height 0
+
+apply scroll_template
+    node scroll_body
+        node body
+            halign left
+            valign top
+    node scroll_hbar
+
+
+
+
+stub body_test_element
+	script
+
+	node
+		width 150
+		height 150
+		color blue
+
+template body_test
+    gap 10
+    color grey
+
+    script
+        var w 5, h 5;
+        set self.span w;
+        for i 0 (* w h) {
+            var e (call stub_body_test_element self)
+            #println e #.0.color.r
+            #set e.0.color.r 1.0
+
+            var s (abs (cos (float i)))
+            var t (abs (sin (float i)))
+
+            set e.0.color.r (* 0.8 s)
+            set e.0.color.g (* 0.8 s s)
+            set e.0.color.b (* 0.8 (- 1.0 t))
+        }
+
+
+
+node scroll_template
     width 0.8
     height 0.8
 
-node
-    #width 50
-    #height 50
-    color blue
+    apply body
+        template body_test
+
+node fps
     floating
     halign right
     valign top
+    color 0.0 0.0 0.0 0.5
+    font_size 16
     script
-        root.add_event_listener "fps" [fn (fps) {
-            set self.text fps;
-        }]
+        root.add_event_listener "fps" [fn (fps) {set self.text fps;}]

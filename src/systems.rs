@@ -318,6 +318,8 @@ pub fn on_event_listeners<'a>(
 
     //interact events
     for ev in interact_event_reader.read() {
+        println!("ev {ev:?}");
+
         if let Ok((_,event_listener))=event_listeners_query.get(ev.entity) {
             // event_listsssener.event_listeners.contains_key(ev.event_type.name())
             let name=match ev.event_type {
