@@ -19,16 +19,20 @@ apply scroll_hbar
             #pressable
 
             script
+                var start;
+
                 set self.vscroll.p 0.0
 
                 self.add_event_listener "drag_begin" [fn () {
                     println "drag_begin"
+                    set start self.vscroll
                 }]
                 self.add_event_listener "drag_end" [fn () {
                     println "drag_end"
+                    set start self.vscroll
                 }]
-                self.add_event_listener "drag_y" [fn () {
-                    println "drag_y"
+                self.add_event_listener "drag_y" [fn (y) {
+                    println "drag_y {y}"
                 }]
     node
         text +
