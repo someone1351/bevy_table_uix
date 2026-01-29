@@ -366,7 +366,12 @@ pub fn on_event_listeners<'a>(
                     UiInteractMessageType::SelectEnd => vec![],
                     UiInteractMessageType::FocusBegin { group, device } => vec![("device",device.into()),("group",group.into()),],
                     UiInteractMessageType::FocusEnd { group, device } => vec![("device",device.into()),("group",group.into()),],
-                    UiInteractMessageType::CursorDragBegin { device, button } => vec![("device",device.into()),("button",button.into()),],
+                    UiInteractMessageType::CursorDragBegin { device, button, offset, inner_offset } => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("offset",offset.to_array().into()),
+                        ("inner_offset",inner_offset.to_array().into()),
+                    ],
                     UiInteractMessageType::CursorDragEnd { device, button } => vec![("device",device.into()),("button",button.into()),],
                     UiInteractMessageType::CursorScroll { scroll, device, axis } => vec![("device",device.into()),("scroll",scroll.into()),("axis",axis.into())],
                 };

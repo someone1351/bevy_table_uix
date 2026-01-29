@@ -1,8 +1,13 @@
-apply scroll_hbar
+apply scroll_vbar
     color green
     hfill 1.0
     vfill 1.0
     span 1
+
+    script
+        var scroll_body self.parent.children.scroll_body.0;
+
+        println "scroll_body {scroll_body}"
 
     node
         text -
@@ -18,21 +23,45 @@ apply scroll_hbar
             draggable
             #pressable
 
+            #valign 0
+
             script
+                var track self.parent;
+
                 var start;
 
-                set self.vscroll.p 0.0
+                set self.valign.p 0.0;
+                #set self.valign.s 0.0;
+                println "it is {}" self.vscroll.p
 
-                self.add_event_listener "drag_begin" [fn () {
-                    println "drag_begin"
-                    set start self.vscroll
+
+                self.add_event_listener "drag_begin" [fn (d) {
+                    #set start self.valign.s;
+                    #set start self.valign.p;
+
+                    println track.computed.inner_size.y
+                    println "offset is {}" d.offset.y
+
+                    #(- d.offset)
+
+                    set self.valign.p self.computed.cell.top
+                    set start self.computed.cell.top
                 }]
                 self.add_event_listener "drag_end" [fn () {
-                    println "drag_end"
-                    set start self.vscroll
+                    #println "drag_end {} {}" self.valign.p self.valign.s
+                    #set self.valign.p 0.0;
+
+                    var v (+  (/ self.computed.cell.top track.computed.inner_size.y))
+                    set self.valign.s (clamp v 0.0 1.0)
                 }]
-                self.add_event_listener "drag_y" [fn (y) {
-                    println "drag_y {y}"
+                self.add_event_listener "drag_y" [fn (d) {
+                    #println "drag_y {d}"
+                    #set self.vscroll (- start y.dist)
+                    #set self.valign.s (clamp (+ start (/ d.dist track.computed.inner_size.y)) 0.0 1.0)
+                    #set self.valign.p (clamp d.dist 0.0 1.0)
+
+                    set self.valign.p d.dist
+
                 }]
     node
         text +
@@ -52,7 +81,7 @@ apply scroll_template
         node body
             halign left
             valign top
-    node scroll_hbar
+    node scroll_vbar
 
 
 

@@ -29,7 +29,7 @@ TODO
 
 */
 
-pub fn register_attribs(lib_scope:&mut LibScope<World>) {
+pub fn register_ui_val(lib_scope:&mut LibScope<World>) {
     //copy ui_val
     lib_scope.method("copy", |context|{
         let val:UiVal=context.param(0).as_custom().data_clone()?;
@@ -66,165 +66,9 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         let to=context.param(1).as_float();
         this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Scale(to as f32); Ok(Value::Void) })
     }).custom_mut_ref::<UiVal>().float().end();
+}
 
-    //
-    #[derive(Clone)]
-    struct NodeComputed(Value);
-
-    //get entity.computed
-    lib_scope.field_named("computed", |context|{
-        let node=context.param(0);
-        Ok(Value::custom_unmanaged(NodeComputed(node)))
-    }).custom_ref::<Entity>().end();
-
-    //
-    #[derive(Clone)]
-    enum NodeEdge { Padding(Value), Border(Value), Margin(Value), Cell(Value),}
-    impl NodeEdge {
-        pub fn node(&self) -> Value {
-            let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=self;
-            node.clone()
-        }
-    }
-
-    //get computed.padding
-    lib_scope.field_named("padding", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Padding(node)))
-    }).custom_ref::<NodeComputed>().end();
-
-    //get computed.border
-    lib_scope.field_named("border", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Border(node)))
-    }).custom_ref::<NodeComputed>().end();
-
-    //get computed.margin
-    lib_scope.field_named("margin", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
-    }).custom_ref::<NodeComputed>().end();
-
-    //get computed.cell
-    lib_scope.field_named("cell", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Cell(node)))
-    }).custom_ref::<NodeComputed>().end();
-
-    //get node_edge.left_size
-    lib_scope.field_named("left_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.min.x,
-                NodeEdge::Border(_) => c.border_size.min.x,
-                NodeEdge::Margin(_) => c.margin_size.min.x,
-                NodeEdge::Cell(_) => c.cell_size.min.x,
-            }
-        }).unwrap_or_default();
-        Ok(Value::float(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get node_edge.right_size
-    lib_scope.field_named("right_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.max.x,
-                NodeEdge::Border(_) => c.border_size.max.x,
-                NodeEdge::Margin(_) => c.margin_size.max.x,
-                NodeEdge::Cell(_) => c.cell_size.max.x,
-            }
-        }).unwrap_or_default();
-        Ok(Value::float(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get node_edge.top_size
-    lib_scope.field_named("top_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.min.y,
-                NodeEdge::Border(_) => c.border_size.min.y,
-                NodeEdge::Margin(_) => c.margin_size.min.y,
-                NodeEdge::Cell(_) => c.cell_size.min.y,
-            }
-        }).unwrap_or_default();
-        Ok(Value::float(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get node_edge.bottom_size
-    lib_scope.field_named("bottom_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            match node_edge {
-                NodeEdge::Padding(_) => c.padding_size.max.y,
-                NodeEdge::Border(_) => c.border_size.max.y,
-                NodeEdge::Margin(_) => c.margin_size.max.y,
-                NodeEdge::Cell(_) => c.cell_size.max.y,
-            }
-        }).unwrap_or_default();
-        Ok(Value::float(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get node_edge.sum_size
-    lib_scope.field_named("sum_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            match node_edge {
-                NodeEdge::Padding(_) => [c.padding_size.min.x+c.padding_size.max.x,c.padding_size.min.y+c.padding_size.max.y],
-                NodeEdge::Border(_) => [c.border_size.min.x+c.border_size.max.x, c.border_size.min.y+c.border_size.max.y],
-                NodeEdge::Margin(_) => [c.margin_size.min.x+c.margin_size.max.x, c.margin_size.min.y+c.margin_size.max.y],
-                NodeEdge::Cell(_) => [c.cell_size.min.x+c.cell_size.max.x, c.cell_size.min.y+c.cell_size.max.y],
-            }
-        }).unwrap_or_default().map(|x|x as FloatT);
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get node_edge.rect_size
-    lib_scope.field_named("rect_size", |context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_edge.node().as_custom().data_clone()?;
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|{
-            let r=match node_edge {
-                NodeEdge::Padding(_) => c.padding_rect(),
-                NodeEdge::Border(_) => c.border_rect(),
-                NodeEdge::Margin(_) => c.margin_rect(),
-                NodeEdge::Cell(_) => c.cell_rect(),
-            };
-            [r.width(),r.height()]
-        }).unwrap_or_default().map(|x|x as FloatT);
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeEdge>().end();
-
-    //get computed.inner_rect_size
-    lib_scope.field_named("inner_rect_size", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let entity:Entity=node_computed.0.as_custom().data_clone()?;
-
-        let v=get_component2::<UiLayoutComputed>(context.core(),entity)
-            .filter(|&c|c.enabled)
-            .map(|c|[c.size.x,c.size.y])
-            .unwrap_or_default().map(|x|x as FloatT);
-
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>().end();
-
+pub fn register_entity_attribs(lib_scope:&mut LibScope<World>) {
     //
     entity_get_field3::<UiCongruent>("row_width_scale",lib_scope,|c|{
         Value::float(c.row_width_scale)
@@ -1002,6 +846,244 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
     entity_get_field("scaling",lib_scope,|entity,world|{
         world.entity(entity).get::<UiRoot>().map(|c|Value::float(c.scaling.min(0.0))).unwrap_or_default()
     });
+}
+
+pub fn register_attribs(lib_scope:&mut LibScope<World>) {
+
+    //
+    #[derive(Clone)]
+    struct NodeComputed(Value);
+
+    //get entity.computed
+    lib_scope.field_named("computed", |context|{
+        let node=context.param(0);
+        Ok(Value::custom_unmanaged(NodeComputed(node)))
+    }).custom_ref::<Entity>().end();
+
+    //get computed.inner_size
+    lib_scope.field_named("inner_size", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        let entity:Entity=node.as_custom().data_clone()?;
+
+        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+        let v=c.map(|c|[c.size.x,c.size.y]).unwrap_or_default().map(|x|x as FloatT);
+
+        Ok(Value::custom_unmanaged(v))
+    }).custom_ref::<NodeComputed>().end();
+
+
+    //
+    #[derive(Clone)]
+    enum NodeEdge { Padding(Value), Border(Value), Margin(Value), Cell(Value),}
+    impl NodeEdge {
+        pub fn node(&self) -> Value {
+            let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=self;
+            node.clone()
+        }
+    }
+
+    //get computed.padding
+    lib_scope.field_named("padding", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeEdge::Padding(node)))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.border
+    lib_scope.field_named("border", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeEdge::Border(node)))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.margin
+    lib_scope.field_named("margin", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get computed.cell
+    lib_scope.field_named("cell", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeEdge::Cell(node)))
+    }).custom_ref::<NodeComputed>().end();
+
+    //get node_edge.field
+    lib_scope.field(|context|{
+        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+        let entity:Entity=node_edge.node().as_custom().data_clone()?;
+        let field=context.param(1).as_string();
+
+        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+
+        let v=c.map(|c|{
+            match node_edge {
+                NodeEdge::Padding(_) => c.padding_size,
+                NodeEdge::Border(_) => c.border_size,
+                NodeEdge::Margin(_) => c.margin_size,
+                NodeEdge::Cell(_) => c.cell_size,
+            }
+        });
+
+        let v=v.and_then(|r|match field.as_str() {
+            "left" => Some(r.min.x),
+            "right" => Some(r.max.x),
+            "top" => Some(r.min.y),
+            "bottom" => Some(r.max.y),
+            "width" => Some(r.min.x+r.max.x),
+            "height" => Some(r.min.y+r.max.y),
+            _ => None,
+        }).map(|v|v.into()).unwrap_or(Value::Nil);
+
+        Ok(v)
+    }).custom_ref::<NodeEdge>().str().end();
+
+    // //get node_edge.left
+    // lib_scope.field_named("left", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size,
+    //             NodeEdge::Border(_) => c.border_size,
+    //             NodeEdge::Margin(_) => c.margin_size,
+    //             NodeEdge::Cell(_) => c.cell_size,
+    //         }
+    //     });
+    //     Ok(Value::float(v.map(|r|r.min.x).unwrap_or_default()))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.right
+    // lib_scope.field_named("right", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size,
+    //             NodeEdge::Border(_) => c.border_size,
+    //             NodeEdge::Margin(_) => c.margin_size,
+    //             NodeEdge::Cell(_) => c.cell_size,
+    //         }
+    //     });
+    //     Ok(Value::float(v.map(|r|r.max.x).unwrap_or_default()))
+    // }).custom_ref::<NodeEdge>().end();
+
+    //
+    // //get node_edge.left_size
+    // lib_scope.field_named("left_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size.min.x,
+    //             NodeEdge::Border(_) => c.border_size.min.x,
+    //             NodeEdge::Margin(_) => c.margin_size.min.x,
+    //             NodeEdge::Cell(_) => c.cell_size.min.x,
+    //         }
+    //     }).unwrap_or_default();
+    //     Ok(Value::float(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.right_size
+    // lib_scope.field_named("right_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size.max.x,
+    //             NodeEdge::Border(_) => c.border_size.max.x,
+    //             NodeEdge::Margin(_) => c.margin_size.max.x,
+    //             NodeEdge::Cell(_) => c.cell_size.max.x,
+    //         }
+    //     }).unwrap_or_default();
+    //     Ok(Value::float(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.top_size
+    // lib_scope.field_named("top_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size.min.y,
+    //             NodeEdge::Border(_) => c.border_size.min.y,
+    //             NodeEdge::Margin(_) => c.margin_size.min.y,
+    //             NodeEdge::Cell(_) => c.cell_size.min.y,
+    //         }
+    //     }).unwrap_or_default();
+    //     Ok(Value::float(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.bottom_size
+    // lib_scope.field_named("bottom_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_size.max.y,
+    //             NodeEdge::Border(_) => c.border_size.max.y,
+    //             NodeEdge::Margin(_) => c.margin_size.max.y,
+    //             NodeEdge::Cell(_) => c.cell_size.max.y,
+    //         }
+    //     }).unwrap_or_default();
+    //     Ok(Value::float(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.sum_size
+    // lib_scope.field_named("sum_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         match node_edge {
+    //             NodeEdge::Padding(_) => [c.padding_size.min.x+c.padding_size.max.x,c.padding_size.min.y+c.padding_size.max.y],
+    //             NodeEdge::Border(_) => [c.border_size.min.x+c.border_size.max.x, c.border_size.min.y+c.border_size.max.y],
+    //             NodeEdge::Margin(_) => [c.margin_size.min.x+c.margin_size.max.x, c.margin_size.min.y+c.margin_size.max.y],
+    //             NodeEdge::Cell(_) => [c.cell_size.min.x+c.cell_size.max.x, c.cell_size.min.y+c.cell_size.max.y],
+    //         }
+    //     }).unwrap_or_default().map(|x|x as FloatT);
+    //     Ok(Value::custom_unmanaged(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get node_edge.rect_size
+    // lib_scope.field_named("rect_size", |context|{
+    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
+    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
+    //     let v=c.map(|c|{
+    //         let r=match node_edge {
+    //             NodeEdge::Padding(_) => c.padding_rect(),
+    //             NodeEdge::Border(_) => c.border_rect(),
+    //             NodeEdge::Margin(_) => c.margin_rect(),
+    //             NodeEdge::Cell(_) => c.cell_rect(),
+    //         };
+    //         [r.width(),r.height()]
+    //     }).unwrap_or_default().map(|x|x as FloatT);
+    //     Ok(Value::custom_unmanaged(v))
+    // }).custom_ref::<NodeEdge>().end();
+
+    // //get computed.inner_rect_size
+    // lib_scope.field_named("inner_rect_size", |context|{
+    //     let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+    //     let entity:Entity=node_computed.0.as_custom().data_clone()?;
+
+    //     let v=get_component2::<UiLayoutComputed>(context.core(),entity)
+    //         .filter(|&c|c.enabled)
+    //         .map(|c|[c.size.x,c.size.y])
+    //         .unwrap_or_default().map(|x|x as FloatT);
+
+    //     Ok(Value::custom_unmanaged(v))
+    // }).custom_ref::<NodeComputed>().end();
+
 }
 
 

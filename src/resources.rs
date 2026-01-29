@@ -23,6 +23,10 @@ impl Default for UixLibScope {
         let mut lib_scope=LibScope::new_full();
 
         script_libs::register_attribs(&mut lib_scope);
+        script_libs::register_ui_val(&mut lib_scope);
+        script_libs::register_entity_attribs(&mut lib_scope);
+
+
         script_libs::register_stuff(&mut lib_scope);
         script_libs::register_misc(&mut lib_scope);
         script_libs::register_events(&mut lib_scope);
