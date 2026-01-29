@@ -51,16 +51,16 @@ apply scroll_vbar
                     #println "drag_end {} {}" self.valign.p self.valign.s
                     #set self.valign.p 0.0;
 
-                    var v (+  (/ self.computed.cell.top track.computed.inner_size.y))
-                    set self.valign.s (clamp v 0.0 1.0)
+                    set self.valign.s (clamp (/ self.computed.cell.top self.computed.cell.height) 0.0 1.0)
                 }]
+
                 self.add_event_listener "drag_y" [fn (d) {
                     #println "drag_y {d}"
                     #set self.vscroll (- start y.dist)
                     #set self.valign.s (clamp (+ start (/ d.dist track.computed.inner_size.y)) 0.0 1.0)
                     #set self.valign.p (clamp d.dist 0.0 1.0)
 
-                    set self.valign.p d.dist
+                    set self.valign.p (+ start d.dist)
 
                 }]
     node
