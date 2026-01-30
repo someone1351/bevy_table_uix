@@ -875,45 +875,57 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
     //
     #[derive(Clone)]
-    enum NodeEdge { Padding(Value), Border(Value), Margin(Value), Cell(Value),}
-    impl NodeEdge {
+    enum NodeExtent { Padding(Value), Border(Value), Margin(Value), Cell(Value), Inner(Value),}
+    impl NodeExtent {
         pub fn node(&self) -> Value {
-            let (NodeEdge::Padding(node)|NodeEdge::Border(node)|NodeEdge::Margin(node)|NodeEdge::Cell(node))=self;
+            let (NodeExtent::Padding(node)
+                |NodeExtent::Border(node)
+                |NodeExtent::Margin(node)
+                |NodeExtent::Cell(node)
+                |NodeExtent::Inner(node)
+            )=self;
             node.clone()
         }
     }
+
+    //get computed.inner
+    lib_scope.field_named("inner", |context|{
+        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
+        let node=node_computed.0;
+        Ok(Value::custom_unmanaged(NodeExtent::Inner(node)))
+    }).custom_ref::<NodeComputed>().end();
 
     //get computed.padding
     lib_scope.field_named("padding", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Padding(node)))
+        Ok(Value::custom_unmanaged(NodeExtent::Padding(node)))
     }).custom_ref::<NodeComputed>().end();
 
     //get computed.border
     lib_scope.field_named("border", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Border(node)))
+        Ok(Value::custom_unmanaged(NodeExtent::Border(node)))
     }).custom_ref::<NodeComputed>().end();
 
     //get computed.margin
     lib_scope.field_named("margin", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Margin(node)))
+        Ok(Value::custom_unmanaged(NodeExtent::Margin(node)))
     }).custom_ref::<NodeComputed>().end();
 
     //get computed.cell
     lib_scope.field_named("cell", |context|{
         let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
         let node=node_computed.0;
-        Ok(Value::custom_unmanaged(NodeEdge::Cell(node)))
+        Ok(Value::custom_unmanaged(NodeExtent::Cell(node)))
     }).custom_ref::<NodeComputed>().end();
 
     //get node_edge.field
     lib_scope.field(|context|{
-        let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
+        let node_edge:NodeExtent=context.param(0).as_custom().data_clone()?;
         let entity:Entity=node_edge.node().as_custom().data_clone()?;
         let field=context.param(1).as_string();
 
@@ -921,25 +933,30 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
         let v=c.map(|c|{
             match node_edge {
-                NodeEdge::Padding(_) => c.padding_size,
-                NodeEdge::Border(_) => c.border_size,
-                NodeEdge::Margin(_) => c.margin_size,
-                NodeEdge::Cell(_) => c.cell_size,
+                NodeExtent::Padding(_) => (Some(c.padding_size),c.padding_rect()),
+                NodeExtent::Border(_) => (Some(c.border_size),c.border_rect()),
+                NodeExtent::Margin(_) => (Some(c.margin_size),c.margin_rect()),
+                NodeExtent::Cell(_) => (Some(c.cell_size),c.cell_rect()),
+                NodeExtent::Inner(_) => (None,c.inner_rect()),
             }
         });
 
-        let v=v.and_then(|r|match field.as_str() {
-            "left" => Some(r.min.x),
-            "right" => Some(r.max.x),
-            "top" => Some(r.min.y),
-            "bottom" => Some(r.max.y),
-            "width" => Some(r.min.x+r.max.x),
-            "height" => Some(r.min.y+r.max.y),
+        let v=v.and_then(|(size,rect)|match field.as_str() {
+            "left_size" => size.map(|s|s.min.x.into()),
+            "right_size" => size.map(|s|s.max.x.into()),
+            "top_size" => size.map(|s|s.min.y.into()),
+            "bottom_size" => size.map(|s|s.max.y.into()),
+            "sum" => size.map(|s|[(s.min.x+s.max.x),(s.min.y+s.max.y)].into()),
+            "left" => Some(rect.min.x.into()),
+            "right" => Some(rect.max.x.into()),
+            "top" => Some(rect.min.y.into()),
+            "bottom" => Some(rect.max.y.into()),
+            "size" => Some([rect.width(),rect.height()].into()),
             _ => None,
-        }).map(|v|v.into()).unwrap_or(Value::Nil);
+        }).unwrap_or(Value::Nil);
 
         Ok(v)
-    }).custom_ref::<NodeEdge>().str().end();
+    }).custom_ref::<NodeExtent>().str().end();
 
     // //get node_edge.left
     // lib_scope.field_named("left", |context|{

@@ -27,41 +27,22 @@ apply scroll_vbar
 
             script
                 var track self.parent;
-
                 var start;
 
                 set self.valign.p 0.0;
-                #set self.valign.s 0.0;
-                println "it is {}" self.vscroll.p
-
 
                 self.add_event_listener "drag_begin" [fn (d) {
-                    #set start self.valign.s;
-                    #set start self.valign.p;
-
-                    println track.computed.inner_size.y
-                    println "offset is {}" d.offset.y
-
-                    #(- d.offset)
-
-                    set self.valign.p self.computed.cell.top
-                    set start self.computed.cell.top
+                    set self.valign.p self.computed.cell.top_size
+                    set start self.computed.cell.top_size
                 }]
-                self.add_event_listener "drag_end" [fn () {
-                    #println "drag_end {} {}" self.valign.p self.valign.s
-                    #set self.valign.p 0.0;
 
-                    set self.valign.s (clamp (/ self.computed.cell.top self.computed.cell.height) 0.0 1.0)
+                self.add_event_listener "drag_end" [fn () {
+                    set self.valign.s (clamp (/ self.computed.cell.top_size self.computed.cell.sum.y) 0.0 1.0)
                 }]
 
                 self.add_event_listener "drag_y" [fn (d) {
-                    #println "drag_y {d}"
-                    #set self.vscroll (- start y.dist)
-                    #set self.valign.s (clamp (+ start (/ d.dist track.computed.inner_size.y)) 0.0 1.0)
-                    #set self.valign.p (clamp d.dist 0.0 1.0)
-
                     set self.valign.p (+ start d.dist)
-
+                    set scroll_body.vscroll.p self.valign.p
                 }]
     node
         text +
