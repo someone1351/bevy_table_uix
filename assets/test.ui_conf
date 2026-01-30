@@ -5,9 +5,10 @@ apply scroll_vbar
     span 1
 
     script
-        var scroll_body self.parent.children.scroll_body.0;
+        var body_outer self.parent.children.scroll_body.0;
+        var body_inner body_outer.children.body.0;
 
-        println "scroll_body {scroll_body}"
+        println "body_outer {body_outer}"
 
     node
         text -
@@ -30,19 +31,26 @@ apply scroll_vbar
                 var start;
 
                 set self.valign.p 0.0;
+                println body_outer.computed.size
+                set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+                #set self.height.p 0.0
+                #println "fill is {}, outer={}, inner={}" self.vfill.s body_outer.computed.size.y body_inner.computed.size.y
 
                 self.add_event_listener "drag_begin" [fn (d) {
-                    set self.valign.p self.computed.cell.top_size
-                    set start self.computed.cell.top_size
+                    set self.valign.p self.computed.cell.top
+                    set start self.computed.cell.top
+                    set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
                 }]
 
                 self.add_event_listener "drag_end" [fn () {
-                    set self.valign.s (clamp (/ self.computed.cell.top_size self.computed.cell.sum.y) 0.0 1.0)
+                    set self.valign.s (clamp (/ self.computed.cell.top self.computed.cell.sum.y) 0.0 1.0)
                 }]
 
                 self.add_event_listener "drag_y" [fn (d) {
                     set self.valign.p (+ start d.dist)
-                    set scroll_body.vscroll.p self.valign.p
+                    #set body_outer.vscroll.p self.valign.p
+                    #println self.valign.p
+                    set body_outer.vscroll.s (/ self.valign.p self.computed.cell.sum.y)
                 }]
     node
         text +
@@ -93,6 +101,8 @@ template body_test
             set e.0.color.r (* 0.8 s)
             set e.0.color.g (* 0.8 s s)
             set e.0.color.b (* 0.8 (- 1.0 t))
+
+            set e.0.text i
         }
 
 
