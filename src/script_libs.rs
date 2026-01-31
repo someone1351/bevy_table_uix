@@ -860,19 +860,6 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
         Ok(Value::custom_unmanaged(NodeComputed(node)))
     }).custom_ref::<Entity>().end();
 
-    //get computed.inner_size
-    lib_scope.field_named("inner_size", |context|{
-        let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-        let node=node_computed.0;
-        let entity:Entity=node.as_custom().data_clone()?;
-
-        let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-        let v=c.map(|c|[c.size.x,c.size.y]).unwrap_or_default().map(|x|x as FloatT);
-
-        Ok(Value::custom_unmanaged(v))
-    }).custom_ref::<NodeComputed>().end();
-
-
     //
     #[derive(Clone)]
     enum NodeExtent { Padding(Value), Border(Value), Margin(Value), Cell(Value), Inner(Value),}
@@ -910,6 +897,16 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
             "border" => NodeExtent::Border(node).into(),
             "cell" => NodeExtent::Cell(node).into(),
             "size" => c.border_rect().size().to_array().into(),
+            "inner_size" => [c.size.x,c.size.y].into(),
+            "changed" => c.changed.into(),
+            "pos_changed" => c.pos_changed.into(),
+            "size_changed" => c.size_changed.into(),
+            "scroll_changed" => c.scroll_changed.into(),
+            "enabled" => c.enabled.into(),
+            "visible" => c.visible.into(),
+            "unlocked" => c.unlocked.into(),
+            "scroll_pos" => c.scroll_pos.to_array().into(),
+            "scroll_size" => c.scroll_size.to_array().into(),
             _ => Value::Nil
         };
 

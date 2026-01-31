@@ -34,11 +34,11 @@ apply scroll_vbar
                 println body_outer.computed.size
                 #set self.height.p 0.0
                 #println "fill is {}, outer={}, inner={}" self.vfill.s body_outer.computed.size.y body_inner.computed.size.y
-                fn on_layout_change() {
+                fn on_layout_changed() {
                     set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
                 }
-                body_outer.add_event_listener "layout_changed" on_layout_change
-                body_inner.add_event_listener "layout_changed" on_layout_change
+                body_outer.add_event_listener "layout_changed" on_layout_changed
+                body_inner.add_event_listener "layout_changed" on_layout_changed
 
 
                 self.add_event_listener "drag_begin" [fn (d) {
@@ -53,8 +53,6 @@ apply scroll_vbar
 
                 self.add_event_listener "drag_y" [fn (d) {
                     set self.valign.p (+ start d.dist)
-                    #set body_outer.vscroll.p self.valign.p
-                    #println self.valign.p
                     set body_outer.vscroll.s (/ self.valign.p self.computed.cell.sum.y)
                 }]
     node
