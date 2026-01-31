@@ -32,9 +32,14 @@ apply scroll_vbar
 
                 set self.valign.p 0.0;
                 println body_outer.computed.size
-                set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
                 #set self.height.p 0.0
                 #println "fill is {}, outer={}, inner={}" self.vfill.s body_outer.computed.size.y body_inner.computed.size.y
+                fn on_layout_change() {
+                    set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+                }
+                body_outer.add_event_listener "layout_changed" on_layout_change
+                body_inner.add_event_listener "layout_changed" on_layout_change
+
 
                 self.add_event_listener "drag_begin" [fn (d) {
                     set self.valign.p self.computed.cell.top

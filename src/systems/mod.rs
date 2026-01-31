@@ -8,6 +8,7 @@ use std::collections::HashSet;
 
 use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
+// use bevy_table_ui::layout::messages::UiLayoutComputedChanged;
 use bevy_table_ui as table_ui;
 use script_lang::StringT;
 // use script_lang::IntT;
@@ -274,10 +275,14 @@ pub fn on_event_listeners<'a>(
     // lib_scope:Res<script_lang::LibScope<&mut World>>,
     // world: &mut World,
 
+    ui_layout_computed_query:Query<(Entity,&UiLayoutComputed)>,
+
 
     // mut input_event_reader: MessageReader<UiInteractInputEvent>,
     mut interact_event_reader: MessageReader<UiInteractEvent>,
     mut user_event_reader: MessageReader<UixUserMessage>,
+    // mut computed_layout_changed_reader: MessageReader<UiLayoutComputedChanged>,
+
     time: Res<bevy::time::Time>,
     // mut gc_sope:GcS
     // aaa:Query<Ref<UiText>>,
@@ -405,6 +410,25 @@ pub fn on_event_listeners<'a>(
         }
     }
 
+    //ui computed layout changed
+    for (entity,ui_layout_computed) in ui_layout_computed_query.iter() {
+        if ui_layout_computed.changed {
+            if let Ok((_,event_listener))=event_listeners_query.get(entity) {
+                if let Some((key,_))=event_listener.event_listeners.get_key_value("layout_changed") {
+                    output_events.push((
+                        entity,
+                        key.clone(),
+                        vec![],
+                    ));
+                }
+            }
+        }
+    }
+
+    // //ui computed layout changed
+    // for ev in computed_layout_changed_reader.read() {
+
+    // }
 
     //
     commands.queue(move|world:&mut World|{
