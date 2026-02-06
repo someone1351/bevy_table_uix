@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+
 /*
 Problems
 * on asset modified, error reporting twice
@@ -305,28 +305,23 @@ pub fn on_event_listeners<'a>(
     let time_elapsed=time.delta_secs();
 
     //
-    let mut output_events: Vec<(Entity,StringT, Vec<Value>)> = Vec::new(); //(entity,event_name,params)
+    // let mut output_events: Vec<(Entity,StringT, Vec<Value>)> = Vec::new(); //(entity,event_name,params)
+    let mut output_events: Vec<(Entity,StringT, Vec<(&'static str,Value)>)> = Vec::new(); //(entity,event_name,first_param,rest_params) ,Vec<Value>
 
     //update events
     for (entity,event_listener) in event_listeners_query.iter() {
         if let Some((key,_))=event_listener.event_listeners.get_key_value("update") {
-            let params= vec![Value::float(time_elapsed)];
             output_events.push((
-                // ev.entity,k.clone(),
                 entity,
                 key.clone(),
-                params,
-                // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
+                vec![("delta_time",Value::float(time_elapsed))],
             ));
         }
     }
 
     //interact events
     for ev in interact_event_reader.read() {
-        //println!("ev {ev:?}");
-
         if let Ok((_,event_listener))=event_listeners_query.get(ev.entity) {
-            // event_listsssener.event_listeners.contains_key(ev.event_type.name())
             let name=match ev.event_type {
                 UiInteractMessageType::CursorHoverBegin{..} => "hover_begin",
                 UiInteractMessageType::CursorHoverEnd{..} => "hover_end",
@@ -347,47 +342,94 @@ pub fn on_event_listeners<'a>(
                 UiInteractMessageType::FocusPressBegin {.. } => "press_begin",
                 UiInteractMessageType::FocusPressEnd {.. } => "press_end",
                 UiInteractMessageType::FocusClick {.. } => "click",
-
             };
+
             if let Some((key,_))=event_listener.event_listeners.get_key_value(name) {
                 let params:Vec<(&str,Value)>= match ev.event_type {
-                    UiInteractMessageType::CursorHoverBegin { device } => vec![("device",device.into())],
-                    UiInteractMessageType::CursorHoverEnd { device } => vec![("device",device.into())],
-                    UiInteractMessageType::CursorPressBegin{device,button,first,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into()),("first",first.into())],
-                    UiInteractMessageType::CursorPressEnd{device,button,last,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into()),("last",last.into())],
-                    UiInteractMessageType::FocusPressBegin{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
-                    UiInteractMessageType::FocusPressEnd{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
-                    UiInteractMessageType::CursorClick{device,button,..} => vec![("device",device.into()),("button",button.into()),("cursor",true.into())],
-                    UiInteractMessageType::FocusClick{device,button,..} => vec![("device",device.into()),("button",button.into()),("focus",true.into())],
+                    UiInteractMessageType::CursorHoverBegin { device, cursor } => vec![
+                        ("device",device.into()),
+                        ("cursor",cursor.to_array().into())
+                    ],
+                    UiInteractMessageType::CursorHoverEnd { device } => vec![
+                        ("device",device.into()),
+                    ],
+                    UiInteractMessageType::CursorPressBegin{device,button,first, cursor } => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_cursor",true.into()),
+                        ("first",first.into()),
+                        ("cursor",cursor.to_array().into())
+                    ],
+                    UiInteractMessageType::CursorPressEnd{device,button,last,} => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_cursor",true.into()),
+                        ("last",last.into()),
+                    ],
+                    UiInteractMessageType::FocusPressBegin{device,button,} => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_focus",true.into()),
+                    ],
+                    UiInteractMessageType::FocusPressEnd{device,button,} => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_focus",true.into()),
+                    ],
+                    UiInteractMessageType::CursorClick{device,button,} => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_cursor",true.into()),
+                    ],
+                    UiInteractMessageType::FocusClick{device,button,} => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("is_focus",true.into()),
+                    ],
                     UiInteractMessageType::CursorDragX { dist, delta, device, button } => vec![
-                        ("device",device.into()),("button",button.into()),
-                        ("dist",dist.into()),("delta",delta.into()),
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("dist",dist.into()),
+                        ("delta",delta.into()),
                     ],
                     UiInteractMessageType::CursorDragY { dist, delta, device, button  } => vec![
-                        ("device",device.into()),("button",button.into()),
-                        ("dist",dist.into()),("delta",delta.into()),
+                        ("device",device.into()),
+                        ("button",button.into()),
+                        ("dist",dist.into()),
+                        ("delta",delta.into()),
                     ],
                     UiInteractMessageType::SelectBegin => vec![],
                     UiInteractMessageType::SelectEnd => vec![],
-                    UiInteractMessageType::FocusBegin { group, device } => vec![("device",device.into()),("group",group.into()),],
-                    UiInteractMessageType::FocusEnd { group, device } => vec![("device",device.into()),("group",group.into()),],
-                    UiInteractMessageType::CursorDragBegin { device, button, offset, inner_offset } => vec![
+                    UiInteractMessageType::FocusBegin { group, device } => vec![
+                        ("device",device.into()),
+                        ("group",group.into()),
+                    ],
+                    UiInteractMessageType::FocusEnd { group, device } => vec![
+                        ("device",device.into()),
+                        ("group",group.into()),
+                    ],
+                    UiInteractMessageType::CursorDragBegin { device, button, outer_offset, inner_offset, cursor } => vec![
                         ("device",device.into()),
                         ("button",button.into()),
-                        ("offset",offset.to_array().into()),
+                        ("outer_offset",outer_offset.to_array().into()),
                         ("inner_offset",inner_offset.to_array().into()),
+                        ("cursor",cursor.to_array().into())
                     ],
-                    UiInteractMessageType::CursorDragEnd { device, button } => vec![("device",device.into()),("button",button.into()),],
-                    UiInteractMessageType::CursorScroll { scroll, device, axis } => vec![("device",device.into()),("scroll",scroll.into()),("axis",axis.into())],
+                    UiInteractMessageType::CursorDragEnd { device, button } => vec![
+                        ("device",device.into()),
+                        ("button",button.into()),
+                    ],
+                    UiInteractMessageType::CursorScroll { scroll, device, axis } => vec![
+                        ("device",device.into()),
+                        ("scroll",scroll.into()),
+                        ("axis",axis.into()),
+                    ],
                 };
-                let params:HashMap<&str,Value>=params.into_iter().collect();
 
                 output_events.push((
-                    // ev.entity,k.clone(),
                     ev.entity,
                     key.clone(),
-                    vec![Value::custom_unmanaged(params)],
-                    // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
+                    params,
                 ));
             }
         }
@@ -398,13 +440,10 @@ pub fn on_event_listeners<'a>(
         if let Ok((_,event_listener))=event_listeners_query.get(ev.entity) {
             // event_listener.event_listeners.contains_key(ev.event_type.name())
             if let Some((key,_))=event_listener.event_listeners.get_key_value(ev.event.as_str()) {
-                let params= ev.params.clone();
                 output_events.push((
-                    // ev.entity,k.clone(),
                     ev.entity,
                     key.clone(),
-                    params,
-                    // listeners.iter().filter_map(|(f,e)|(!e).then_some(f.clone())).collect(),
+                    ev.params.clone(),
                 ));
             }
         }
@@ -436,7 +475,13 @@ pub fn on_event_listeners<'a>(
         let gc_scope = world.resource::<UixGcScope>().0.clone();
         let mut gc_scope=gc_scope.try_lock().unwrap();
 
-        for (entity,key,params,) in output_events {
+        for (entity,key,mut first_params, ) in output_events {
+            first_params.push(("entity",self_entity_from_world(world,entity)));
+
+            let first_params:script_lang::Dict=first_params.into();
+            let all_params = vec![Value::custom_managed(first_params, &mut gc_scope)];
+            // all_params.extend(rest_params);
+
             let e=world.entity(entity);
             let Some(c)=e.get::<UixEventListener>() else {continue;};
             let Some(listeners)=c.event_listeners.get(&key) else {continue;};
@@ -453,7 +498,7 @@ pub fn on_event_listeners<'a>(
                 // machine.set_debug_print(true);
                 // machine.set_debug(true);
                 //println!("a");
-                if let Err(e)=machine.call_value(listener.clone(),&params) {
+                if let Err(e)=machine.call_value(listener.clone(),&all_params) {
                     e.eprint(None);
                     found_errs.insert(i);
                 }

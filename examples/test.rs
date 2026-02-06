@@ -128,7 +128,7 @@ fn show_fps(
     let avg = diag.and_then(|x|x.average()).unwrap_or_default();
 
     for root_entity in root_query {
-        ui_user_message_writer.write(UixUserMessage { entity: root_entity, event: "fps".into(), params: vec![fps.into(),avg.into()] });
+        ui_user_message_writer.write(UixUserMessage { entity: root_entity, event: "fps".into(), params: vec![("fps",fps.into()),("avg",avg.into())] });
     }
 }
 

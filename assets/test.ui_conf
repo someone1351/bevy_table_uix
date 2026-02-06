@@ -1,63 +1,72 @@
+#todo, need pagedown/up shortcuts
 apply scroll_vbar
     color green
     hfill 1.0
     vfill 1.0
     span 1
 
+    node track
+        vfill 1.0
+        vexpand 1.0
+        pressable
+
+        node thumb
+            text =
+            color red
+            draggable
+            pressable
+            #valign 0
+
     script
+        var track self.children.track.0;
+        var thumb track.children.thumb.0
         var body_outer self.parent.children.scroll_body.0;
         var body_inner body_outer.children.body.0;
 
-        println "body_outer {body_outer}"
 
-    node
-        text -
-        color blue
-    node
-        vfill 1.0
-        vexpand 1.0
+    script
 
-        node
-            text =
-            color red
+        var start;
 
-            draggable
-            #pressable
+        set thumb.valign.p 0.0;
 
-            #valign 0
+        fn on_layout_changed(e) {
+            if thumb.computed.size_changed {
+                set thumb.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+            }
+        }
 
-            script
-                var track self.parent;
-                var start;
+        body_outer.add_event_listener "layout_changed" on_layout_changed
+        body_inner.add_event_listener "layout_changed" on_layout_changed
 
-                set self.valign.p 0.0;
-                println body_outer.computed.size
-                #set self.height.p 0.0
-                #println "fill is {}, outer={}, inner={}" self.vfill.s body_outer.computed.size.y body_inner.computed.size.y
-                fn on_layout_changed() {
-                    set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
-                }
-                body_outer.add_event_listener "layout_changed" on_layout_changed
-                body_inner.add_event_listener "layout_changed" on_layout_changed
+        body_outer.add_event_listener "layout_changed" [fn (ev) {
+            if ev.entity.computed.scroll_changed {
+                #println "a {} {} : {} {} : {}" \
+                #    ev.entity.computed.scroll_pos.y ev.entity.computed.scroll_size.y \
+                #    ev.entity.vscroll.p ev.entity.vscroll.s \
+                #    (/ ev.entity.computed.scroll_pos.y ev.entity.computed.scroll_size.y)
+            }
+        }]
 
 
-                self.add_event_listener "drag_begin" [fn (d) {
-                    set self.valign.p self.computed.cell.top
-                    set start self.computed.cell.top
-                    set self.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
-                }]
+        thumb.add_event_listener "drag_begin" [fn (d) {
+            set thumb.valign.p thumb.computed.cell.top
+            set start thumb.computed.cell.top
+            set thumb.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+        }]
 
-                self.add_event_listener "drag_end" [fn () {
-                    set self.valign.s (clamp (/ self.computed.cell.top self.computed.cell.sum.y) 0.0 1.0)
-                }]
+        thumb.add_event_listener "drag_end" [fn () {
+            set thumb.valign.s (clamp (/ thumb.computed.cell.top thumb.computed.cell.sum.y) 0.0 1.0)
+        }]
 
-                self.add_event_listener "drag_y" [fn (d) {
-                    set self.valign.p (+ start d.dist)
-                    set body_outer.vscroll.s (/ self.valign.p self.computed.cell.sum.y)
-                }]
-    node
-        text +
-        color blue
+        thumb.add_event_listener "drag_y" [fn (d) {
+            set thumb.valign.p (+ start d.dist)
+            set body_outer.vscroll.s (/ thumb.valign.p thumb.computed.cell.sum.y)
+        }]
+        track.add_event_listener "press_begin" [fn (d) {
+            println "yes"
+        }]
+
 
 apply scroll_body
     text xx
@@ -124,4 +133,4 @@ node fps
     color 0.0 0.0 0.0 0.5
     font_size 16
     script
-        root.add_event_listener "fps" [fn (fps) {set self.text fps;}]
+        root.add_event_listener "fps" [fn (ev) {set self.text ev.fps;}]

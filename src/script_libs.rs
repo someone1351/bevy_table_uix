@@ -6,7 +6,7 @@
 
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef},  prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef}, math::{Rect, Vec2}, prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
 use bevy_table_ui::*;
 use script_lang::*;
 
@@ -862,7 +862,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
     //
     #[derive(Clone)]
-    enum NodeExtent { Padding(Value), Border(Value), Margin(Value), Cell(Value), Inner(Value),}
+    enum NodeExtent { Padding(Value), Border(Value), Margin(Value), Cell(Value), Inner(Value), Outer(Value),}
     impl NodeExtent {
         pub fn node(&self) -> Value {
             let (NodeExtent::Padding(node)
@@ -870,6 +870,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
                 |NodeExtent::Margin(node)
                 |NodeExtent::Cell(node)
                 |NodeExtent::Inner(node)
+                |NodeExtent::Outer(node)
             )=self;
             node.clone()
         }
@@ -896,6 +897,7 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
             "margin" => NodeExtent::Margin(node).into(),
             "border" => NodeExtent::Border(node).into(),
             "cell" => NodeExtent::Cell(node).into(),
+            "outer" => NodeExtent::Outer(node).into(),
             "size" => c.border_rect().size().to_array().into(),
             "inner_size" => [c.size.x,c.size.y].into(),
             "changed" => c.changed.into(),
@@ -921,23 +923,24 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
         let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled).cloned().unwrap_or_default();
 
-        let (size,rect)=match node_edge {
-            NodeExtent::Padding(_) => (Some(c.padding_size),c.padding_rect()),
-            NodeExtent::Border(_) => (Some(c.border_size),c.border_rect()),
-            NodeExtent::Margin(_) => (Some(c.margin_size),c.margin_rect()),
-            NodeExtent::Cell(_) => (Some(c.cell_size),c.cell_rect()),
+        let (area_size,rect)=match node_edge {
+            NodeExtent::Padding(_) => (Some(c.padding_area_size),c.padding_rect()),
+            NodeExtent::Border(_) => (Some(c.border_area_size),c.border_rect()),
+            NodeExtent::Margin(_) => (Some(c.margin_area_size),c.margin_rect()),
+            NodeExtent::Cell(_) => (Some(c.cell_area_size),c.cell_rect()),
             NodeExtent::Inner(_) => (None,c.inner_rect()),
+            NodeExtent::Outer(_) => (None,c.outer_rect()),
         };
 
         let v=match field.as_str() {
             "rect" => Some(Value::custom_unmanaged(rect)),
             // "rect_size" => size.map(|s|Value::custom_unmanaged(s)),
 
-            "left" => size.map(|s|s.min.x.into()),
-            "right" => size.map(|s|s.max.x.into()),
-            "top" => size.map(|s|s.min.y.into()),
-            "bottom" => size.map(|s|s.max.y.into()),
-            "sum" => size.map(|s|[(s.min.x+s.max.x),(s.min.y+s.max.y)].into()),
+            "left" => area_size.map(|s|s.min.x.into()),
+            "right" => area_size.map(|s|s.max.x.into()),
+            "top" => area_size.map(|s|s.min.y.into()),
+            "bottom" => area_size.map(|s|s.max.y.into()),
+            "sum" => area_size.map(|s|[(s.min.x+s.max.x),(s.min.y+s.max.y)].into()),
             // "left" => Some(rect.min.x.into()),
             // "right" => Some(rect.max.x.into()),
             // "top" => Some(rect.min.y.into()),
@@ -948,150 +951,64 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
         Ok(v)
     }).custom_ref::<NodeExtent>().str().end();
+}
 
-    // //get node_edge.left
-    // lib_scope.field_named("left", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size,
-    //             NodeEdge::Border(_) => c.border_size,
-    //             NodeEdge::Margin(_) => c.margin_size,
-    //             NodeEdge::Cell(_) => c.cell_size,
-    //         }
-    //     });
-    //     Ok(Value::float(v.map(|r|r.min.x).unwrap_or_default()))
-    // }).custom_ref::<NodeEdge>().end();
+pub fn register_rect(lib_scope:&mut LibScope<World>) {
+    //get rect.contains
+    lib_scope.method("contains",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        let point: script_lang::Vec2=context.param(1).as_custom().data_clone()?;
+        let point = Vec2::from_array(point.map(|x|x as f32));
+        Ok(rect.contains(point).into())
+    }).custom_ref::<Rect>().custom_ref::<script_lang::Vec2>().end();
 
-    // //get node_edge.right
-    // lib_scope.field_named("right", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size,
-    //             NodeEdge::Border(_) => c.border_size,
-    //             NodeEdge::Margin(_) => c.margin_size,
-    //             NodeEdge::Cell(_) => c.cell_size,
-    //         }
-    //     });
-    //     Ok(Value::float(v.map(|r|r.max.x).unwrap_or_default()))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.min
+    lib_scope.method("min",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.min.to_array().into())
+    }).custom_ref::<Rect>().end();
 
-    //
-    // //get node_edge.left_size
-    // lib_scope.field_named("left_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size.min.x,
-    //             NodeEdge::Border(_) => c.border_size.min.x,
-    //             NodeEdge::Margin(_) => c.margin_size.min.x,
-    //             NodeEdge::Cell(_) => c.cell_size.min.x,
-    //         }
-    //     }).unwrap_or_default();
-    //     Ok(Value::float(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.max
+    lib_scope.method("max",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.max.to_array().into())
+    }).custom_ref::<Rect>().end();
 
-    // //get node_edge.right_size
-    // lib_scope.field_named("right_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size.max.x,
-    //             NodeEdge::Border(_) => c.border_size.max.x,
-    //             NodeEdge::Margin(_) => c.margin_size.max.x,
-    //             NodeEdge::Cell(_) => c.cell_size.max.x,
-    //         }
-    //     }).unwrap_or_default();
-    //     Ok(Value::float(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.size
+    lib_scope.method("size",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.size().to_array().into())
+    }).custom_ref::<Rect>().end();
 
-    // //get node_edge.top_size
-    // lib_scope.field_named("top_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size.min.y,
-    //             NodeEdge::Border(_) => c.border_size.min.y,
-    //             NodeEdge::Margin(_) => c.margin_size.min.y,
-    //             NodeEdge::Cell(_) => c.cell_size.min.y,
-    //         }
-    //     }).unwrap_or_default();
-    //     Ok(Value::float(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.left
+    lib_scope.method("left",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.min.x.into())
+    }).custom_ref::<Rect>().end();
 
-    // //get node_edge.bottom_size
-    // lib_scope.field_named("bottom_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_size.max.y,
-    //             NodeEdge::Border(_) => c.border_size.max.y,
-    //             NodeEdge::Margin(_) => c.margin_size.max.y,
-    //             NodeEdge::Cell(_) => c.cell_size.max.y,
-    //         }
-    //     }).unwrap_or_default();
-    //     Ok(Value::float(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.right
+    lib_scope.method("right",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.max.x.into())
+    }).custom_ref::<Rect>().end();
 
-    // //get node_edge.sum_size
-    // lib_scope.field_named("sum_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         match node_edge {
-    //             NodeEdge::Padding(_) => [c.padding_size.min.x+c.padding_size.max.x,c.padding_size.min.y+c.padding_size.max.y],
-    //             NodeEdge::Border(_) => [c.border_size.min.x+c.border_size.max.x, c.border_size.min.y+c.border_size.max.y],
-    //             NodeEdge::Margin(_) => [c.margin_size.min.x+c.margin_size.max.x, c.margin_size.min.y+c.margin_size.max.y],
-    //             NodeEdge::Cell(_) => [c.cell_size.min.x+c.cell_size.max.x, c.cell_size.min.y+c.cell_size.max.y],
-    //         }
-    //     }).unwrap_or_default().map(|x|x as FloatT);
-    //     Ok(Value::custom_unmanaged(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.top
+    lib_scope.method("top",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.min.y.into())
+    }).custom_ref::<Rect>().end();
 
-    // //get node_edge.rect_size
-    // lib_scope.field_named("rect_size", |context|{
-    //     let node_edge:NodeEdge=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_edge.node().as_custom().data_clone()?;
-    //     let c=get_component2::<UiLayoutComputed>(context.core(),entity).filter(|&c|c.enabled);
-    //     let v=c.map(|c|{
-    //         let r=match node_edge {
-    //             NodeEdge::Padding(_) => c.padding_rect(),
-    //             NodeEdge::Border(_) => c.border_rect(),
-    //             NodeEdge::Margin(_) => c.margin_rect(),
-    //             NodeEdge::Cell(_) => c.cell_rect(),
-    //         };
-    //         [r.width(),r.height()]
-    //     }).unwrap_or_default().map(|x|x as FloatT);
-    //     Ok(Value::custom_unmanaged(v))
-    // }).custom_ref::<NodeEdge>().end();
+    //get rect.bottom
+    lib_scope.method("bottom",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(rect.max.y.into())
+    }).custom_ref::<Rect>().end();
 
-    // //get computed.inner_rect_size
-    // lib_scope.field_named("inner_rect_size", |context|{
-    //     let node_computed:NodeComputed=context.param(0).as_custom().data_clone()?;
-    //     let entity:Entity=node_computed.0.as_custom().data_clone()?;
-
-    //     let v=get_component2::<UiLayoutComputed>(context.core(),entity)
-    //         .filter(|&c|c.enabled)
-    //         .map(|c|[c.size.x,c.size.y])
-    //         .unwrap_or_default().map(|x|x as FloatT);
-
-    //     Ok(Value::custom_unmanaged(v))
-    // }).custom_ref::<NodeComputed>().end();
-
+    //get rect.string
+    lib_scope.method("string",|context|{
+        let rect: Rect=context.param(0).as_custom().data_clone()?;
+        Ok(format!("Rect({}, {}, {}, {})", rect.min.x, rect.min.y, rect.max.x, rect.max.y).into())
+    }).custom_ref::<Rect>().end();
 }
 
 
@@ -1318,9 +1235,11 @@ pub fn register_events(lib_scope:&mut LibScope<World>) {
         let event = context.param(1).get_string().unwrap();
         let params=(2..context.params_num()).map(|i|context.param(i).clone_root()).collect();
         let world=context.core_mut();
-        world.write_message(UixUserMessage{ entity, event, params });
+        world.write_message(UixOutputMessage{ entity, event, params });
         Ok(Value::Void)
-    }).custom_ref::<Entity>().str().optional().any().variadic_end();
+    }).custom_ref::<Entity>().str()
+        .optional().any().variadic_end();
+        // .custom_ref::<Dict>().end();
 
     //
     lib_scope.method("add_event_listener",|mut context|{

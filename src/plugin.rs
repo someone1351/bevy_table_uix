@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use bevy_table_ui::{UiAffectPlugin, UiInteractSystem};
 
 
+use crate::UixOutputMessage;
+
 use super::{
     assets::*, messages::UixUserMessage, resources::*,  systems::*
 };
@@ -24,6 +26,8 @@ impl bevy::app::Plugin for UixPlugin {
             .init_resource::<UixLibScope>()
             .init_resource::<UixGcScope>()
             .add_message::<UixUserMessage>()
+            .add_message::<UixOutputMessage>()
+
             // .add_systems(Startup, (
             //     init_asset ,
             // ))

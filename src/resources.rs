@@ -25,6 +25,7 @@ impl Default for UixLibScope {
         script_libs::register_attribs(&mut lib_scope);
         script_libs::register_ui_val(&mut lib_scope);
         script_libs::register_entity_attribs(&mut lib_scope);
+        script_libs::register_rect(&mut lib_scope);
 
 
         script_libs::register_stuff(&mut lib_scope);
