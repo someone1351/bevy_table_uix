@@ -20,51 +20,95 @@ apply scroll_vbar
     script
         var track self.children.track.0;
         var thumb track.children.thumb.0
-        var body_outer self.parent.children.scroll_body.0;
-        var body_inner body_outer.children.body.0;
-
-
-    script
+        var outer_body self.parent.children.scroll_body.0;
+        var inner_body outer_body.children.body.0;
 
         var start;
 
         set thumb.valign.p 0.0;
+        set outer_body.vscroll.s 0.0;
 
         fn on_layout_changed(e) {
             if thumb.computed.size_changed {
-                set thumb.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+                set thumb.vfill.s (min (/ outer_body.computed.outer_rect.size.y inner_body.computed.outer_rect.size.y) 1.0)
             }
         }
 
-        body_outer.add_event_listener "layout_changed" on_layout_changed
-        body_inner.add_event_listener "layout_changed" on_layout_changed
+        outer_body.add_event_listener "layout_changed" on_layout_changed
+        inner_body.add_event_listener "layout_changed" on_layout_changed
 
-        body_outer.add_event_listener "layout_changed" [fn (ev) {
+        outer_body.add_event_listener "layout_changed" [fn (ev) {
             if ev.entity.computed.scroll_changed {
                 #println "a {} {} : {} {} : {}" \
                 #    ev.entity.computed.scroll_pos.y ev.entity.computed.scroll_size.y \
                 #    ev.entity.vscroll.p ev.entity.vscroll.s \
                 #    (/ ev.entity.computed.scroll_pos.y ev.entity.computed.scroll_size.y)
+
+
+                var page_space outer_body.computed.inner_rect.size.y
+                var total_space inner_body.computed.outer_rect.size.y
+
+                #var thumb_half_size (/ thumb.computed.outer_rect.size.y 2.0)
+                #var scroll_scale (/ page_space total_space)
+
+                var scroll_scale (/ outer_body.computed.scroll_pos.y outer_body.computed.scroll_size.y)
+                var align (* scroll_scale thumb.computed.cell_rect.sum.y)
+
+                #var thumb_align_px (* scroll_scale track.computed.outer_rect.size.y)
+                #var a (- thumb_align_px thumb_half_size)
+
+                #println thumb.height.p thumb.height.s thumb.computed.outer_rect.size.y
+                #println thumb.valign.p a scroll_scale page_space total_space outer_body.computed.scroll_pos.y b
+                println thumb.valign.p (* scroll_scale thumb.computed.cell_rect.sum.y)
+
+
+                #set thumb.valign.p (- thumb_align_px thumb_half_size)
+                #set thumb.valign.p (- (* thumb.computed.cell_rect.sum.y (/ page_space total_space)) (/ thumb.computed.outer_rect.size.y 2.0));
+                #set thumb.valign.p [expr thumb.computed.cell_rect.sum.y * (page_space / total_space) - (thumb.size.height.p / 2.0)];
+                #set thumb.valign.p [expr {thumb.computed.cell_rect.sum.y * (page_space / total_space) - (thumb.size.height.p / 2.0)}];
+                #set thumb.valign.p [expr abs(-4)*2+thing(2 3)+ call(f 1 2 3)]
+                #set thumb.valign.p [expr abs(-4)*2+thing(2,3)]
+                #set thumb.valign.p [expr {abs(-4)*2+thing(2,3)}]
+
             }
         }]
 
 
         thumb.add_event_listener "drag_begin" [fn (d) {
-            set thumb.valign.p thumb.computed.cell.top
-            set start thumb.computed.cell.top
-            set thumb.vfill.s (min (/ body_outer.computed.size.y body_inner.computed.size.y) 1.0)
+            set thumb.valign.p thumb.computed.cell_edge.top
+            set start thumb.computed.cell_edge.top
+            set thumb.vfill.s (min (/ outer_body.computed.outer_rect.size.y inner_body.computed.outer_rect.size.y) 1.0)
         }]
 
         thumb.add_event_listener "drag_end" [fn () {
-            set thumb.valign.s (clamp (/ thumb.computed.cell.top thumb.computed.cell.sum.y) 0.0 1.0)
+            set thumb.valign.s (clamp (/ thumb.computed.cell_edge.top thumb.computed.cell_rect.sum.y) 0.0 1.0)
         }]
 
         thumb.add_event_listener "drag_y" [fn (d) {
             set thumb.valign.p (+ start d.dist)
-            set body_outer.vscroll.s (/ thumb.valign.p thumb.computed.cell.sum.y)
+            set outer_body.vscroll.s (/ thumb.valign.p thumb.computed.cell_rect.sum.y)
         }]
+
         track.add_event_listener "press_begin" [fn (d) {
-            println "yes"
+            println "yes1"
+
+            var point d.cursor
+            var rect thumb.computed.outer.rect
+
+            var page_space outer_body.computed.inner_rect.size.y
+            var total_space inner_body.computed.outer_rect.size.y
+
+            var dir [if (< point.y rect.min.y) -1.0 elif (> point.y rect.max.y) 1.0 else 0.0]
+
+            println dir outer_body.vscroll.s
+            var a (clamp (+ (* dir (/ page_space total_space)) outer_body.vscroll.s) 0.0 1.0)
+            println page_space total_space (/ page_space total_space)
+
+            set outer_body.vscroll.s a
+
+        }]
+        track.add_event_listener "press_end" [fn (d) {
+            println "yes2"
         }]
 
 
