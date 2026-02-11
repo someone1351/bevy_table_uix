@@ -353,12 +353,14 @@ pub fn on_event_listeners<'a>(
                     UiInteractMessageType::CursorHoverEnd { device } => vec![
                         ("device",device.into()),
                     ],
-                    UiInteractMessageType::CursorPressBegin{device,button,first, cursor } => vec![
+                    UiInteractMessageType::CursorPressBegin{device,button,first, cursor, outer_offset, inner_offset } => vec![
                         ("device",device.into()),
                         ("button",button.into()),
                         ("is_cursor",true.into()),
                         ("first",first.into()),
-                        ("cursor",cursor.to_array().into())
+                        ("cursor",cursor.to_array().into()),
+                        ("outer_offset",outer_offset.to_array().into()),
+                        ("inner_offset",inner_offset.to_array().into()),
                     ],
                     UiInteractMessageType::CursorPressEnd{device,button,last,} => vec![
                         ("device",device.into()),

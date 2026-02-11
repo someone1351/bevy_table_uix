@@ -22,7 +22,6 @@ apply scroll_vbar
         var thumb track.children.thumb.0
         var outer_body self.parent.children.scroll_body.0;
         var inner_body outer_body.children.body.0;
-
         var start;
 
         set thumb.valign.p 0.0;
@@ -93,7 +92,7 @@ apply scroll_vbar
             println "yes1"
 
             var point d.cursor
-            var rect thumb.computed.outer.rect
+            var rect thumb.computed.outer_rect
 
             var page_space outer_body.computed.inner_rect.size.y
             var total_space inner_body.computed.outer_rect.size.y
@@ -108,7 +107,7 @@ apply scroll_vbar
 
         }]
         track.add_event_listener "press_end" [fn (d) {
-            println "yes2"
+            println "yes2 {}" d.last
         }]
 
 
