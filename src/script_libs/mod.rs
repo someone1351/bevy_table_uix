@@ -4,11 +4,15 @@
 // #![allow(unused_variables)]
 #![allow(unused_imports)]
 
+mod utils;
+mod vec;
+mod rect;
+
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
-use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef}, math::{Rect, Vec2}, prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
-use bevy_table_ui::*;
-use script_lang::*;
+use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef}, math::{IVec2, IVec3, IVec4, Rect, Vec2, Vec3, Vec4}, prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
+pub use bevy_table_ui::*;
+pub use script_lang::*;
 
 // use crate::UixSelf;
 
@@ -18,6 +22,10 @@ use super::messages::*;
 use super::script_vals::*;
 
 use super::script_utils::*;
+
+use utils::*;
+pub use vec::*;
+pub use rect::*;
 
 /*
 TODO
@@ -891,8 +899,8 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
             "enabled" => c.enabled.into(),
             "visible" => c.visible.into(),
             "unlocked" => c.unlocked.into(),
-            "scroll_pos" => c.scroll_pos.to_array().into(),
-            "scroll_size" => c.scroll_size.to_array().into(),
+            "scroll_pos" => Value::custom_unmanaged(c.scroll_pos),
+            "scroll_size" => Value::custom_unmanaged(c.scroll_size),
             _ => Value::Nil
         };
 
@@ -901,69 +909,6 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
 
 }
 
-pub fn register_rect(lib_scope:&mut LibScope<World>) {
-    //get rect.contains
-    lib_scope.method("contains",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        let point: script_lang::Vec2=context.param(1).as_custom().data_clone()?;
-        let point = Vec2::from_array(point.map(|x|x as f32));
-        Ok(rect.contains(point).into())
-    }).custom_ref::<Rect>().custom_ref::<script_lang::Vec2>().end();
-
-    //get rect.min
-    lib_scope.method("min",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.min.to_array().into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.max
-    lib_scope.method("max",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.max.to_array().into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.size
-    lib_scope.method("size",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.size().to_array().into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.sum
-    lib_scope.method("sum",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok([rect.min.x+rect.max.x,rect.min.y+rect.max.y].into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.left
-    lib_scope.method("left",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.min.x.into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.right
-    lib_scope.method("right",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.max.x.into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.top
-    lib_scope.method("top",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.min.y.into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.bottom
-    lib_scope.method("bottom",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(rect.max.y.into())
-    }).custom_ref::<Rect>().end();
-
-    //get rect.string
-    lib_scope.method("string",|context|{
-        let rect: Rect=context.param(0).as_custom().data_clone()?;
-        Ok(format!("Rect({}, {}, {}, {})", rect.min.x, rect.min.y, rect.max.x, rect.max.y).into())
-    }).custom_ref::<Rect>().end();
-}
 
 
 pub fn register_stuff(lib_scope:&mut LibScope<World>)

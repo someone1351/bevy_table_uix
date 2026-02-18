@@ -88,22 +88,24 @@ apply scroll_vbar
             set outer_body.vscroll.s (/ thumb.valign.p thumb.computed.cell_rect.sum.y)
         }]
 
-        track.add_event_listener "press_begin" [fn (d) {
+        track.add_event_listener "press_begin" [fn (ev) {
             println "yes1"
 
-            var point d.cursor
-            var rect thumb.computed.outer_rect
+            #var rect thumb.computed.outer_rect
+            #var dir [if (< d.cursor.y rect.min.y) -1.0 elif (> d.cursor.y rect.max.y) 1.0 else 0.0]
+            #var inner_body_space inner_body.computed.outer_rect.size.y
+            #var outer_body_space outer_body.computed.inner_rect.size.y
+            #var page_scale (/ inner_body_space outer_body_space)
 
-            var page_space outer_body.computed.inner_rect.size.y
-            var total_space inner_body.computed.outer_rect.size.y
 
-            var dir [if (< point.y rect.min.y) -1.0 elif (> point.y rect.max.y) 1.0 else 0.0]
+            #var dir (+ d.inner_offset.y (/ track.computed.outer_rect.size.y 2.0))
+            var dir (- ev.cursor.y thumb.computed.outer_rect.center.y).sign
 
-            println dir outer_body.vscroll.s
-            var a (clamp (+ (* dir (/ page_space total_space)) outer_body.vscroll.s) 0.0 1.0)
-            println page_space total_space (/ page_space total_space)
+            println "d{} {}" dir outer_body.vscroll.s
+            #var a (clamp (+ (* dir (/ page_space total_space)) outer_body.vscroll.s) 0.0 1.0)
+            #println page_space total_space (/ page_space total_space)
 
-            set outer_body.vscroll.s a
+            #set outer_body.vscroll.s a
 
         }]
         track.add_event_listener "press_end" [fn (d) {

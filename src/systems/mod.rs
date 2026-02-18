@@ -348,7 +348,7 @@ pub fn on_event_listeners<'a>(
                 let params:Vec<(&str,Value)>= match ev.event_type {
                     UiInteractMessageType::CursorHoverBegin { device, cursor } => vec![
                         ("device",device.into()),
-                        ("cursor",cursor.to_array().into())
+                        ("cursor",Value::custom_unmanaged(cursor))
                     ],
                     UiInteractMessageType::CursorHoverEnd { device } => vec![
                         ("device",device.into()),
@@ -358,9 +358,9 @@ pub fn on_event_listeners<'a>(
                         ("button",button.into()),
                         ("is_cursor",true.into()),
                         ("first",first.into()),
-                        ("cursor",cursor.to_array().into()),
-                        ("outer_offset",outer_offset.to_array().into()),
-                        ("inner_offset",inner_offset.to_array().into()),
+                        ("cursor",Value::custom_unmanaged(cursor)),
+                        ("outer_offset",Value::custom_unmanaged(outer_offset)),
+                        ("inner_offset",Value::custom_unmanaged(inner_offset)),
                     ],
                     UiInteractMessageType::CursorPressEnd{device,button,last,} => vec![
                         ("device",device.into()),
@@ -413,9 +413,9 @@ pub fn on_event_listeners<'a>(
                     UiInteractMessageType::CursorDragBegin { device, button, outer_offset, inner_offset, cursor } => vec![
                         ("device",device.into()),
                         ("button",button.into()),
-                        ("outer_offset",outer_offset.to_array().into()),
-                        ("inner_offset",inner_offset.to_array().into()),
-                        ("cursor",cursor.to_array().into())
+                        ("outer_offset",Value::custom_unmanaged(outer_offset)),
+                        ("inner_offset",Value::custom_unmanaged(inner_offset)),
+                        ("cursor",Value::custom_unmanaged(cursor))
                     ],
                     UiInteractMessageType::CursorDragEnd { device, button } => vec![
                         ("device",device.into()),
