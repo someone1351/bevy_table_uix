@@ -134,7 +134,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.method("vec2",|context|{
         let p0=context.param(0).as_float();
         let p1=context.get_param(1).map(|q|q.as_float()).unwrap_or(p0);
-        let a=Vec2::from_array([p0,p1].map(|q|q as f32));
+        let a=Vec2::from_array([p0,p1].map(|q|q.into()));
         Ok(Value::custom_unmanaged(a))
     })
         .end()
@@ -146,7 +146,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
         let p0=context.param(0).as_float();
         let p1=context.get_param(1).map(|q|q.as_float()).unwrap_or(p0);
         let p2=context.get_param(2).map(|q|q.as_float()).unwrap_or(p0);
-        let a=Vec3::from_array([p0,p1,p2].map(|q|q as f32));
+        let a=Vec3::from_array([p0,p1,p2].map(|q|q.into()));
         Ok(Value::custom_unmanaged(a))
     })
         .end()
@@ -159,7 +159,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
         let p1=context.get_param(1).map(|q|q.as_float()).unwrap_or(p0);
         let p2=context.get_param(2).map(|q|q.as_float()).unwrap_or(p0);
         let p3=context.get_param(3).map(|q|q.as_float()).unwrap_or(p0);
-        let a=Vec4::from_array([p0,p1,p2,p3].map(|q|q as f32));
+        let a=Vec4::from_array([p0,p1,p2,p3].map(|q|q.into()));
         Ok(Value::custom_unmanaged(a))
     })
         .end()
@@ -169,14 +169,14 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //vec3(v2,f)
     lib_scope.method("vec3",|context|{
         let p0=context.param(0).as_custom().data_clone::<Vec2>()?;
-        let p1=context.param(1).as_float() as f32;
+        let p1=context.param(1).as_float().into();
         let a=Vec3::from_array([p0[0],p0[1],p1]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<Vec2>().float().end();
 
     //vec3(f,v2)
     lib_scope.method("vec3",|context|{
-        let p0=context.param(0).as_float() as f32;
+        let p0=context.param(0).as_float().into();
         let p1=context.param(1).as_custom().data_clone::<Vec2>()?;
         let a=Vec3::from_array([p0,p1[0],p1[1]]);
         Ok(Value::custom_unmanaged(a))
@@ -185,14 +185,14 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //vec4(v3,f)
     lib_scope.method("vec4",|context|{
         let p0=context.param(0).as_custom().data_clone::<Vec3>()?;
-        let p1=context.param(1).as_float() as f32;
+        let p1=context.param(1).as_float().into();
         let a=Vec4::from_array([p0[0],p0[1],p0[2],p1]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<Vec3>().float().end();
 
     //vec4(v3,f)
     lib_scope.method("vec4",|context|{
-        let p0=context.param(0).as_float() as f32;
+        let p0=context.param(0).as_float().into();
         let p1=context.param(1).as_custom().data_clone::<Vec3>()?;
         let a=Vec4::from_array([p0,p1[0],p1[1],p1[2]]);
         Ok(Value::custom_unmanaged(a))
@@ -209,16 +209,16 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //vec4(v2,f,f)
     lib_scope.method("vec4",|context|{
         let p0=context.param(0).as_custom().data_clone::<Vec2>()?;
-        let p1=context.param(1).as_float() as f32;
-        let p2=context.param(2).as_float() as f32;
+        let p1=context.param(1).as_float().into();
+        let p2=context.param(2).as_float().into();
         let a=Vec4::from_array([p0[0],p0[1],p1,p2]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<Vec2>().float().float().end();
 
     //vec4(f,f,v2)
     lib_scope.method("vec4",|context|{
-        let p0=context.param(0).as_float() as f32 ;
-        let p1=context.param(1).as_float() as f32;
+        let p0=context.param(0).as_float().into() ;
+        let p1=context.param(1).as_float().into();
         let p2=context.param(2).as_custom().data_clone::<Vec2>()?;
         let a=Vec4::from_array([p0,p1,p2[0],p2[1]]);
         Ok(Value::custom_unmanaged(a))
@@ -226,9 +226,9 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
 
     //vec4(f,v2,f)
     lib_scope.method("vec4",|context|{
-        let p0=context.param(0).as_float() as f32;
+        let p0=context.param(0).as_float().into();
         let p1=context.param(1).as_custom().data_clone::<Vec2>()?;
-        let p2=context.param(2).as_float() as f32;
+        let p2=context.param(2).as_float().into();
         let a=Vec4::from_array([p0,p1[0],p1[1],p2]);
         Ok(Value::custom_unmanaged(a))
     }).float().custom_ref::<Vec2>().float().end();
@@ -237,7 +237,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.method("ivec2",|context|{
         let p0=context.param(0).as_int();
         let p1=context.get_param(1).map(|q|q.as_int()).unwrap_or(p0);
-        let a=IVec2::from_array([p0,p1].map(|q|q as i32));
+        let a=IVec2::from_array([p0.try_into()?,p1.try_into()?]);
         Ok(Value::custom_unmanaged(a))
     }).optional().int().int().end();
 
@@ -246,7 +246,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
         let p0=context.param(0).as_int();
         let p1=context.get_param(1).map(|q|q.as_int()).unwrap_or(p0);
         let p2=context.get_param(2).map(|q|q.as_int()).unwrap_or(p0);
-        let a=IVec3::from_array([p0,p1,p2].map(|q|q as i32));
+        let a=IVec3::from_array([p0.try_into()?,p1.try_into()?,p2.try_into()?]);
         Ok(Value::custom_unmanaged(a))
     }).end().int().end().int().int().int().end();
 
@@ -256,21 +256,21 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
         let p1=context.get_param(1).map(|q|q.as_int()).unwrap_or(p0);
         let p2=context.get_param(2).map(|q|q.as_int()).unwrap_or(p0);
         let p3=context.get_param(3).map(|q|q.as_int()).unwrap_or(p0);
-        let a=IVec4::from_array([p0,p1,p2,p3].map(|q|q as i32));
+        let a=IVec4::from_array([p0.try_into()?,p1.try_into()?,p2.try_into()?,p3.try_into()?]);
         Ok(Value::custom_unmanaged(a))
     }).end().int().end().int().int().int().int().end();
 
     //ivec3(iv2,i)
     lib_scope.method("ivec3",|context|{
         let p0=context.param(0).as_custom().data_clone::<IVec2>()?;
-        let p1=context.param(1).as_int() as i32;
+        let p1=context.param(1).as_int().try_into()?;
         let a=IVec3::from_array([p0[0],p0[1],p1]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<IVec2>().int().end();
 
     //ivec3(i,iv2)
     lib_scope.method("ivec3",|context|{
-        let p0=context.param(0).as_int() as i32;
+        let p0=context.param(0).as_int().try_into()?;
         let p1=context.param(1).as_custom().data_clone::<IVec2>()?;
         let a=IVec3::from_array([p0,p1[0],p1[1]]);
         Ok(Value::custom_unmanaged(a))
@@ -279,14 +279,14 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //ivec4(iv3,i)
     lib_scope.method("ivec4",|context|{
         let p0=context.param(0).as_custom().data_clone::<IVec3>()?;
-        let p1=context.param(1).as_int() as i32;
+        let p1=context.param(1).as_int().try_into()?;
         let a=IVec4::from_array([p0[0],p0[1],p0[2],p1]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<IVec3>().int().end();
 
     //ivec4(iv3,i)
     lib_scope.method("ivec4",|context|{
-        let p0=context.param(0).as_int() as i32;
+        let p0=context.param(0).as_int().try_into()?;
         let p1=context.param(1).as_custom().data_clone::<IVec3>()?;
         let a=IVec4::from_array([p0,p1[0],p1[1],p1[2]]);
         Ok(Value::custom_unmanaged(a))
@@ -303,16 +303,16 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //ivec4(iv2,i,i)
     lib_scope.method("ivec4",|context|{
         let p0=context.param(0).as_custom().data_clone::<IVec2>()?;
-        let p1=context.param(1).as_int() as i32;
-        let p2=context.param(2).as_int() as i32;
+        let p1=context.param(1).as_int().try_into()?;
+        let p2=context.param(2).as_int().try_into()?;
         let a=IVec4::from_array([p0[0],p0[1],p1,p2]);
         Ok(Value::custom_unmanaged(a))
     }).custom_ref::<IVec2>().int().int().end();
 
     //ivec4(i,i,iv2)
     lib_scope.method("ivec4",|context|{
-        let p0=context.param(0).as_int() as i32;
-        let p1=context.param(1).as_int() as i32;
+        let p0=context.param(0).as_int().try_into()?;
+        let p1=context.param(1).as_int().try_into()?;
         let p2=context.param(2).as_custom().data_clone::<IVec2>()?;
         let a=IVec4::from_array([p0,p1,p2[0],p2[1]]);
         Ok(Value::custom_unmanaged(a))
@@ -320,9 +320,9 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
 
     //ivec4(i,iv2,i)
     lib_scope.method("ivec4",|context|{
-        let p0=context.param(0).as_int() as i32;
+        let p0=context.param(0).as_int().try_into()?;
         let p1=context.param(1).as_custom().data_clone::<IVec2>()?;
-        let p2=context.param(2).as_int() as i32;
+        let p2=context.param(2).as_int().try_into()?;
         let a=IVec4::from_array([p0,p1[0],p1[1],p2]);
         Ok(Value::custom_unmanaged(a))
     }).int().custom_ref::<IVec2>().int().end();
@@ -366,22 +366,22 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //get_field(vec2,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<Vec2>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..2 => Value::float(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..2 => Value::float(v[ind]), _ => Value::Nil,})
     }).custom_ref::<Vec2>().int().end();
 
     //get_field(vec3,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<Vec3>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..3 => Value::float(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..3 => Value::float(v[ind]), _ => Value::Nil,})
     }).custom_ref::<Vec3>().int().end();
 
     //get_field(vec4,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<Vec4>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..4 => Value::float(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..4 => Value::float(v[ind]), _ => Value::Nil,})
     }).custom_ref::<Vec4>().int().end();
 
     //get_field(vec2,str)
@@ -409,22 +409,22 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //get_field(ivec2,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<IVec2>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..2 => Value::int(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..2 => Value::int(v[ind ]), _ => Value::Nil,})
     }).custom_ref::<IVec2>().int().end();
 
     //get_field(ivec3,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<IVec3>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..3 => Value::int(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..3 => Value::int(v[ind]), _ => Value::Nil,})
     }).custom_ref::<IVec3>().int().end();
 
     //get_field(ivec4,ind)
     lib_scope.field(|context|{
         let v=context.param(0).as_custom().data_clone::<IVec4>()?;
-        let ind = context.param(1).as_int();
-        Ok(match ind {0..4 => Value::int(v[ind as usize]), _ => Value::Nil,})
+        let ind = context.param(1).as_int().try_into()?;
+        Ok(match ind {0..4 => Value::int(v[ind]), _ => Value::Nil,})
     }).custom_ref::<IVec4>().int().end();
 
     //get_field(ivec2,str)
@@ -452,7 +452,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_float()].map(|q|q as f32);
+        let to = [context.param(2).as_float()].map(|q|q.into());
 
         this.as_custom().with_data_mut_ext(|data:&mut Vec2|{
             let mut a=data.to_array();
@@ -466,7 +466,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_float()].map(|q|q as f32);
+        let to = [context.param(2).as_float()].map(|q|q.into());
 
         this.as_custom().with_data_mut_ext(|data:&mut Vec3|{
             let mut a=data.to_array();
@@ -480,7 +480,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_float()].map(|q|q as f32);
+        let to = [context.param(2).as_float()].map(|q|q.into());
 
         this.as_custom().with_data_mut_ext(|data:&mut Vec4|{
             let mut a=data.to_array();
@@ -584,7 +584,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_int()].map(|q|q as i32);
+        let to = [context.param(2).as_int().try_into()?];
 
         this.as_custom().with_data_mut_ext(|data:&mut IVec2|{
             let mut a=data.to_array();
@@ -598,7 +598,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_int()].map(|q|q as i32);
+        let to = [context.param(2).as_int().try_into()?];
 
         this.as_custom().with_data_mut_ext(|data:&mut IVec3|{
             let mut a=data.to_array();
@@ -612,7 +612,7 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     lib_scope.field(|context|{
         let this=context.param(0);
         let fields = context.param(1).as_string();
-        let to = [context.param(2).as_int()].map(|q|q as i32);
+        let to = [context.param(2).as_int().try_into()?];
 
         this.as_custom().with_data_mut_ext(|data:&mut IVec4|{
             let mut a=data.to_array();
@@ -836,13 +836,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(vec2,f)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec2>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<Vec2>().float().end();
 
     //mul(f,vec2)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_float() as f32;
+        let a:f32=context.param(0).as_float().into();
         let b = context.param(1).as_custom().data_clone::<Vec2>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).float().custom_ref::<Vec2>().end();
@@ -850,13 +850,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(vec3,f)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec3>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<Vec3>().float().end();
 
     //mul(f,vec3)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_float() as f32;
+        let a:f32=context.param(0).as_float().into();
         let b = context.param(1).as_custom().data_clone::<Vec3>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).float().custom_ref::<Vec3>().end();
@@ -864,13 +864,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(vec4,f)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec4>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<Vec4>().float().end();
 
     //mul(f,vec4)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_float() as f32;
+        let a:f32=context.param(0).as_float().into();
         let b = context.param(1).as_custom().data_clone::<Vec4>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).float().custom_ref::<Vec4>().end();
@@ -878,13 +878,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(ivec2,i)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec2>()?;
-        let b=context.param(1).as_float() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<IVec2>().int().end();
 
-    //mul(f,ivec2)
+    //mul(i,ivec2)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_float() as i32;
+        let a:i32=context.param(0).as_int().try_into()?;
         let b = context.param(1).as_custom().data_clone::<IVec2>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).int().custom_ref::<IVec2>().end();
@@ -892,13 +892,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(ivec3,i)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec3>()?;
-        let b=context.param(1).as_int() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<IVec3>().int().end();
 
     //mul(i,ivec3)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_int() as i32;
+        let a:i32=context.param(0).as_int().try_into()?;
         let b = context.param(1).as_custom().data_clone::<IVec3>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).int().custom_ref::<IVec3>().end();
@@ -906,13 +906,13 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //mul(ivec4,i)
     lib_scope.method("*",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec4>()?;
-        let b=context.param(1).as_int() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a*b))
     }).custom_ref::<IVec4>().int().end();
 
     //mul(i,ivec4)
     lib_scope.method("*",|context|{
-        let a=context.param(0).as_int() as i32;
+        let a:i32=context.param(0).as_int().try_into()?;
         let b = context.param(1).as_custom().data_clone::<IVec4>()?;
         Ok(Value::custom_unmanaged(a*b))
     }).int().custom_ref::<IVec4>().end();
@@ -962,42 +962,42 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //div(vec2,f)
     lib_scope.method("/",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec2>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<Vec2>().float().end();
 
     //div(vec3,f)
     lib_scope.method("/",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec3>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<Vec3>().float().end();
 
     //div(vec4,f)
     lib_scope.method("/",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec4>()?;
-        let b=context.param(1).as_float() as f32;
+        let b:f32=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<Vec4>().float().end();
 
     //div(ivec2,i)
     lib_scope.method("/",|context|{
         let mut a = context.param(0).as_custom().data_clone::<IVec2>()?;
-        let b=context.param(1).as_int() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<IVec2>().int().end();
 
     //div(ivec3,i)
     lib_scope.method("/",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec3>()?;
-        let b=context.param(1).as_int() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<IVec3>().int().end();
 
     //div(ivec4,i)
     lib_scope.method("/",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec4>()?;
-        let b=context.param(1).as_int() as i32;
+        let b:i32=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a/b))
     }).custom_ref::<IVec4>().int().end();
 
@@ -1183,42 +1183,42 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //min(vec2,f)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec2>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.min(Vec2::new(b, b))))
     }).custom_ref::<Vec2>().float().end();
 
     //min(vec3,f)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec3>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.min(Vec3::new(b, b, b))))
     }).custom_ref::<Vec3>().float().end();
 
     //min(vec4,f)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec4>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.min(Vec4::new(b, b,b,b))))
     }).custom_ref::<Vec4>().float().end();
 
     //min(ivec2,i)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec2>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.min(IVec2::new(b,b))))
     }).custom_ref::<IVec2>().int().end();
 
     //min(ivec3,i)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec3>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.min(IVec3::new(b,b,b))))
     }).custom_ref::<IVec3>().int().end();
 
     //min(ivec4,i)
     lib_scope.method("min",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec4>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.min(IVec4::new(b,b,b,b))))
     }).custom_ref::<IVec4>().int().end();
 
@@ -1267,42 +1267,42 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //max(vec2,f)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec2>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.max(Vec2::new(b,b))))
     }).custom_ref::<Vec2>().float().end();
 
     //max(vec3,f)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec3>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.max(Vec3::new(b,b,b))))
     }).custom_ref::<Vec3>().float().end();
 
     //max(vec4,f)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec4>()?;
-        let b=context.param(1).as_float() as f32;
+        let b=context.param(1).as_float().into();
         Ok(Value::custom_unmanaged(a.max(Vec4::new(b,b,b,b))))
     }).custom_ref::<Vec4>().float().end();
 
     //max(ivec2,i)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec2>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.max(IVec2::new(b,b))))
     }).custom_ref::<IVec2>().int().end();
 
     //max(ivec3,i)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec3>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.max(IVec3::new(b,b,b))))
     }).custom_ref::<IVec3>().int().end();
 
     //max(ivec4,i)
     lib_scope.method("max",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec4>()?;
-        let b=context.param(1).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
         Ok(Value::custom_unmanaged(a.max(IVec4::new(b,b,b,b))))
     }).custom_ref::<IVec4>().int().end();
 
@@ -1351,8 +1351,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(vec2,f,f)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec2>()?;
-        let b=context.param(1).as_float() as f32;
-        let c=context.param(2).as_float() as f32;
+        let b=context.param(1).as_float().into();
+        let c=context.param(2).as_float().into();
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(Vec2::new(b,b), Vec2::new(c,c))))
     }).custom_ref::<Vec2>().float().float().end();
@@ -1360,8 +1360,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(vec3,f,f)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec3>()?;
-        let b=context.param(1).as_float() as f32;
-        let c=context.param(2).as_float() as f32;
+        let b=context.param(1).as_float().into();
+        let c=context.param(2).as_float().into();
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(Vec3::new(b,b,b), Vec3::new(c,c,c))))
     }).custom_ref::<Vec3>().float().float().end();
@@ -1369,8 +1369,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(vec4,f,f)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<Vec4>()?;
-        let b=context.param(1).as_float() as f32;
-        let c=context.param(2).as_float() as f32;
+        let b=context.param(1).as_float().into();
+        let c=context.param(2).as_float().into();
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(Vec4::new(b,b,b,b), Vec4::new(c,c,c,c))))
     }).custom_ref::<Vec4>().float().float().end();
@@ -1378,8 +1378,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(ivec2,i,i)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec2>()?;
-        let b=context.param(1).as_int() as i32;
-        let c=context.param(2).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
+        let c=context.param(2).as_int().try_into()?;
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(IVec2::new(b,b), IVec2::new(c,c))))
     }).custom_ref::<IVec2>().int().int().end();
@@ -1387,8 +1387,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(ivec3,i,i)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec3>()?;
-        let b=context.param(1).as_int() as i32;
-        let c=context.param(2).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
+        let c=context.param(2).as_int().try_into()?;
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(IVec3::new(b,b,b), IVec3::new(c,c,c))))
     }).custom_ref::<IVec3>().int().int().end();
@@ -1396,8 +1396,8 @@ pub fn register_vec(lib_scope:&mut LibScope<World>) {
     //clamp(ivec4,i,i)
     lib_scope.method("clamp",|context|{
         let a = context.param(0).as_custom().data_clone::<IVec4>()?;
-        let b=context.param(1).as_int() as i32;
-        let c=context.param(2).as_int() as i32;
+        let b=context.param(1).as_int().try_into()?;
+        let c=context.param(2).as_int().try_into()?;
         if b > c { return Err(context.error("min>max".to_string()));}
         Ok(Value::custom_unmanaged(a.clamp(IVec4::new(b,b,b,b), IVec4::new(c,c,c,c))))
     }).custom_ref::<IVec4>().int().int().end();

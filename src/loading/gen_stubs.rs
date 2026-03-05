@@ -9,6 +9,7 @@ use bevy_table_ui::{AttribFuncType, UiAffectState};
 use crate::loading::{calc_attribs, calc_envs2, calc_node_creates};
 
 use super::super::script_vals::*;
+use script_lang::StringVal;
 
 
 use super::vals::*;
@@ -25,8 +26,8 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     // let mut all_nodes: Vec<(usize,usize,Range<usize>,Range<usize>)>=Vec::new(); //(element_ind,parent_ind,attribs_start,attribs_end)
     let mut all_nodes=Vec::new();
     let mut all_init_attribs: Vec<AttribFuncType>=Vec::new(); //[]=func
-    let mut all_names: Vec<script_lang::StringT>=Vec::new();
-    let mut all_names_map = HashSet::<script_lang::StringT>::new();
+    let mut all_names: Vec<script_lang::StringVal>=Vec::new();
+    let mut all_names_map = HashSet::<script_lang::StringVal>::new();
 
     let mut all_state_attribs:HashMap<usize,Vec<(AttribFuncType,HashMap<UiAffectState,(AttribFuncType,i32)>)>> = HashMap::new(); //[element_ind][attrib_ind](default_func,[state]=(func,priority))
 
@@ -38,7 +39,7 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
     let all_envs = calcd_envs.iter().map(|(&stub_element_ind,stub_envs)|{
         (stub_element_ind,stub_envs.iter().map(|(&element_ind,(by_ind,by_name))|(element_ind,StuffEnv{
             by_ind: by_ind.clone(),
-            by_name: by_name.iter().map(|(&name,v)|(name.into(), v.clone())).collect(),
+            by_name: by_name.iter().map(|(name,v)|(StringVal::new(*name), v.clone())).collect(),
         })).collect())
     }).collect();
 
@@ -95,9 +96,9 @@ pub fn gen_stubs(elements:&Vec<Element>) -> Stuff {
 
 
             for &n in names.iter() {
-                let mut x=script_lang::StringT::new(n);
+                let mut x=script_lang::StringVal::new(n);
 
-                if let Some(y)=all_names_map.get(&script_lang::StringT::new(n)).cloned() {
+                if let Some(y)=all_names_map.get(&script_lang::StringVal::new(n)).cloned() {
                     x=y;
                 } else {
                     all_names_map.insert(x.clone());

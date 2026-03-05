@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 use bevy::{ecs::prelude::*,  };
 use bevy::asset::prelude::*;
 use bevy_table_ui::{UiLayoutComputed, UiRoot, };
-use script_lang::{StringT, Value};
+use script_lang::{ StringVal, Value};
 
 // use std::collections::{BTreeSet, HashMap};
 
@@ -31,25 +31,25 @@ use super::{
 
 #[derive(Component,Default)]
 pub struct UixData {
-    pub data:HashMap<StringT,Value>,
+    pub data:HashMap<StringVal,Value>,
 }
 
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]
 pub struct UixEventListener {
-    pub event_listeners : HashMap<script_lang::StringT,Vec<(script_lang::Value,bool)>>, //[event_name][ind]=(func,has_err)
+    pub event_listeners : HashMap<script_lang::StringVal,Vec<(script_lang::Value,bool)>>, //[event_name][ind]=(func,has_err)
 }
 
 #[derive(Component,Default)]
 #[require(UiLayoutComputed)]
 pub struct UixName {
-    pub names : HashSet<script_lang::StringT>,
+    pub names : HashSet<script_lang::StringVal>,
 }
 
 // #[derive(Component,Default)]
 // #[require(UiLayoutComputed)]
 // pub struct UixEnv {
-//     pub env : HashMap<script_lang::StringT,Vec<script_lang::Value>>,
+//     pub env : HashMap<script_lang::StringVal,Vec<script_lang::Value>>,
 // }
 
 #[derive(Component,)]

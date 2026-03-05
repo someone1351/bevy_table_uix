@@ -10,7 +10,7 @@ use bevy::ecs::prelude::*;
 use bevy::asset::prelude::*;
 // use bevy_table_ui::layout::messages::UiLayoutComputedChanged;
 use bevy_table_ui as table_ui;
-use script_lang::StringT;
+use script_lang::StringVal;
 // use script_lang::IntT;
 use script_lang::Value;
 use table_ui::*;
@@ -306,7 +306,7 @@ pub fn on_event_listeners<'a>(
 
     //
     // let mut output_events: Vec<(Entity,StringT, Vec<Value>)> = Vec::new(); //(entity,event_name,params)
-    let mut output_events: Vec<(Entity,StringT, Vec<(&'static str,Value)>)> = Vec::new(); //(entity,event_name,first_param,rest_params) ,Vec<Value>
+    let mut output_events: Vec<(Entity,StringVal, Vec<(&'static str,Value)>)> = Vec::new(); //(entity,event_name,first_param,rest_params) ,Vec<Value>
 
     //update events
     for (entity,event_listener) in event_listeners_query.iter() {

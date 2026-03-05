@@ -1,6 +1,6 @@
 use bevy::{color::Color, ecs::{component::Component, entity::Entity, hierarchy::ChildOf, world::World}, math::{IVec4, Vec4}};
 use bevy_table_ui::{UiRoot, UiVal};
-use script_lang::{FloatT, IntT, LibScope, MachineError, Value};
+use script_lang::{ FloatVal, LibScope, MachineError, Value};
 
 use super::super::components::*;
 
@@ -23,7 +23,8 @@ pub fn set_component<T:Component<Mutability = bevy::ecs::component::Mutable>+Def
 
 
 pub fn script_to_ui_val(v:Value) -> Result<UiVal,MachineError> {
-    (!v.is_nil()).then(||v.as_custom().data_clone()).unwrap_or(Ok(UiVal::None))
+    let a=(!v.is_nil()).then(||v.as_custom().data_clone()).unwrap_or(Ok(UiVal::None))?;
+    Ok(a)
 }
 
 
@@ -52,19 +53,27 @@ pub fn script_value_to_bool(val:Value) -> Result<bool,MachineError> {
 
 pub fn script_value_to_float(val:Value) -> Result<f32,MachineError> {
     if let Some(x)=val.get_float() {
-        Ok(x as f32)
+        Ok(x.into())
     } else if let Some(x)=val.get_int() {
-        Ok(x as f32)
+        let x:FloatVal= x.try_into()?;
+        Ok(x.into())
     } else {
         Err(MachineError::method("expected float"))
     }
 }
 pub fn script_value_to_int(val:Value) -> Result<i32,MachineError> {
-    val.get_int().map(|x|x as i32).ok_or_else(||MachineError::method("expected int"))
+    if let Some(x)=val.get_int() {
+        Ok(x.try_into()?)
+    } else {
+        Err(MachineError::method("expected int"))
+    }
 }
 pub fn script_value_to_uint(val:Value) -> Result<u32,MachineError> {
-    val.get_int().map(|x|x as i32).ok_or_else(||MachineError::method("expected int"))
-        .and_then(|x|if x<0{Err(MachineError::method("expected uint"))}else{Ok(x as u32)})
+    if let Some(x)=val.get_int() {
+        Ok(x.try_into()?)
+    } else {
+        Err(MachineError::method("expected uint"))
+    }
 }
 
 pub fn script_value_to_string(val:Value) -> Result<String,MachineError> {

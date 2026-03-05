@@ -8,6 +8,7 @@ mod utils;
 mod vec;
 mod rect;
 
+use core::convert::Into;
 use std::{collections::{HashMap, HashSet}, ops::Range, path::PathBuf, sync::{Arc, Mutex}};
 
 use bevy::{asset::AssetServer, color::{Color, ColorToComponents}, ecs::{component::Component, entity, world::EntityRef}, math::{IVec2, IVec3, IVec4, Rect, Vec2, Vec3, Vec4}, prelude::{ ChildOf, Children, Entity, Resource, World}, text::{Justify, TextColor, TextFont, TextLayout}};
@@ -59,7 +60,7 @@ pub fn register_ui_val(lib_scope:&mut LibScope<World>) {
     lib_scope.field_named("p", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
-        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Px(to as f32); Ok(Value::Void) })
+        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Px(to.into()); Ok(Value::Void) })
     }).custom_mut_ref::<UiVal>().float().end();
 
     //get ui_val.scale
@@ -72,7 +73,7 @@ pub fn register_ui_val(lib_scope:&mut LibScope<World>) {
     lib_scope.field_named("s", |context|{
         let this=context.param(0).as_custom();
         let to=context.param(1).as_float();
-        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Scale(to as f32); Ok(Value::Void) })
+        this.with_data_mut_ext(|data:&mut UiVal|{ *data=UiVal::Scale(to.into()); Ok(Value::Void) })
     }).custom_mut_ref::<UiVal>().float().end();
 }
 
@@ -757,7 +758,7 @@ pub fn register_entity_attribs(lib_scope:&mut LibScope<World>) {
         let mut c= e.entry::<UiText>().or_default();
         let mut c=c.get_mut();
 
-        c.0=s;
+        c.0=s.to_string();
         Ok(Value::Void)
     }).custom_ref::<Entity>().any().end();
 
@@ -918,7 +919,7 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
     lib_scope.method("call",|mut context|{
         let stuff=context.param(0).as_custom();
         let top_entity:Entity = context.param(2).as_custom().data_clone()?;
-        let stub_ind=context.param(1).as_int().abs() as usize;
+        let stub_ind=context.param(1).as_int().abs().try_into()?;
 
         let world=context.core_mut();
 
@@ -1025,14 +1026,14 @@ pub fn register_stuff(lib_scope:&mut LibScope<World>)
         //
         let ind =context.param(1).get_string().unwrap();
 
-        let is_node = ind.starts_with('n');
-        let is_env = ind.starts_with('e');
+        let is_node = ind.as_str().starts_with('n');
+        let is_env = ind.as_str().starts_with('e');
 
         if !is_node && !is_env {
             return Ok(Value::Nil);
         }
 
-        let ind:Option<usize> = ind.get(1..).and_then(|ind|ind.parse().ok());
+        let ind:Option<usize> = ind.as_str().get(1..).and_then(|ind|ind.parse().ok());
 
         let Some(ind)=ind else {
             return Ok(Value::Nil);
@@ -1330,7 +1331,7 @@ pub fn register(lib_scope:&mut LibScope<World>) {
     #[derive(Clone)]
     struct StuffResultNamedEnv {
         env:Value,
-        name : StringT,
+        name : StringVal,
     }
 
     //get stuff_result_env.str

@@ -3,7 +3,7 @@ use bevy::prelude::{Entity, Message};
 #[derive(Debug,Message,Clone)]
 pub struct UixUserMessage {
     pub entity : Entity,
-    pub event : script_lang::StringT,
+    pub event : script_lang::StringVal,
     pub params : Vec<(&'static str,script_lang::Value)>,
 }
 
@@ -11,6 +11,6 @@ pub struct UixUserMessage {
 #[derive(Debug,Message,Clone)]
 pub struct UixOutputMessage {
     pub entity : Entity,
-    pub event : script_lang::StringT,
+    pub event : script_lang::StringVal,
     pub params : Vec<script_lang::Value>,
 }
