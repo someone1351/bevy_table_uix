@@ -211,7 +211,7 @@ pub fn on_asset_load<'a>(
             //     continue;
             // }
 
-            let compiler=script_lang::cexpr_compiler::Compiler::new();
+            let compiler=script_lang::texpr_compiler::Compiler::new();
             let compile_result=compiler.compile(&src, 0,from_asset.handle.path().map(|x|x.path()),  true);
 
             if let Err(e)=compile_result {

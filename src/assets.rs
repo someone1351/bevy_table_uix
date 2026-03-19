@@ -40,6 +40,9 @@ TODO
 *** what about when in applies/templates/stubs? don't allow on ancestors nodes not declared inside
 *** what about allowing on descendents? same problem as allowing on others
 
+TODO
+* add overwrite that has only attribs as children
+**
 */
 use std::{collections::HashSet, path::PathBuf};
 

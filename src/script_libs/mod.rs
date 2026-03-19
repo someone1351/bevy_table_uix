@@ -888,10 +888,10 @@ pub fn register_attribs(lib_scope:&mut LibScope<World>) {
             "margin_rect" => Value::custom_unmanaged(c.margin_rect()),
             "cell_rect" => Value::custom_unmanaged(c.cell_rect()),
 
-            "padding_edge" => Value::custom_unmanaged(c.padding_edge),
-            "border_edge" => Value::custom_unmanaged(c.border_edge),
-            "margin_edge" => Value::custom_unmanaged(c.margin_edge),
-            "cell_edge" => Value::custom_unmanaged(c.cell_edge),
+            "padding_size" => Value::custom_unmanaged(c.padding_edge),
+            "border_size" => Value::custom_unmanaged(c.border_edge),
+            "margin_size" => Value::custom_unmanaged(c.margin_edge),
+            "cell_size" => Value::custom_unmanaged(c.cell_edge),
 
             "changed" => c.changed.into(),
             "pos_changed" => c.pos_changed.into(),
